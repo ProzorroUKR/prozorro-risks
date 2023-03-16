@@ -23,6 +23,8 @@ async def process_tender(tender):
         "other": [],
     }
     uid = tender.pop("id" if "id" in tender else "_id")
+    identifier = tender.get("procuringEntity", {}).get("identifier", {})
+    tender["procuringEntityIdentifier"] = f'{identifier.get("scheme", "")}-{identifier.get("id", "")}'
 
     # for some risk rules it is required to have saved tenders in database for processing statistics
     await save_tender(uid, tender)
@@ -30,7 +32,7 @@ async def process_tender(tender):
     for module_name in RISK_RULE_MODULES:
         risk_module = getattr(sys.modules[RISK_RULES_MODULE], module_name)
         risk_rule = getattr(risk_module, "RiskRule")()
-        risk_indicator = risk_rule.process_tender(tender)
+        risk_indicator = await risk_rule.process_tender(tender)
         if risk_indicator == RiskIndicatorEnum.risk_found:
             risks["worked"].append(
                 {
@@ -59,10 +61,7 @@ async def process_tender(tender):
             "dateModified": tender.get("dateModified"),
             "value": tender.get("value"),
             "procuringEntity": tender.get("procuringEntity"),
-            "procuringEntityRegion": tender.get("procuringEntity", {})
-            .get("address", {})
-            .get("region", "")
-            .lower(),
+            "procuringEntityRegion": tender.get("procuringEntity", {}).get("address", {}).get("region", "").lower(),
         },
     )
 

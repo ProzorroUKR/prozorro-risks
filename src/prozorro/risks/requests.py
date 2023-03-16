@@ -14,9 +14,7 @@ async def get_tender_data(session, tender_id, retries=20):
     retried = 0
     while True:
         try:
-            result = await request_tender(
-                session=session, tender_id=tender_id, method_name="get"
-            )
+            result = await request_tender(session=session, tender_id=tender_id, method_name="get")
         except RequestRetryException as e:
             if retried > retries:
                 logger.critical(

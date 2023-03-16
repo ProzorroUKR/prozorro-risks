@@ -34,9 +34,7 @@ def create_application(on_cleanup=None):
     )
     app.router.add_get("/api/ping", ping_handler, allow_head=False)
     app.router.add_get("/api/version", get_version, allow_head=False)
-    app.router.add_get(
-        r"/api/risks/{tender_id:[\w-]+}", get_tender_risks, allow_head=False
-    )
+    app.router.add_get(r"/api/risks/{tender_id:[\w-]+}", get_tender_risks, allow_head=False)
     app.router.add_get("/api/risks", list_tenders, allow_head=False)
     app.router.add_get("/api/regions", get_region_values, allow_head=False)
 

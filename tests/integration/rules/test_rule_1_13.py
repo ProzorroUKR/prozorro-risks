@@ -20,7 +20,7 @@ async def test_tender_with_satisfied_complaints_more_than_decision_limit():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_found
 
 
@@ -35,7 +35,7 @@ async def test_tender_with_satisfied_complaints_less_than_decision_limit():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
@@ -51,7 +51,7 @@ async def test_tender_with_satisfied_award_complaints_more_than_decision_limit()
     )
     tender_data["awards"][0]["complaints"] = complaints
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_found
 
 
@@ -67,7 +67,7 @@ async def test_tender_with_satisfied_award_complaints_less_than_decision_limit()
     )
     tender_data["awards"][0]["complaints"] = complaints
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
@@ -81,7 +81,7 @@ async def test_tender_without_satisfied_complaints():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.can_not_be_assessed
 
 
@@ -92,7 +92,7 @@ async def test_tender_with_not_risky_tender_status():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
@@ -103,12 +103,12 @@ async def test_tender_with_not_risky_procurement_type():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender_data["procuringEntity"]["kind"] = "other"
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
