@@ -1,0 +1,27 @@
+{
+  "value": {
+    "amount": 4176.66,
+    "currency": "UAH",
+    "valueAddedTaxIncluded": true
+  },
+  "tenderers": [
+    {
+      "name_en": "Tovaristvo z obmezhenoyu vidpovidalnistyu \"ELEVEITOR SERVIS\"",
+      "name": "Товариство з обмеженою відповідальністю \"ЕЛЕВЕЙТОР СЕРВІС\"",
+      "identifier": {
+        "scheme": "UA-EDR",
+        "id": "38526925",
+        "legalName": "Товариство з обмеженою відповідальністю \"ЕЛЕВЕЙТОР СЕРВІС\"",
+        "legalName_en": "Tovaristvo z obmezhenoyu vidpovidalnistyu \"ELEVEITOR SERVIS\""
+      }
+    }
+  ],
+  "status": "active",
+  "id": "f6e09f31d3024049b3bf227742e31bd6",
+  "date": "2023-02-22T10:29:06.237445+02:00",
+  "lotValues": [
+      {
+        "relatedLot": "c2bb6ff3e8e547bee11d8bff23e8a295"
+      }
+  ]
+}

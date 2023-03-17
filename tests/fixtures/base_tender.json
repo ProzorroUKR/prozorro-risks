@@ -1,0 +1,413 @@
+{
+  "description": "Технічні, якісні та інші характеристики предмета закупівлі визначені у Додатку № 1.",
+  "plans": [
+    {
+      "id": "a1383ca54edc46e7b26eb1ae99d392dd"
+    }
+  ],
+  "date": "2023-02-27T00:02:38.136881+02:00",
+  "dateModified": "2023-03-01T12:04:05.175816+02:00",
+  "dateCreated": "2023-02-16T14:30:13.746921+02:00",
+  "tenderID": "UA-2023-02-16-009364-a",
+  "status": "active.qualification",
+  "owner": "e-tender.biz",
+  "title": "Послуги поточного ремонту з відновлення працездатності ліфта на об’єкті за адресою: Харківське шосе, 148, під’їзд 8, реєстр.№ 19279 у Дарницькому районі м. Києва",
+  "mainProcurementCategory": "services",
+  "submissionMethod": "electronicAuction",
+  "procurementMethod": "open",
+  "awardCriteria": "lowestCost",
+  "value": {
+    "amount": 4177.0,
+    "currency": "UAH",
+    "valueAddedTaxIncluded": true
+  },
+  "guarantee": {
+    "amount": 0.0,
+    "currency": "UAH"
+  },
+  "minimalStep": {
+    "amount": 41.77,
+    "currency": "UAH",
+    "valueAddedTaxIncluded": true
+  },
+  "tenderPeriod": {
+    "startDate": "2023-02-22T00:00:00+02:00",
+    "endDate": "2023-02-27T00:00:00+02:00"
+  },
+  "items": [
+    {
+      "id": "8f5e2d33af404434952ad2ec1b92e850",
+      "description": "Послуги поточного ремонту з відновлення працездатності ліфта на об’єкті за адресою: Харківське шосе, 148, під’їзд 8, реєстр.№ 19279 у Дарницькому районі м. Києва",
+      "classification": {
+        "description": "Електромонтажні роботи",
+        "scheme": "ДК021",
+        "id": "45310000-3"
+      },
+      "unit": {
+        "name": "послуга",
+        "code": "E48"
+      },
+      "quantity": 1.0,
+      "deliveryDate": {
+        "endDate": "2023-03-09T00:00:00+02:00"
+      },
+      "deliveryAddress": {
+        "streetAddress": "Харківське шосе, 148",
+        "locality": "",
+        "region": "м. Київ",
+        "postalCode": "02175",
+        "countryName": "Україна"
+      }
+    }
+  ],
+  "milestones": [
+    {
+      "id": "8dd95bfb115646ee97a9e500813d5052",
+      "title": "submittingServices",
+      "type": "financing",
+      "code": "postpayment",
+      "percentage": 100.0,
+      "duration": {
+        "days": 90,
+        "type": "banking"
+      },
+      "sequenceNumber": 1
+    }
+  ],
+  "procurementMethodType": "belowThreshold",
+  "procuringEntity": {
+    "name": "Комунальне підприємство «Керуюча компанія з обслуговування житлового фонду Дарницького району м. Києва»",
+    "name_en": "Municipal Enterprise \"Management Company of Housing Stock Servicing of \" Darnytsia District of Kyiv\".",
+    "identifier": {
+      "scheme": "UA-EDR",
+      "id": "39604270",
+      "legalName": "Комунальне підприємство «Керуюча компанія з обслуговування житлового фонду Дарницького району м. Києва»",
+      "legalName_en": "Municipal Enterprise \"Management Company of Housing Stock Servicing of \" Darnytsia District of Kyiv\"."
+    },
+    "address": {
+      "streetAddress": "Харківське шосе 148-А",
+      "locality": "Київ",
+      "region": "Київська область",
+      "postalCode": "02175",
+      "countryName": "Україна"
+    },
+    "contactPoint": {
+      "email": "kk_tender@kkdarn.kiev.ua",
+      "telephone": "380445632767,380672202671",
+      "name": "Рудик Оксана Анатоліївна"
+    },
+    "kind": "general"
+  },
+  "enquiryPeriod": {
+    "startDate": "2023-02-16T14:30:13.746921+02:00",
+    "clarificationsUntil": "2023-02-23T00:00:00+02:00",
+    "endDate": "2023-02-22T00:00:00+02:00"
+  },
+  "documents": [
+    {
+      "documentType": "biddingDocuments",
+      "hash": "md5:005de51fc14e32e2b9c8682148d9a84f",
+      "title": "ОГОЛОШЕННЯ_ХШ_148.docx",
+      "format": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "url": "https://api.prozorro.gov.ua/api/2.5/tenders/de80d4f75fbf4062905c5e1c1d9afe5c/documents/9a419e1753b8423090f90a0b683f8cbc?download=71b10afc48bf4896828794cbd41dd56c",
+      "documentOf": "tender",
+      "id": "9a419e1753b8423090f90a0b683f8cbc",
+      "datePublished": "2023-02-16T14:30:45.191644+02:00",
+      "dateModified": "2023-02-16T14:30:45.191644+02:00",
+      "author": "tender_owner"
+    },
+    {
+      "documentType": "biddingDocuments",
+      "hash": "md5:53369783231ad8495bc15fa275ead90c",
+      "title": "ОГОЛОШЕННЯ.pdf",
+      "format": "application/pdf",
+      "url": "https://api.prozorro.gov.ua/api/2.5/tenders/de80d4f75fbf4062905c5e1c1d9afe5c/documents/8696eb354131431d81f23201ba2b69c8?download=25617286cfe6489ebc1a3d2d7d7643cb",
+      "documentOf": "tender",
+      "id": "8696eb354131431d81f23201ba2b69c8",
+      "datePublished": "2023-02-16T14:30:45.550688+02:00",
+      "dateModified": "2023-02-16T14:30:45.550688+02:00",
+      "author": "tender_owner"
+    },
+    {
+      "documentType": "contractProforma",
+      "hash": "md5:e5398a099904270a85f8798b21746126",
+      "title": "ПРОЄКТ ДОГОВОРУ.docx",
+      "format": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "url": "https://api.prozorro.gov.ua/api/2.5/tenders/de80d4f75fbf4062905c5e1c1d9afe5c/documents/ca359cb38f354bbdb9aef64db77a02d5?download=4f5da68c58e34f6181eecc2d57e55d06",
+      "documentOf": "tender",
+      "id": "ca359cb38f354bbdb9aef64db77a02d5",
+      "datePublished": "2023-02-16T14:31:10.938089+02:00",
+      "dateModified": "2023-02-16T14:31:10.938089+02:00",
+      "author": "tender_owner"
+    },
+    {
+      "documentType": "notice",
+      "hash": "md5:8b6ce842e8962af7b723751bceebd104",
+      "title": "sign.p7s",
+      "format": "application/pkcs7-signature",
+      "url": "https://api.prozorro.gov.ua/api/2.5/tenders/de80d4f75fbf4062905c5e1c1d9afe5c/documents/a5c70931955c415199c2a6914fc4150c?download=bdcab5d105364f1da2aa72b375634f8b",
+      "documentOf": "tender",
+      "id": "a5c70931955c415199c2a6914fc4150c",
+      "datePublished": "2023-02-16T16:01:52.803290+02:00",
+      "dateModified": "2023-02-16T16:01:52.803290+02:00",
+      "author": "tender_owner"
+    }
+  ],
+  "bids": [
+    {
+      "value": {
+        "amount": 4176.66,
+        "currency": "UAH",
+        "valueAddedTaxIncluded": true
+      },
+      "tenderers": [
+        {
+          "name_en": "Tovaristvo z obmezhenoyu vidpovidalnistyu \"ELEVEITOR SERVIS\"",
+          "name": "Товариство з обмеженою відповідальністю \"ЕЛЕВЕЙТОР СЕРВІС\"",
+          "identifier": {
+            "scheme": "UA-EDR",
+            "id": "38526925",
+            "legalName": "Товариство з обмеженою відповідальністю \"ЕЛЕВЕЙТОР СЕРВІС\"",
+            "legalName_en": "Tovaristvo z obmezhenoyu vidpovidalnistyu \"ELEVEITOR SERVIS\""
+          },
+          "address": {
+            "streetAddress": "Харківське шосе,  будинок 172-Б, офіс 208/3",
+            "locality": "Київ",
+            "region": "Київська область",
+            "postalCode": "02091",
+            "countryName": "Україна"
+          },
+          "contactPoint": {
+            "name_en": "Korniyenko Andriy Volodymyrovych",
+            "email": "el_servise@i.ua",
+            "telephone": "380442990330",
+            "name": "Корнієнко Андрій Володимирович"
+          },
+          "scale": "micro"
+        }
+      ],
+      "status": "active",
+      "id": "f6e09f31d3024049b3bf227742e31bd6",
+      "date": "2023-02-22T10:29:06.237445+02:00",
+      "documents": [
+        {
+          "id": "1888da7952c7438ba016e90bca60e94c",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:1fb2ab5eb796397c17e252e15e8c9e4a",
+          "title": "10. Лист-погодження з проєктом договору.PDF",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/06927419aaff42c2ad03e05365abc0d7?Signature=bELD3K430AlevRxMeG1fOC09Wj%2BHajgGCGNtC6lPx%2FDmZUn9cjLPAcRxFQzh%2BRQtdG0F3WH7zZCaFf7oiQWXDA%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "794e029e65d242d78bce3299e3b036b4",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:641e827b8f42860c10aa3a68d98cb923",
+          "title": "6. Довідка про незалучення субпідрядників.PDF",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/93d471a94225460a83c11778610f8439?Signature=QyseiA1Q7dHoe9Anov8UJ4dzjI97qx%2BslvHn4Rzd4AFU8Gor3ILMHRWZGEXaZYXJ03evKOMunrxvm5sdZY0IBg%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "5533460eee1d4851a43e43aef183fa18",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:368c7994ae5e5f93b871deec5a959a7e",
+          "title": "5. Довідка та договір на підставердження наявності досвіду.pdf",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/a252abee1b2144f98b3f5d0eb9b384a9?Signature=kD68OhCVKvXv7tJnxsO65z2Wc%2FIdZr5h9FAFbiNcKAAwN3bjadARjBbCZi9HCSOEb8Vi%2BCG2q9i0AO5KWdmnDg%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "5c3523a2fc0243f5b1fee55f8e711d49",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:2c7ec5f402ea315f4ceb46153e24830f",
+          "title": "2. Довідка про наявність працівників відповідної кваліфікації.pdf",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/49e72822acd7482489791ed3948fd4db?Signature=l1LY372cmIWFd%2FCoQ3vc9ih6FFvlZDKj3%2B8s8erFCaUzznoQMj2N4%2BbA%2BaAIGmkTNaDwMIsofhTkb2IFJxMuDQ%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "9e614ce8517c4f6eb09f4658820d07d4",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:42f9b8cbfe57d5e1a7c5ef2bb74ef2f2",
+          "title": "13. Інші документи.pdf",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/73455d4fbec44aea9e560946642158e7?Signature=PaJtC%2B%2FdmKvrn4VdfzeBcfqKXy6b8YwmfBP4UgCF3asRMcIm7YZ7QpILjixAeEtq%2B6h2W9bJOxeusSyoQXWxCQ%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "f8165fa8b51444e5bec65f341a167c31",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:3bac627037930b1ec5fd77e06556a7a2",
+          "title": "14. Інформація про те, що учасник не є резидентом рф та рб.PDF",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/767ba7d504884dfc8eda01006cbd1ef6?Signature=WkL7sCyWKKkZs8EpeExaMcpBa4UovoW1ce3oXTlZ9DiIBI7NsSQG9DdqXYnV9JHz21rMSY6iZPI9Ofb5FVnNCA%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "34f73d0e3c3a4f06b226546342e21639",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:5f151828044abf76e94f61da6af4b83c",
+          "title": "8. Лист-згода на обробку персональних даних.PDF",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/d6aca6d7f1d24bcebb15de4fb27ff415?Signature=bGpELAz22bhhDUT%2FM%2FWXsBhxoDW0NjMzF5FmjrEoutg%2Bm%2FENoZBhkPU3o9xL4LY9wvf4vVHRrRB7I3wwTdnfDg%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "0fda2ec757de4403a97ea175ca1269d8",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:999078bc7bb86fbc85a5fe364aa19834",
+          "title": "4. Довідка про наявність офісного приміщення та Договори.pdf",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/aea105d8f023442e93e03fc17e08c905?Signature=Qp%2BVLmsw2mEHTuN75eKPt93MKsds8UZs%2BSG0mZoioXjpENLh4fDDIrhOYHFGEDQdv%2FrSgdzq0UXpyRVBxqIoAg%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "9662c541999c43dc91c5c724b7661419",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:ce3ba4791a4ff516458c4b7b22941436",
+          "title": "15. Інформація щодо неперебування на тимчасово окупованій території.PDF",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/9476e62fe46a4e5094af138dd98f6de3?Signature=BbG8aabCAdnnINzKm2XZWwHxg9LMGD7mU5zQ9zd5dQQQZgipm7bd4Q9qgZaV47tdohCbvduFE3Jd8hrcgiOMAw%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "fa1d889ddbb7410f88d1fc8cbb3eb063",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:7ada8bee68bb75719d93f9bb1364605b",
+          "title": "1. Цінова пропозиція (ХШ, 148).PDF",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/39856ae6dfff45b1af354ba6d40003d2?Signature=opgDvx3nQepoMWhrMUHPA1qTQ%2BJhWc9b%2FcovvwnX7VAXTVrGybjqb7G004iyf03NR3mPLVdpqfTBp56pZNodAg%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "373336dfe95f42c492617579e76a85f6",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:7e19720cb9d25adf8d535ddaa3750763",
+          "title": "12. Довідка про засновника та бенефіціара.PDF",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/087bd36a5c754f60be5c131acb1f8130?Signature=FrUw5C%2F6D%2F5GY8Gedh%2FtHc7FlvqHkqvMtlsEjz8voFk15eWC5hZ%2FLroV7Lnu0ZHImoYhGPM3GE01gB3Ev2r3CA%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "08a3dc3e5ed84ca392d0ec2dfe7f3f24",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:06a0a6e251cad83410e177d3043fafc9",
+          "title": "3. Довідка про наявність матеріально-технічної бази.PDF",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/66c693d027bc4ded8eab81ff6939060b?Signature=sFysBIEwkehENeJsf%2FIo%2FEc5%2FLx1OuQXLQK2RhpBOYjzniNFrAFAlqWoMKcOxAM%2FNsQ1tK%2F48syyXLr11aAxCQ%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "42e31311241746bcb386aafb3bc12e84",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:fa9d9342f63a5ecc7289ddb9269d46dd",
+          "title": "7. Дозвільні документи.pdf",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/0dc000243fc94316b612ef7a71a6f5f1?Signature=1dI8NGO1n%2FPk%2FpGUPj7dFl3HGG4Ui8UpibJgHz3SRO7ZEXNiNCZ4boDO9VgqSrU8RvzNLjH5goQLjkz2dWtyAQ%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "6a5f005b8ff943fb81cf4681b4da2600",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:a1d098251236b88305daf69abe302054",
+          "title": "11. Гарантійний лист про достовірність інформації.PDF",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/2a33c44b8b0a4f1dac016c15cfdb4c8e?Signature=tKNz%2BiVuLAAsnaIUYz8wsSCqw1NaO3uvTi1QcZblutBHfZzqALDqHoA6QIKx6E3w1YvhURtYZJiGHJyxC8TQCw%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "2290b026f43f4caf94c8b1743d929a80",
+          "datePublished": "2023-02-22T10:31:29.901763+02:00",
+          "hash": "md5:25a39adbfa9ea84cbf186f6106d73136",
+          "title": "9. Відомості про учасника.PDF",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/13999fc6eef9428184880794269b7326?Signature=kl8X9AIaPpKl%2FZaoCL4riNKnVn1jJBdCjmEquMs6Ic7UANbjJsJcH45HhnrWkApylwrYtTd59LwGDkLiThfWCg%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:31:29.901763+02:00"
+        },
+        {
+          "id": "b71dfe60723141269bade2e387f0adbb",
+          "datePublished": "2023-02-22T10:35:35.716544+02:00",
+          "hash": "md5:a458eadd367372ed3e59ae4280cddb59",
+          "title": "sign.p7s",
+          "format": "application/pkcs7-signature",
+          "url": "https://public-docs.prozorro.gov.ua/get/aeb782780c2245f08f28be33c210eabf?Signature=8eLqWYz%2FADA0%2F%2BmTY53H3aOrHGRK47UqTKJvsPkGeCkKxCN8Mm2j1bn22GHkayyZA0KlgvVPDl0g7XVx1pKYDA%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "dateModified": "2023-02-22T10:35:35.716544+02:00"
+        }
+      ]
+    }
+  ],
+  "awardPeriod": {
+    "startDate": "2023-02-27T00:02:38.136881+02:00"
+  },
+  "awards": [
+    {
+      "id": "f2588db5ac4b4fe0a3628fcb1b5fda73",
+      "status": "pending",
+      "date": "2023-02-27T00:02:38.136881+02:00",
+      "value": {
+        "amount": 4176.66,
+        "currency": "UAH",
+        "valueAddedTaxIncluded": true
+      },
+      "suppliers": [
+        {
+          "name_en": "Tovaristvo z obmezhenoyu vidpovidalnistyu \"ELEVEITOR SERVIS\"",
+          "name": "Товариство з обмеженою відповідальністю \"ЕЛЕВЕЙТОР СЕРВІС\"",
+          "identifier": {
+            "scheme": "UA-EDR",
+            "id": "38526925",
+            "legalName": "Товариство з обмеженою відповідальністю \"ЕЛЕВЕЙТОР СЕРВІС\"",
+            "legalName_en": "Tovaristvo z obmezhenoyu vidpovidalnistyu \"ELEVEITOR SERVIS\""
+          },
+          "address": {
+            "streetAddress": "Харківське шосе,  будинок 172-Б, офіс 208/3",
+            "locality": "Київ",
+            "region": "Київська область",
+            "postalCode": "02091",
+            "countryName": "Україна"
+          },
+          "contactPoint": {
+            "name_en": "Korniyenko Andriy Volodymyrovych",
+            "email": "el_servise@i.ua",
+            "telephone": "380442990330",
+            "name": "Корнієнко Андрій Володимирович"
+          },
+          "scale": "micro"
+        }
+      ],
+      "bid_id": "f6e09f31d3024049b3bf227742e31bd6",
+      "documents": [
+        {
+          "documentType": "awardNotice",
+          "hash": "md5:40084588afcbdace0b6650ebd1d62689",
+          "title": "Протокол_ВП_ТОВ ЕЛЕВЕЙТОР СЕРВІС_ХШ_148.pdf",
+          "format": "application/pdf",
+          "url": "https://public-docs.prozorro.gov.ua/get/3f30f083bb8f42a9a95e081598c00454?Signature=hLgCmnDqVGWDFvjelMJK2pSsWqtXcD5326Vxw%2FniUFLZi2tlpTRwKJSAptXwi1tVxmOXdgmsErRN4bm6V7fiBg%3D%3D&KeyID=52462340",
+          "documentOf": "tender",
+          "id": "f9b8f0250c4440c1b9518f36f648463b",
+          "datePublished": "2023-03-01T12:04:05.175816+02:00",
+          "dateModified": "2023-03-01T12:04:05.175816+02:00",
+          "author": "tender_owner"
+        }
+      ]
+    }
+  ],
+  "id": "de80d4f75fbf4062905c5e1c1d9afe5c"
+}

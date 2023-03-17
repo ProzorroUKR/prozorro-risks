@@ -1,0 +1,8 @@
+aiohttp
+motor
+aiohttp-swagger>=1.0.14, <2
+python-json-logger>=2.0.2, <3
+sentry-sdk
+pydantic==1.7.3
+
+git+https://github.com/ProzorroUKR/prozorro_crawler.git@2.0.12#egg=prozorro_crawler
