@@ -1,9 +1,8 @@
 from datetime import datetime
 
-from prozorro.risks.db import aggregate_tenders
 from prozorro.risks.models import RiskIndicatorEnum
 from prozorro.risks.rules.base import BaseRiskRule
-from prozorro.risks.settings import TIMEZONE
+from prozorro.risks.historical_data import get_list_of_cpvs
 
 
 class RiskRule(BaseRiskRule):
@@ -28,32 +27,6 @@ class RiskRule(BaseRiskRule):
     )
     procurement_categories = ("goods", "services")
 
-    async def group_entities_and_suppliers_cpv(self, year, entity_identifier, supplier_scheme, supplier_identifier):
-        aggregation_pipeline = [
-            {
-                "$match": {
-                    "procuringEntityIdentifier": entity_identifier,
-                    "dateCreated": {
-                        "$gte": datetime(year, 1, 1, tzinfo=TIMEZONE).isoformat(),
-                        "$lt": datetime(year + 1, 1, 1, tzinfo=TIMEZONE).isoformat(),
-                    },
-                    "procurementMethodType": {"$in": self.procurement_methods},
-                    "contracts": {"$exists": True},
-                    "contracts.suppliers.identifier.scheme": supplier_scheme,
-                    "contracts.suppliers.identifier.id": supplier_identifier,
-                }
-            },
-            {"$unwind": "$items"},
-            {
-                "$group": {
-                    "_id": None,
-                    "cpv": {"$addToSet": "$items.classification.id"},
-                }
-            },
-            {"$project": {"_id": 0}},
-        ]
-        return await aggregate_tenders(aggregation_pipeline)
-
     async def process_tender(self, tender):
         if (
             tender["procurementMethodType"] in self.procurement_methods
@@ -62,23 +35,29 @@ class RiskRule(BaseRiskRule):
             and tender.get("mainProcurementCategory") in self.procurement_categories
         ):
             active_awards = [award for award in tender.get("awards", []) if award["status"] == "active"]
+            # Якщо в процедурі немає жодного об’єкту data.awards, що має статус data.awards.status='active',
+            # індикатор приймає значення -2, розрахунок завершується.
             if not active_awards:
                 return RiskIndicatorEnum.can_not_be_assessed
 
             for award in active_awards:
                 for supplier in award.get("suppliers", []):
+                    # Перевіряємо, що закупав замовник у конкретного постачальника протягом календарного року
                     supplier_identifier = supplier.get("identifier", {})
                     year = datetime.fromisoformat(tender["dateCreated"]).year
-                    result = await self.group_entities_and_suppliers_cpv(
-                        year,
-                        tender["procuringEntityIdentifier"],
-                        supplier_identifier.get("scheme", ""),
-                        supplier_identifier.get("id", ""),
+                    result = await get_list_of_cpvs(
+                        year=year,
+                        entity_identifier=tender["procuringEntityIdentifier"],
+                        supplier_identifier=supplier_identifier,
+                        procurement_methods=self.procurement_methods,
                     )
+
+                    # За ідентифікатором замовника та ідентифікатором перможця рахуємо коди CPV.
+                    # Якщо кількість унікальних предметів закупівлі 4 або більше, індикатор приймає значення 1.
                     if len(result.get("cpv", [])) >= 4:
                         return RiskIndicatorEnum.risk_found
 
-                    # Якщо у рядку кількість предметів закупівлі дорівнює 3, то перевіряємо, чи входить у список
+                    # Якщо кількість предметів закупівлі дорівнює 3, то перевіряємо, чи входить у список
                     # в рядку поточні коди предметів закупівлі. Якщо хоч один не входить у список,
                     # індикатор приймає значення 1,
                     elif len(result.get("cpv", [])) == 3:

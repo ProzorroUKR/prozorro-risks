@@ -83,8 +83,7 @@ async def init_tender_indexes():
     compound_procuring_entity_index = IndexModel(
         [
             ("procuringEntityIdentifier", ASCENDING),
-            ("dateCreated", DESCENDING),
-            ("procurementMethodType", ASCENDING),
+            ("contracts.dateSigned", DESCENDING),
         ],
         background=True,
     )

@@ -1,5 +1,5 @@
 from copy import deepcopy
-from unittest.mock import AsyncMock
+from unittest.mock import patch
 
 from prozorro.risks.models import RiskIndicatorEnum
 from prozorro.risks.rules.risk_2_15_1 import RiskRule
@@ -42,17 +42,21 @@ async def test_tender_without_active_awards():
     assert indicator == RiskIndicatorEnum.can_not_be_assessed
 
 
-async def test_tender_for_4_and_more_cpvs():
+@patch(
+    "prozorro.risks.rules.risk_2_15.get_list_of_cpvs",
+    return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1", "45310000-5"]},
+)
+async def test_tender_for_4_and_more_cpvs(mock_cpvs):
     tender_data["awards"][0]["status"] = "active"
     risk_rule = RiskRule()
-    risk_rule.group_entities_and_suppliers_cpv = AsyncMock(
-        return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1", "45310000-5"]}
-    )
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_found
 
 
-async def test_tender_for_3_cpvs_and_no_new_one():
+@patch(
+    "prozorro.risks.rules.risk_2_15.get_list_of_cpvs", return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1"]}
+)
+async def test_tender_for_3_cpvs_and_no_new_one(mock_cpvs):
     tender_data["awards"][0]["status"] = "active"
     tender_data["items"][0]["classification"]["id"] = "45310000-2"
     tender_without_lots = deepcopy(tender_data)
@@ -60,9 +64,6 @@ async def test_tender_for_3_cpvs_and_no_new_one():
     tender_data["items"][0]["relatedLot"] = tender_data["lots"][0]["id"]
     tender_data["awards"][0]["relatedLot"] = tender_data["lots"][0]["id"]
     risk_rule = RiskRule()
-    risk_rule.group_entities_and_suppliers_cpv = AsyncMock(
-        return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1"]}
-    )
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
@@ -70,7 +71,10 @@ async def test_tender_for_3_cpvs_and_no_new_one():
     assert indicator_without_lots == RiskIndicatorEnum.risk_not_found
 
 
-async def test_tender_for_3_cpvs_and_new_one_cpv():
+@patch(
+    "prozorro.risks.rules.risk_2_15.get_list_of_cpvs", return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1"]}
+)
+async def test_tender_for_3_cpvs_and_new_one_cpv(mock_cpvs):
     tender_data["awards"][0]["status"] = "active"
     tender_data["items"][0]["classification"]["id"] = "45310000-4"
     tender_without_lots = deepcopy(tender_data)
@@ -78,9 +82,6 @@ async def test_tender_for_3_cpvs_and_new_one_cpv():
     tender_data["items"][0]["relatedLot"] = tender_data["lots"][0]["id"]
     tender_data["awards"][0]["relatedLot"] = tender_data["lots"][0]["id"]
     risk_rule = RiskRule()
-    risk_rule.group_entities_and_suppliers_cpv = AsyncMock(
-        return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1"]}
-    )
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_found
 
@@ -88,18 +89,18 @@ async def test_tender_for_3_cpvs_and_new_one_cpv():
     assert indicator_without_lots == RiskIndicatorEnum.risk_found
 
 
-async def test_tender_for_less_than_3_cpvs():
+@patch("prozorro.risks.rules.risk_2_15.get_list_of_cpvs", return_value={"cpv": ["45310000-3", "45310000-2"]})
+async def test_tender_for_less_than_3_cpvs(mock_cpvs):
     tender_data["awards"][0]["status"] = "active"
     risk_rule = RiskRule()
-    risk_rule.group_entities_and_suppliers_cpv = AsyncMock(return_value={"cpv": ["45310000-3", "45310000-2"]})
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
-async def test_tenders_with_no_matching_identifiers():
+@patch("prozorro.risks.rules.risk_2_15.get_list_of_cpvs", return_value={})
+async def test_tenders_with_no_matching_identifiers(mock_cpvs):
     tender_data["awards"][0]["status"] = "active"
     risk_rule = RiskRule()
-    risk_rule.group_entities_and_suppliers_cpv = AsyncMock(return_value={})
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
