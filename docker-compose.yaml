@@ -49,6 +49,8 @@ services:
         <<: *base_app
         image: "${IMAGE_TEST}"
         container_name: risks-test-integration
+        depends_on:
+          - mongo
         volumes:
             - ./src/prozorro:/app/prozorro
             - ./tests:/prozorro/tests

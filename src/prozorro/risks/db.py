@@ -67,13 +67,14 @@ def get_tenders_collection():
 
 async def init_risks_indexes():
     region_index = IndexModel([("procuringEntityRegion", ASCENDING)], background=True)
+    edrpou_index = IndexModel([("procuringEntityEDRPOU", ASCENDING)], background=True)
     value_index = IndexModel([("value.amount", ASCENDING)], background=True)
-    date_modified_index = IndexModel([("dateModified", ASCENDING)], background=True)
+    date_assessed_index = IndexModel([("dateAssessed", ASCENDING)], background=True)
     risks_worked_index = IndexModel([("risks.worked.id", ASCENDING)], background=True)
 
     try:
         await get_risks_collection().create_indexes(
-            [region_index, value_index, date_modified_index, risks_worked_index]
+            [region_index, edrpou_index, value_index, date_assessed_index, risks_worked_index]
         )
     except PyMongoError as e:
         logger.exception(e)
@@ -110,8 +111,10 @@ def _build_tender_filters(**kwargs):
     filters = {}
     if risks_list := kwargs.get("risks"):
         filters["risks.worked"] = {"$elemMatch": {"id": {"$in": risks_list}}}
-    if region := kwargs.get("region"):
-        filters["procuringEntityRegion"] = {"$regex": rf"^{region.lower()}"}
+    if regions_list := kwargs.get("region"):
+        filters["procuringEntityRegion"] = {"$in": [region.lower() for region in regions_list]}
+    if edrpou := kwargs.get("edrpou"):
+        filters["procuringEntityEDRPOU"] = edrpou
     return filters
 
 
@@ -120,7 +123,7 @@ async def find_tenders(skip=0, limit=20, **kwargs):
     limit = min(limit, MAX_LIST_LIMIT)
     filters = _build_tender_filters(**kwargs)
     request_sort = kwargs.get("sort")
-    sort_field = request_sort if request_sort else "dateModified"
+    sort_field = request_sort if request_sort else "dateAssessed"
     sort_order = ASCENDING if kwargs.get("order") == "asc" else DESCENDING
     result = await paginated_result(
         collection,
@@ -128,7 +131,10 @@ async def find_tenders(skip=0, limit=20, **kwargs):
         skip,
         limit,
         sort=[(sort_field, sort_order)],
-        projection={"procuringEntityRegion": False},
+        projection={
+            "procuringEntityRegion": False,
+            "procuringEntityEDRPOU": False,
+        },
     )
     return result
 

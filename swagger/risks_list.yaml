@@ -19,12 +19,17 @@ parameters:
   name: risks
   schema:
     type: string
-  description: Filter by risks.id
+  description: Filter by risks.id. Can be one value or sequence of values separated by ;
 - in: query
   name: region
   schema:
     type: string
   description: Filter by procuring entity's region
+- in: query
+  name: edrpou
+  schema:
+    type: string
+  description: Filter by procuring entity's edrpou. Can be one value or sequence of values separated by ;
 - in: query
   name: sort
   schema:

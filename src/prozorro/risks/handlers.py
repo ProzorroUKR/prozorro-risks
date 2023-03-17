@@ -35,8 +35,8 @@ async def list_tenders(request):
     result = await find_tenders(
         skip=skip,
         limit=limit,
-        **requests_params(request, "sort", "order", "region"),
-        **requests_sequence_params(request, "risks", separator=";")
+        **requests_params(request, "sort", "order", "edrpou"),
+        **requests_sequence_params(request, "risks", "region", separator=";")
     )
     return result
 
