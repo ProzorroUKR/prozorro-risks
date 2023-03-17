@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.risk_2_4 import RiskRule
+from prozorro.risks.rules.risk_3_2_1 import RiskRule
 from tests.integration.conftest import get_fixture_json
 
 tender_data = get_fixture_json("base_tender")
@@ -10,7 +10,7 @@ tender_data.update(
     {
         "procurementMethodType": "aboveThresholdUA",
         "status": "active.qualification",
-        "mainProcurementCategory": "services",
+        "mainProcurementCategory": "works",
         "lots": [
             {
                 "title": "Бетон та розчин будівельний",
@@ -265,7 +265,7 @@ async def test_tender_with_not_risky_procurement_entity_kind():
 async def test_tender_with_not_risky_procurement_category():
     tender_data.update(
         {
-            "mainProcurementCategory": "works",
+            "mainProcurementCategory": "services",
         }
     )
     risk_rule = RiskRule()

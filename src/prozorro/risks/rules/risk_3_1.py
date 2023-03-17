@@ -9,7 +9,7 @@ DECISION_LIMIT = 30
 
 
 class RiskRule(BaseRiskRule):
-    identifier = "1-13"
+    identifier = "3-1"
     name = "Невиконання замовником рішення органу оскарження"
     description = (
         "Індикатор свідчить про: Невиконання замовником рішення органу оскарження у встановлений законом термін."
@@ -29,6 +29,7 @@ class RiskRule(BaseRiskRule):
         "negotiation.quick",
         "aboveThresholdEU",
         "aboveThresholdUA",
+        "aboveThreshold",
     )
     tender_statuses = (
         "active",

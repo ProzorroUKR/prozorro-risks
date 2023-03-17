@@ -6,7 +6,7 @@ from prozorro.risks.historical_data import get_list_of_cpvs
 
 
 class RiskRule(BaseRiskRule):
-    identifier = "2-15"
+    identifier = "3-3"
     name = "Закупівля товарів та послуг у одного учасника"
     description = (
         "Даний індикатор виявляє ситуації, коли замовник проводить закупівлі у одного постачальника за 4 "
@@ -16,7 +16,7 @@ class RiskRule(BaseRiskRule):
     development_basis = (
         "Цей індикатор було розроблено, оскільки система не зберігає зведену історію закупівель для замовника."
     )
-    procurement_methods = ("aboveThresholdUA", "aboveThresholdEU")
+    procurement_methods = ("aboveThresholdUA", "aboveThresholdEU", "aboveThreshold")
     tender_statuses = ("active.qualification", "active.awarded")
     procuring_entity_kinds = (
         "authority",
