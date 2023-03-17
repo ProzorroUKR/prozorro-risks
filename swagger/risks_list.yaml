@@ -1,0 +1,132 @@
+tags:
+- Risks
+description: Get a list of tenders with processed risks indicators
+operationId: list_tenders
+parameters:
+- in: query
+  name: limit
+  schema:
+    type: integer
+    default: 20
+  description: Maximum number of items to return
+- in: query
+  name: skip
+  schema:
+    type: integer
+    default: 0
+  description: Number of items to skip
+- in: query
+  name: risks
+  schema:
+    type: string
+  description: Filter by risks.id
+- in: query
+  name: region
+  schema:
+    type: string
+  description: Filter by procuring entity's region
+- in: query
+  name: sort
+  schema:
+    type: string
+  description: Field for sorting (e.g. 'name')
+- in: query
+  name: order
+  schema:
+    type: string
+  description: Sorting order (e.g. 'asc')
+produces:
+- application/json
+responses:
+  "200":
+    description: successful operation
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            count:
+              type: integer
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  description: Tender id
+                  dateModified:
+                    type: string
+                    format: date-time
+                    description: Date of tender modifying
+                  value:
+                    type: object
+                    properties:
+                      amount:
+                        type: number
+                        format: double
+                      currency:
+                        type: string
+                      valueAddedTaxIncluded:
+                        type: boolean
+                  procuringEntity:
+                    type: object
+                    properties:
+                      address:
+                        type: object
+                        properties:
+                          streetAddress:
+                            type: string
+                          locality:
+                            type: string
+                          region:
+                            type: string
+                          postalCode:
+                            type: string
+                          countryName:
+                            type: string
+                  risks:
+                    type: object
+                    properties:
+                      worked:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Risk id
+                            indicator:
+                              type: integer
+                              description: Risk indicator
+                            date:
+                              type: string
+                              format: date-time
+                              description: Date of risk evaluating
+                            name:
+                              type: string
+                              description: Risk name
+                            description:
+                              type: string
+                              description: Risk name
+                            legitimateness:
+                              type: string
+                              description: Risk legitimateness
+                            development_basis:
+                              type: string
+                              description: Risk development basis
+                      other:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Risk id
+                            indicator:
+                              type: integer
+                              description: Risk indicator
+                            date:
+                              type: string
+                              format: date-time
+                              description: Date of risk evaluating

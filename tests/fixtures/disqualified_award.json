@@ -1,0 +1,18 @@
+{
+  "id": "f2588db5ac4b4fe0a3628fcb1b5fda73",
+  "status": "unsuccessful",
+  "date": "2023-02-27T00:02:38.136881+02:00",
+  "suppliers": [
+    {
+      "name_en": "Tovaristvo z obmezhenoyu vidpovidalnistyu \"ELEVEITOR SERVIS\"",
+      "name": "Товариство з обмеженою відповідальністю \"ЕЛЕВЕЙТОР СЕРВІС\"",
+      "identifier": {
+        "scheme": "UA-EDR",
+        "id": "38526925",
+        "legalName": "Товариство з обмеженою відповідальністю \"ЕЛЕВЕЙТОР СЕРВІС\"",
+        "legalName_en": "Tovaristvo z obmezhenoyu vidpovidalnistyu \"ELEVEITOR SERVIS\""
+      }
+    }
+  ],
+  "lotID": "c2bb6ff3e8e547bee11d8bff23e8a295"
+}

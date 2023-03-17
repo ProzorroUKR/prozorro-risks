@@ -1,0 +1,145 @@
+stages:
+  - lint
+  - build
+  - test
+  - publish
+  - deploy
+  - cleanup
+
+image: docker-registry.prozorro.gov.ua/cdb/openprocurement.api/ci
+
+variables:
+  IMAGE: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA
+  IMAGE_TEST: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-test
+
+code-style-check:
+  image: python:3.9-alpine3.14
+  stage: lint
+  tags:
+    - kube-dev
+  before_script:
+    - pip install flake8
+  script:
+    - flake8
+  only:
+    changes:
+      - "**/*.py"
+  except:
+    - schedules
+
+build-new-image:
+  stage: build
+  tags:
+    - shell
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - make docker-build
+
+test:
+  image: docker-registry.prozorro.gov.ua/docker/images/python:3.9-alpine3.14
+  stage: test
+  services:
+    - name: bitnami/mongodb:4.4.12-debian-10-r24
+      alias: mongo
+  variables:
+    SWAGGER_DOC_AVAILABLE: ""
+    MONGODB_URL: mongodb://root:example@mongo:27017/?replicaSet=rs0
+    MONGODB_ROOT_PASSWORD: example
+    MONGODB_REPLICA_SET_MODE: primary
+    MONGODB_REPLICA_SET_NAME: rs0
+    MONGODB_REPLICA_SET_KEY: replicaSetKey
+  tags:
+    - kube-dev
+  before_script:
+    - apk --no-cache add gcc build-base git openssl-dev libffi-dev
+    - pip install -r requirements.txt
+    - pip install -r tests/requirements.txt
+    - pip install -e .
+  script:
+    - pytest -x -s tests/integration/
+      --cov=src/prozorro/risks
+      --cov-report xml
+      --cov-report term
+  artifacts:
+    reports:
+      coverage_report:
+        path: coverage.xml
+        coverage_format: cobertura
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+
+push-latest-image:
+  stage: publish
+  tags:
+    - shell
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - docker tag $IMAGE $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - master
+
+push-tagged-image:
+  stage: publish
+  tags:
+    - shell
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - docker tag $IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  only:
+    - tags
+
+review:
+  stage: deploy
+  tags:
+    - shell
+  environment:
+    name: review/${CI_COMMIT_REF_SLUG}
+    action: start
+    url: http://api.${CI_COMMIT_REF_SLUG}.${K8S_DOMAIN}/api/ping
+    on_stop: stop_review
+    auto_stop_in: 1 month
+  variables:
+    TAG: $CI_COMMIT_REF_SLUG
+    RELEASE: risks-${CI_COMMIT_REF_SLUG}
+  script:
+    - helm3 upgrade -i ${RELEASE} helm/prozorro-risks --namespace dev-prozorro
+        --set prozorro-risks.api.image.tag=$TAG
+        --set prozorro-risks.crawler.image.tag=$TAG
+        --set "ingress.hosts[0].host=risks.${RELEASE}.k8s.prozorro.gov.ua,ingress.hosts[0].paths[0].path=/,ingress.hosts[0].paths[0].service=api"
+  when: manual
+  only:
+    - branches
+  except:
+    - master
+    - schedules
+
+stop_review:
+  stage: deploy
+  script:
+    - helm3 delete risks-$CI_COMMIT_REF_SLUG --namespace dev-prozorro
+  environment:
+    name: review/${CI_COMMIT_REF_SLUG}
+    action: stop
+  tags:
+    - shell
+  when: manual
+  only:
+    - branches
+  except:
+    - master
+    - schedules
+
+cleanup-test-images:
+  stage: cleanup
+  tags:
+    - shell
+  script:
+    - make remove-compose
+    - docker rmi --no-prune -f $IMAGE || true
+    - docker rmi --no-prune -f $IMAGE_TEST || true
+    - docker network rm ${CI_COMMIT_SHORT_SHA}_default || true
+  when: always

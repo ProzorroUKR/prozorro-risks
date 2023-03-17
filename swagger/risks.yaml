@@ -1,0 +1,119 @@
+tags:
+- Risks
+description: Get risks for particular tender
+operationId: get_tender_risks
+parameters:
+- in: path
+  name: tender_id
+  schema:
+    type: string
+responses:
+  "200":
+    description: successful operation
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            _id:
+              type: string
+              description: Tender id
+            dateModified:
+              type: string
+              format: date-time
+              description: Date of tender modifying
+            value:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: double
+                currency:
+                  type: string
+                valueAddedTaxIncluded:
+                  type: boolean
+            procuringEntity:
+              type: object
+              properties:
+                address:
+                  type: object
+                  properties:
+                    streetAddress:
+                      type: string
+                    locality:
+                      type: string
+                    region:
+                      type: string
+                    postalCode:
+                      type: string
+                    countryName:
+                      type: string
+            risks:
+              type: object
+              properties:
+                worked:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: Risk id
+                      indicator:
+                        type: integer
+                        description: Risk indicator
+                      date:
+                        type: string
+                        format: date-time
+                        description: Date of risk evaluating
+                      name:
+                        type: string
+                        description: Risk name
+                      description:
+                        type: string
+                        description: Risk name
+                      legitimateness:
+                        type: string
+                        description: Risk legitimateness
+                      development_basis:
+                        type: string
+                        description: Risk development basis
+                other:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: Risk id
+                      indicator:
+                        type: integer
+                        description: Risk indicator
+                      date:
+                        type: string
+                        format: date-time
+                        description: Date of risk evaluating
+  "404":
+    description: Not found
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            errors:
+              type: array
+              items:
+                type: string
+                example: Tender not found
+  "500":
+    description: Server error
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            errors:
+              type: array
+              items:
+                type: string
+                example: Error response

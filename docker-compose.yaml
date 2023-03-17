@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+    risks: &base_app
+        image: "${IMAGE}"
+        command: python -m prozorro.risks.api
+        container_name: risks-api
+        environment:
+            MONGODB_URL: 'mongodb://root:example@mongo:27017/?replicaSet=rs0'
+            PYTHONUNBUFFERED: '1'
+        ports:
+            - 8080:8080
+        volumes:
+            - ./src/prozorro:/app/prozorro
+            - ./tests:/prozorro/tests
+            - ./swagger:/swagger
+        depends_on:
+            - mongo
+            - crawler
+
+    crawler:
+        image: "${IMAGE}"
+        container_name: risks-crawler
+        environment:
+            MONGODB_URL: 'mongodb://root:example@mongo:27017/?replicaSet=rs0'
+            PYTHONUNBUFFERED: '1'
+            MONGODB_STATE_ID: 'prozorro-risks'
+            API_OPT_FIELDS: 'status,auctionPeriod,lots,next_check'
+            PUBLIC_API_HOST: 'https://api.prozorro.gov.ua'
+            FORWARD_CHANGES_COOLDOWN_SECONDS: '36000'  # 10 hours in seconds
+            BACKWARD_OFFSET: '1423058400.69246'  # 2015-02-23T12:00:00.756010+02:00
+            FORWARD_OFFSET: '1546293600.0'  # 2019-01-01T00:00:00.0+02:00
+        command: python -m prozorro.risks.crawler
+        volumes:
+            - ./src/prozorro:/app/prozorro
+
+    mongo:
+        image: 'bitnami/mongodb:4.4.3'
+        environment:
+            MONGODB_ADVERTISED_HOSTNAME: mongo
+            MONGODB_ROOT_PASSWORD: example
+            MONGODB_REPLICA_SET_MODE: primary
+            MONGODB_REPLICA_SET_NAME: rs0
+            MONGODB_REPLICA_SET_KEY: replicaSetKey
+        ports:
+            - 27017:27017
+
+    risks-test-integration: &test_app
+        <<: *base_app
+        image: "${IMAGE_TEST}"
+        container_name: risks-test-integration
+        volumes:
+            - ./src/prozorro:/app/prozorro
+            - ./tests:/prozorro/tests
+            - ./swagger:/swagger
+            - ./pytest.ini:/app/pytest.ini
