@@ -1,2 +1,3 @@
 pytest-aiohttp
 pytest-cov
+parameterized
