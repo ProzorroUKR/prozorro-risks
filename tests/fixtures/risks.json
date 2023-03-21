@@ -26,19 +26,19 @@
   "risks": {
     "worked": [
       {
-        "id": "1-13",
+        "id": "3-1",
         "indicator": "risk_found",
         "date": "2023-03-13T14:37:12.491341+02:00"
       },
       {
-        "id": "2-4",
+        "id": "3-2",
         "indicator": "risk_found",
         "date": "2023-03-13T14:37:12.491365+02:00"
       }
     ],
     "other": [
       {
-        "id": "2-4-1",
+        "id": "3-2-1",
         "indicator": "risk_not_found",
         "date": "2023-03-13T14:37:12.491385+02:00"
       }

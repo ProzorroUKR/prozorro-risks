@@ -14,9 +14,7 @@ DB_NAME = os.environ.get("DB_NAME", "prozorro-risks")
 # 'PRIMARY', 'PRIMARY_PREFERRED', 'SECONDARY', 'SECONDARY_PREFERRED', 'NEAREST',
 READ_PREFERENCE = getattr(ReadPreference, os.environ.get("READ_PREFERENCE", "PRIMARY"))
 raw_write_concert = os.environ.get("WRITE_CONCERN", "1")
-WRITE_CONCERN = WriteConcern(
-    w=int(raw_write_concert) if raw_write_concert.isnumeric() else raw_write_concert
-)
+WRITE_CONCERN = WriteConcern(w=int(raw_write_concert) if raw_write_concert.isnumeric() else raw_write_concert)
 READ_CONCERN = ReadConcern(level=os.environ.get("READ_CONCERN") or None)
 
 SWAGGER_DOC_AVAILABLE = bool(os.environ.get("SWAGGER_DOC_AVAILABLE", True))

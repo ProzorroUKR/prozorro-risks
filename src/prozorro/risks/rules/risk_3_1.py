@@ -9,11 +9,10 @@ DECISION_LIMIT = 30
 
 
 class RiskRule(BaseRiskRule):
-    identifier = "1-13"
+    identifier = "3-1"
     name = "Невиконання замовником рішення органу оскарження"
     description = (
-        "Індикатор свідчить про: Невиконання замовником рішення органу оскарження у встановлений "
-        "зконом термін."
+        "Індикатор свідчить про: Невиконання замовником рішення органу оскарження у встановлений законом термін."
     )
     legitimateness = (
         "Стаття 18 частина 22: “Рішення органу оскарження набирають чинності з дня їх прийняття та є "
@@ -30,6 +29,7 @@ class RiskRule(BaseRiskRule):
         "negotiation.quick",
         "aboveThresholdEU",
         "aboveThresholdUA",
+        "aboveThreshold",
     )
     tender_statuses = (
         "active",
@@ -59,13 +59,11 @@ class RiskRule(BaseRiskRule):
     @staticmethod
     def check_decision_delta(complaints):
         for complaint in complaints:
-            if (
-                get_now() - datetime.fromisoformat(complaint["dateDecision"])
-            ).days > DECISION_LIMIT:
+            if (get_now() - datetime.fromisoformat(complaint["dateDecision"])).days > DECISION_LIMIT:
                 return RiskIndicatorEnum.risk_found
         return RiskIndicatorEnum.risk_not_found
 
-    def process_tender(self, tender):
+    async def process_tender(self, tender):
         if (
             tender["procurementMethodType"] in self.procurement_methods
             and tender["status"] in self.tender_statuses
@@ -73,10 +71,7 @@ class RiskRule(BaseRiskRule):
         ):
             complaints = self.get_satisfied_complaints(tender)
             award_complaints = sum(
-                [
-                    self.get_satisfied_complaints(award)
-                    for award in tender.get("awards", [])
-                ],
+                [self.get_satisfied_complaints(award) for award in tender.get("awards", [])],
                 [],
             )
 

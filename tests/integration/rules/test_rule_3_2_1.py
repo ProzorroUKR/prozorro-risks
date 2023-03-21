@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.risk_2_4 import RiskRule
+from prozorro.risks.rules.risk_3_2_1 import RiskRule
 from tests.integration.conftest import get_fixture_json
 
 tender_data = get_fixture_json("base_tender")
@@ -10,7 +10,7 @@ tender_data.update(
     {
         "procurementMethodType": "aboveThresholdUA",
         "status": "active.qualification",
-        "mainProcurementCategory": "services",
+        "mainProcurementCategory": "works",
         "lots": [
             {
                 "title": "Бетон та розчин будівельний",
@@ -39,19 +39,19 @@ bid = get_fixture_json("bid")
 
 async def test_tender_without_winner():
     tender_data["awards"][0]["lotID"] = tender_data["lots"][0]["id"]
-    tender_data["awards"][0]["lotID"] = "pending"
+    tender_data["awards"][0]["status"] = "pending"
     tender_data["awards"].append(disqualified_award)
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.can_not_be_assessed
 
 
 async def test_tender_without_disqualified_award():
     tender_data["awards"] = [tender_data["awards"][0]]
     tender_data["awards"][0]["lotID"] = tender_data["lots"][0]["id"]
-    tender_data["awards"][0]["lotID"] = "active"
+    tender_data["awards"][0]["status"] = "active"
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.can_not_be_assessed
 
 
@@ -89,7 +89,7 @@ async def test_tender_with_violations():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_found
 
 
@@ -109,7 +109,7 @@ async def test_tender_with_less_than_2_disqualified_awards():
 
     tender_data.update({"bids": [bid, bid_2], "awards": [disqualified_award_1, winner]})
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
@@ -148,7 +148,7 @@ async def test_tender_without_violations():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
@@ -188,7 +188,7 @@ async def test_tender_with_not_unique_bidders():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_found
 
 
@@ -229,7 +229,7 @@ async def test_tender_with_not_unique_awards():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_found
 
 
@@ -240,7 +240,7 @@ async def test_tender_with_not_risky_tender_status():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
@@ -251,23 +251,23 @@ async def test_tender_with_not_risky_procurement_type():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender_data["procuringEntity"]["kind"] = "other"
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
 async def test_tender_with_not_risky_procurement_category():
     tender_data.update(
         {
-            "mainProcurementCategory": "works",
+            "mainProcurementCategory": "services",
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
+    indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
