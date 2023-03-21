@@ -82,7 +82,7 @@ async def test_tender_without_satisfied_complaints():
     )
     risk_rule = RiskRule()
     indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.can_not_be_assessed
+    assert indicator == RiskIndicatorEnum.risk_not_found
 
 
 async def test_tender_with_not_risky_tender_status():

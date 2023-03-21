@@ -36,9 +36,9 @@ class RiskRule(BaseRiskRule):
         ):
             active_awards = [award for award in tender.get("awards", []) if award["status"] == "active"]
             # Якщо в процедурі немає жодного об’єкту data.awards, що має статус data.awards.status='active',
-            # індикатор приймає значення -2, розрахунок завершується.
+            # індикатор приймає значення 0, розрахунок завершується.
             if not active_awards:
-                return RiskIndicatorEnum.can_not_be_assessed
+                return RiskIndicatorEnum.risk_not_found
 
             for award in active_awards:
                 for supplier in award.get("suppliers", []):

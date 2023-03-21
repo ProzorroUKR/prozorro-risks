@@ -135,3 +135,15 @@ responses:
                               type: string
                               format: date-time
                               description: Date of risk evaluating
+  "408":
+    description: Request timeout
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            errors:
+              type: array
+              items:
+                type: string
+                example: Request timeoout

@@ -30,7 +30,7 @@ class RiskRule(BaseRiskRule):
         ):
             for award in tender["awards"]:
                 if award.get("complaints"):
-                    return RiskIndicatorEnum.can_not_be_assessed
+                    return RiskIndicatorEnum.risk_not_found
                 if award["status"] == "cancelled":
                     return RiskIndicatorEnum.risk_found
         return RiskIndicatorEnum.risk_not_found

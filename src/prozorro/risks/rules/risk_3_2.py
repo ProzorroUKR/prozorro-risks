@@ -50,7 +50,7 @@ class RiskRule(BaseRiskRule):
                         winner_count = 1
 
                 if not disqualified_awards or not winner_count:
-                    return RiskIndicatorEnum.can_not_be_assessed
+                    return RiskIndicatorEnum.risk_not_found
 
                 disqualifications_count = len(disqualified_awards)
                 if disqualifications_count <= 2:

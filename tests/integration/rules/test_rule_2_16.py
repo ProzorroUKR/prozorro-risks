@@ -16,7 +16,7 @@ async def test_tender_with_award_complaints():
     tender_data["awards"][0]["complaints"] = [{"test": "test_complaint"}]
     risk_rule = RiskRule()
     indicator = risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.can_not_be_assessed
+    assert indicator == RiskIndicatorEnum.risk_not_found
 
 
 async def test_tender_with_cancelled_award():

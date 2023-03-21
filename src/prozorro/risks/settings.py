@@ -25,3 +25,4 @@ TIMEZONE = ZoneInfo(os.getenv("TIMEZONE", "Europe/Kiev"))
 CLIENT_MAX_SIZE = int(os.getenv("CLIENT_MAX_SIZE", 1024**2 * 100))
 
 MAX_LIST_LIMIT = int(os.environ.get("MAX_LIST_LIMIT", 1000))
+MAX_TIME_QUERY = int(os.environ.get("MAX_TIME_QUERY", 5))  # query time limit during filtering risks

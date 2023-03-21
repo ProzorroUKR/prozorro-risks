@@ -32,6 +32,8 @@ spec:
           env:
             - name: MONGODB_URL
               value: 'mongodb://root:pass@mongodb-risks.data.svc.cluster.local:27017'
+            - name: SENTRY_DSN
+              value: 'http://c921e523b5384eb990c5cd2737d2aa79@sentry.dc.prozorro.gov.ua/55'
           ports:
             - name: http
               containerPort: 8080

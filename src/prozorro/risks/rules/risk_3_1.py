@@ -80,5 +80,4 @@ class RiskRule(BaseRiskRule):
 
             if award_complaints:
                 return self.check_decision_delta(award_complaints)
-            return RiskIndicatorEnum.can_not_be_assessed
         return RiskIndicatorEnum.risk_not_found

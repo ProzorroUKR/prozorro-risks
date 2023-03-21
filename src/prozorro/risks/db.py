@@ -9,10 +9,11 @@ from prozorro.risks.settings import (
     WRITE_CONCERN,
     READ_CONCERN,
     MAX_LIST_LIMIT,
+    MAX_TIME_QUERY,
 )
 from prozorro.risks.models import PaginatedList
 from pymongo import ASCENDING, DESCENDING, IndexModel
-from pymongo.errors import PyMongoError
+from pymongo.errors import ExecutionTimeout, PyMongoError
 from aiohttp import web
 
 logger = logging.getLogger(__name__)
@@ -66,15 +67,48 @@ def get_tenders_collection():
 
 
 async def init_risks_indexes():
-    region_index = IndexModel([("procuringEntityRegion", ASCENDING)], background=True)
-    edrpou_index = IndexModel([("procuringEntityEDRPOU", ASCENDING)], background=True)
-    value_index = IndexModel([("value.amount", ASCENDING)], background=True)
+    region_compound_index = IndexModel(
+        [
+            ("procuringEntityRegion", ASCENDING),
+            ("risks.worked.id", ASCENDING),
+            ("dateAssessed", ASCENDING),
+        ],
+        background=True,
+    )
+    edrpou_compound_with_date_index = IndexModel(
+        [
+            ("procuringEntityEDRPOU", ASCENDING),
+            ("risks.worked.id", ASCENDING),
+            ("dateAssessed", ASCENDING),
+        ],
+        background=True,
+    )
+    edrpou_compound_with_value_index = IndexModel(
+        [
+            ("procuringEntityEDRPOU", ASCENDING),
+            ("risks.worked.id", ASCENDING),
+            ("value.amount", ASCENDING),
+        ],
+        background=True,
+    )
     date_assessed_index = IndexModel([("dateAssessed", ASCENDING)], background=True)
-    risks_worked_index = IndexModel([("risks.worked.id", ASCENDING)], background=True)
+    risks_worked_index = IndexModel(
+        [
+            ("risks.worked.id", ASCENDING),
+            ("value.amount", ASCENDING),
+        ],
+        background=True,
+    )
 
     try:
         await get_risks_collection().create_indexes(
-            [region_index, edrpou_index, value_index, date_assessed_index, risks_worked_index]
+            [
+                region_compound_index,
+                edrpou_compound_with_date_index,
+                edrpou_compound_with_value_index,
+                date_assessed_index,
+                risks_worked_index,
+            ]
         )
     except PyMongoError as e:
         logger.exception(e)
@@ -109,12 +143,12 @@ async def get_risks(tender_id):
 
 def _build_tender_filters(**kwargs):
     filters = {}
-    if risks_list := kwargs.get("risks"):
-        filters["risks.worked"] = {"$elemMatch": {"id": {"$in": risks_list}}}
     if regions_list := kwargs.get("region"):
         filters["procuringEntityRegion"] = {"$in": [region.lower() for region in regions_list]}
     if edrpou := kwargs.get("edrpou"):
         filters["procuringEntityEDRPOU"] = edrpou
+    if risks_list := kwargs.get("risks"):
+        filters["risks.worked"] = {"$elemMatch": {"id": {"$in": risks_list}}}
     return filters
 
 
@@ -160,7 +194,11 @@ async def save_tender(uid, tender_data):
 async def paginated_result(collection, filters, skip, limit, sort=None, projection=None):
     limit = min(limit, MAX_LIST_LIMIT)
     count = await collection.count_documents(filters)
-    cursor = collection.find(filters, projection=projection).skip(skip).limit(limit)
+    try:
+        cursor = collection.find(filters, projection=projection, max_time_ms=MAX_TIME_QUERY).skip(skip).limit(limit)
+    except ExecutionTimeout as exc:
+        logger.error(f"Filter tenders {type(exc)}: {exc}, filters: {filters}", extra={"MESSAGE_ID": "MONGODB_EXC"})
+        raise web.HTTPRequestTimeout(text="Please change filters combination to optimize query (e.g. edrpou + risks)")
     if sort:
         cursor = cursor.sort(sort)
     return PaginatedList(items=cursor, count=count)
