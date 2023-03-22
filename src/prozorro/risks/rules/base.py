@@ -11,6 +11,7 @@ class BaseRiskRule(ABC):
     tender_statuses: tuple
     procurement_categories: tuple
     procuring_entity_kinds: tuple
+    contract_statuses: tuple
 
     @classmethod
     @abstractmethod

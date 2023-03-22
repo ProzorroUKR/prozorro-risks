@@ -10,8 +10,10 @@ from prozorro.risks.settings import (
     READ_CONCERN,
     MAX_LIST_LIMIT,
     MAX_TIME_QUERY,
+    MONGODB_ERROR_INTERVAL,
 )
 from prozorro.risks.models import PaginatedList
+from prozorro.risks.utils import get_now
 from pymongo import ASCENDING, DESCENDING, IndexModel
 from pymongo.errors import ExecutionTimeout, PyMongoError
 from aiohttp import web
@@ -173,13 +175,37 @@ async def find_tenders(skip=0, limit=20, **kwargs):
     return result
 
 
-async def update_tender_risks(uid, updated_fields):
-    await get_risks_collection().update_one(
-        {"_id": uid},
-        {"$set": updated_fields},
-        upsert=True,
-        session=session_var.get(),
-    )
+async def update_tender_risks(uid, risks, additional_fields):
+    new_worked_risks = [risk["id"] for risk in risks["worked"]]
+    new_other_risks = [risk["id"] for risk in risks["other"]]
+    tender = await get_risks_collection().find_one({"_id": uid})
+    if tender:
+        for worked_risk in tender.get("risks", {}).get("worked", []):
+            if worked_risk["id"] not in new_worked_risks:
+                risks["worked"].append(worked_risk)
+        for other_risk in tender.get("risks", {}).get("other", []):
+            if other_risk["id"] not in new_other_risks:
+                risks["other"].append(other_risk)
+    while True:
+        current_ts = get_now().isoformat()
+        try:
+            result = await get_risks_collection().find_one_and_update(
+                {"_id": uid, "dateAssessed": {"$lte": current_ts}},
+                {
+                    "$set": {
+                        "_id": uid,
+                        "risks": risks,
+                        **additional_fields,
+                    }
+                },
+                upsert=True,
+                session=session_var.get(),
+            )
+        except PyMongoError as e:
+            logger.warning(f"Update risks error {type(e)}: {e}", extra={"MESSAGE_ID": "MONGODB_EXC"})
+            await asyncio.sleep(MONGODB_ERROR_INTERVAL)
+        else:
+            return result
 
 
 async def save_tender(uid, tender_data):
@@ -215,4 +241,14 @@ async def aggregate_tenders(pipeline):
         result = aggregate_response[0]
     except IndexError:
         result = dict()
+    return result
+
+
+async def get_tender(tender_id):
+    collection = get_tenders_collection()
+    try:
+        result = await collection.find_one({"_id": tender_id})
+    except PyMongoError as e:
+        logger.error(f"Get tender {type(e)}: {e}", extra={"MESSAGE_ID": "MONGODB_EXC"})
+        return None
     return result

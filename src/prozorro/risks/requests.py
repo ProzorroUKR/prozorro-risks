@@ -10,15 +10,15 @@ import asyncio
 import aiohttp
 
 
-async def get_tender_data(session, tender_id, retries=20):
+async def get_object_data(session, obj_id, resource="tenders", retries=20):
     retried = 0
     while True:
         try:
-            result = await request_tender(session=session, tender_id=tender_id, method_name="get")
+            result = await request_object(session=session, obj_id=obj_id, resource=resource, method_name="get")
         except RequestRetryException as e:
             if retried > retries:
                 logger.critical(
-                    f"Too many retries ({retried}) while requesting tender",
+                    f"Too many retries ({retried}) while requesting object",
                     extra={"MESSAGE_ID": "TOO_MANY_REQUEST_RETRIES"},
                 )
             retried += 1
@@ -27,15 +27,15 @@ async def get_tender_data(session, tender_id, retries=20):
             return result
 
 
-async def request_tender(session, tender_id, method_name="get"):
-    context = {"METHOD": method_name, "TENDER_ID": tender_id}
+async def request_object(session, obj_id, resource, method_name="get"):
+    context = {"METHOD": method_name, "OBJ_ID": obj_id, "RESOURCE": resource}
     method = getattr(session, method_name)
     kwargs = {}
     try:
-        resp = await method(f"{BASE_URL}/{tender_id}", **kwargs)
+        resp = await method(f"{BASE_URL}/{resource}/{obj_id}", **kwargs)
     except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         logger.warning(
-            f"Error for {tender_id} {type(e)}: {e}",
+            f"Error for {obj_id} {type(e)}: {e}",
             extra={"MESSAGE_ID": "HTTP_EXCEPTION", **context},
         )
         resp = None
@@ -62,30 +62,30 @@ async def request_tender(session, tender_id, method_name="get"):
                     return response["data"]
         elif resp.status == 412:
             logger.warning(
-                "Precondition Failed while requesting tender",
+                "Precondition Failed while requesting object",
                 extra={"MESSAGE_ID": "PRECONDITION_FAILED", **context},
             )
             raise RequestRetryException()
         elif resp.status == 429:
             logger.warning(
-                "Too many requests while requesting tender",
+                "Too many requests while requesting object",
                 extra={"MESSAGE_ID": "TOO_MANY_REQUESTS", **context},
             )
             raise RequestRetryException(timeout=TOO_MANY_REQUESTS_INTERVAL)
         elif resp.status == 409:
             logger.warning(
-                f"Resource error while requesting tender {tender_id}",
+                f"Resource error while requesting object {obj_id}",
                 extra={"MESSAGE_ID": "RESOURCE_ERROR", **context},
             )
         elif resp.status == 403:
             logger.warning(
-                f"Forbidden request of tender {tender_id}",
+                f"Forbidden request of object {obj_id}",
                 extra={"MESSAGE_ID": "RESOURCE_FORBIDDEN", **context},
             )
         else:
             resp_text = await resp.text()
             logger.error(
-                f"Error on requesting tender {method_name} {tender_id}: {resp.status} {resp_text}",
+                f"Error on requesting object {method_name} {resource} {obj_id}: {resp.status} {resp_text}",
                 extra={"MESSAGE_ID": "REQUEST_UNEXPECTED_ERROR", **context},
             )
 

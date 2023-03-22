@@ -17,6 +17,7 @@ services:
         depends_on:
             - mongo
             - crawler
+            - contracts-crawler
 
     crawler:
         image: "${IMAGE}"
@@ -31,6 +32,23 @@ services:
             BACKWARD_OFFSET: '1423058400.69246'  # 2015-02-23T12:00:00.756010+02:00
             FORWARD_OFFSET: '1546293600.0'  # 2019-01-01T00:00:00.0+02:00
         command: python -m prozorro.risks.crawler
+        volumes:
+            - ./src/prozorro:/app/prozorro
+
+    contracts-crawler:
+        image: "${IMAGE}"
+        container_name: risks-contracts-crawler
+        environment:
+            MONGODB_URL: 'mongodb://root:example@mongo:27017/?replicaSet=rs0'
+            PYTHONUNBUFFERED: '1'
+            MONGODB_STATE_ID: 'prozorro-contracts-risks'
+            API_RESOURCE: 'contracts'
+            PUBLIC_API_HOST: 'https://api.prozorro.gov.ua'
+            FORWARD_CHANGES_COOLDOWN_SECONDS: '36000'  # 10 hours in seconds
+            BACKWARD_OFFSET: '1423058400.69246'  # 2015-02-23T12:00:00.756010+02:00
+            FORWARD_OFFSET: '1546293600.0'  # 2019-01-01T00:00:00.0+02:00
+            LOCK_PROCESS_NAME: 'contracts_crawler_lock'
+        command: python -m prozorro.risks.contracts_crawler
         volumes:
             - ./src/prozorro:/app/prozorro
 
