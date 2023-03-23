@@ -1,3 +1,4 @@
+import sys
 from prozorro_crawler.main import main
 from prozorro.risks.db import init_mongodb, save_tender, update_tender_risks
 from prozorro.risks.logging import setup_logging
@@ -11,6 +12,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 RISK_RULES_MODULE = "prozorro.risks.rules"
+RISK_MODULES = sys.modules[RISK_RULES_MODULE].__all__
+TENDER_RISKS = []
+for module_name in RISK_MODULES:
+    risk_module = getattr(sys.modules[RISK_RULES_MODULE], module_name)
+    risk_rule = getattr(risk_module, "RiskRule")()
+    if hasattr(risk_rule, "process_tender"):
+        TENDER_RISKS.append(risk_rule)
 
 
 async def process_tender(tender):
@@ -27,7 +35,7 @@ async def process_tender(tender):
     # for some risk rules it is required to have saved tenders in database for processing statistics
     await save_tender(uid, tender)
 
-    risks = await process_risks(RISK_RULES_MODULE, tender)
+    risks = await process_risks(tender, TENDER_RISKS)
     await update_tender_risks(
         uid,
         risks,

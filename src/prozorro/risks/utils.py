@@ -1,6 +1,5 @@
 import aiohttp
 import logging
-import sys
 from datetime import datetime
 from aiohttp.web_exceptions import HTTPBadRequest
 
@@ -8,8 +7,12 @@ from prozorro.risks.models import RiskIndicatorEnum
 from prozorro.risks.requests import get_object_data
 from prozorro.risks.settings import TIMEZONE
 
-
 logger = logging.getLogger(__name__)
+
+RISKS_METHODS_MAPPING = {
+    "tenders": "process_tender",
+    "contracts": "process_contract",
+}
 
 
 def get_now() -> datetime:
@@ -64,23 +67,22 @@ async def fetch_tender(tender_id):
     return tender
 
 
-async def process_risks(module_path, obj):
+async def process_risks(obj, rules, resource="tenders"):
     """
     Loop for all risk modules in known module path and process provided object
 
-    :param module_path: str Path to risk module
     :param obj: dict Object for processing (could be tender or contract)
+    :param rules: list List of RiskRule instances
+    :param resource: str Resource that points what kind of objects should be processed
     :return: dict Processed risks for object (e.g. {"worked": [...], "other": [...]})
     """
-    risk_modules = sys.modules[module_path].__all__
     risks = {
         "worked": [],
         "other": [],
     }
-    for module_name in risk_modules:
-        risk_module = getattr(sys.modules[module_path], module_name)
-        risk_rule = getattr(risk_module, "RiskRule")()
-        risk_indicator = await risk_rule.process_tender(obj)
+    for risk_rule in rules:
+        process_method = getattr(risk_rule, RISKS_METHODS_MAPPING[resource])
+        risk_indicator = await process_method(obj)
         if risk_indicator == RiskIndicatorEnum.risk_found:
             risks["worked"].append(
                 {

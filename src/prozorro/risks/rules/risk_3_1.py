@@ -1,14 +1,12 @@
-from datetime import datetime
-
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.base import BaseRiskRule
+from prozorro.risks.rules.base import BaseTenderRiskRule
+from prozorro.risks.rules.utils import count_days_between_two_dates
 from prozorro.risks.utils import get_now
-
 
 DECISION_LIMIT = 30
 
 
-class RiskRule(BaseRiskRule):
+class RiskRule(BaseTenderRiskRule):
     identifier = "3-1"
     name = "Невиконання замовником рішення органу оскарження"
     description = (
@@ -59,16 +57,12 @@ class RiskRule(BaseRiskRule):
     @staticmethod
     def check_decision_delta(complaints):
         for complaint in complaints:
-            if (get_now() - datetime.fromisoformat(complaint["dateDecision"])).days > DECISION_LIMIT:
+            if count_days_between_two_dates(get_now(), complaint["dateDecision"]) > DECISION_LIMIT:
                 return RiskIndicatorEnum.risk_found
         return RiskIndicatorEnum.risk_not_found
 
     async def process_tender(self, tender):
-        if (
-            tender["procurementMethodType"] in self.procurement_methods
-            and tender["status"] in self.tender_statuses
-            and tender["procuringEntity"]["kind"] in self.procuring_entity_kinds
-        ):
+        if self.tender_matches_requirements(tender, category=False):
             complaints = self.get_satisfied_complaints(tender)
             award_complaints = sum(
                 [self.get_satisfied_complaints(award) for award in tender.get("awards", [])],

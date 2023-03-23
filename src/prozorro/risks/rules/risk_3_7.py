@@ -1,8 +1,8 @@
 import logging
-from datetime import datetime
 
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.base import BaseRiskRule
+from prozorro.risks.rules.base import BaseContractRiskRule
+from prozorro.risks.rules.utils import count_days_between_two_dates
 from prozorro.risks.utils import fetch_tender
 
 
@@ -10,7 +10,7 @@ CONTRACT_MODIFYING_DAYS_LIMIT = 60
 logger = logging.getLogger(__name__)
 
 
-class RiskRule(BaseRiskRule):
+class RiskRule(BaseContractRiskRule):
     identifier = "3-7"
     name = "Короткий строк виконання договору при закупівлі робіт"
     description = (
@@ -27,24 +27,17 @@ class RiskRule(BaseRiskRule):
     )
     procurement_categories = ("works",)
 
-    async def process_tender(self, contract):
+    async def process_contract(self, contract):
         if contract["status"] in self.contract_statuses:
             # В контракті по полю data.tender_id знаходимо відповідний тендер
             tender = await fetch_tender(contract["tender_id"])
-            if (
-                tender["procurementMethodType"] in self.procurement_methods
-                and tender["procuringEntity"]["kind"] in self.procuring_entity_kinds
-                and tender.get("mainProcurementCategory") in self.procurement_categories
-            ):
+            if self.tender_matches_requirements(tender, status=False):
                 for tender_contract in tender.get("contracts", []):
                     # Якщо дата в контракті data.dateModified відрізняється менше ніж на 60 днів
                     # від дати в тендері data.contracts.date, індикатор приймає значення 1, розрахунок завершується
                     if (
                         tender_contract["id"] == contract["id"]
-                        and (
-                            datetime.fromisoformat(contract["dateModified"])
-                            - datetime.fromisoformat(tender_contract["date"])
-                        ).days
+                        and count_days_between_two_dates(contract["dateModified"], tender_contract["date"])
                         < CONTRACT_MODIFYING_DAYS_LIMIT
                     ):
                         return RiskIndicatorEnum.risk_found

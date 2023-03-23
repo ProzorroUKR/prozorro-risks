@@ -1,8 +1,8 @@
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.base import BaseRiskRule
+from prozorro.risks.rules.base import BaseTenderRiskRule
 
 
-class RiskRule(BaseRiskRule):
+class RiskRule(BaseTenderRiskRule):
     identifier = "3-5"
     name = "Замовник відхилив мінімум 2 учасників"
     description = "Даний індикатор виявляє ситуації, коли замовник відхиляє мінімум 2 учасників"
@@ -21,11 +21,7 @@ class RiskRule(BaseRiskRule):
     )
 
     async def process_tender(self, tender):
-        if (
-            tender["procurementMethodType"] in self.procurement_methods
-            and tender["status"] in self.tender_statuses
-            and tender["procuringEntity"]["kind"] in self.procuring_entity_kinds
-        ):
+        if self.tender_matches_requirements(tender, category=False):
             # Визначаємо кількість дискваліфікацій
             unsuccessful_awards = [award for award in tender["awards"] if award["status"] == "unsuccessful"]
 

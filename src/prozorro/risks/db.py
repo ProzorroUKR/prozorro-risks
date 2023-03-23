@@ -13,7 +13,6 @@ from prozorro.risks.settings import (
     MONGODB_ERROR_INTERVAL,
 )
 from prozorro.risks.models import PaginatedList
-from prozorro.risks.utils import get_now
 from pymongo import ASCENDING, DESCENDING, IndexModel
 from pymongo.errors import ExecutionTimeout, PyMongoError
 from aiohttp import web
@@ -175,22 +174,28 @@ async def find_tenders(skip=0, limit=20, **kwargs):
     return result
 
 
-async def update_tender_risks(uid, risks, additional_fields):
+def join_old_risks_with_new_ones(risks, tender):
     new_worked_risks = [risk["id"] for risk in risks["worked"]]
     new_other_risks = [risk["id"] for risk in risks["other"]]
-    tender = await get_risks_collection().find_one({"_id": uid})
-    if tender:
-        for worked_risk in tender.get("risks", {}).get("worked", []):
-            if worked_risk["id"] not in new_worked_risks:
-                risks["worked"].append(worked_risk)
-        for other_risk in tender.get("risks", {}).get("other", []):
-            if other_risk["id"] not in new_other_risks:
-                risks["other"].append(other_risk)
+    for worked_risk in tender.get("risks", {}).get("worked", []):
+        if worked_risk["id"] not in new_worked_risks:
+            risks["worked"].append(worked_risk)
+    for other_risk in tender.get("risks", {}).get("other", []):
+        if other_risk["id"] not in new_other_risks:
+            risks["other"].append(other_risk)
+    return risks
+
+
+async def update_tender_risks(uid, risks, additional_fields):
+    filters = {"_id": uid}
     while True:
-        current_ts = get_now().isoformat()
+        tender = await get_risks_collection().find_one({"_id": uid})
+        if tender:
+            risks = join_old_risks_with_new_ones(risks, tender)
+            filters["dateAssessed"] = tender.get("dateAssessed")
         try:
             result = await get_risks_collection().find_one_and_update(
-                {"_id": uid, "dateAssessed": {"$lte": current_ts}},
+                filters,
                 {
                     "$set": {
                         "_id": uid,

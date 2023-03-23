@@ -1,16 +1,24 @@
+import sys
 from prozorro_crawler.main import main
 from prozorro.risks.db import init_mongodb, update_tender_risks
 from prozorro.risks.logging import setup_logging
 from prozorro.risks.requests import get_object_data
 from prozorro.risks.utils import get_now, process_risks
-from prozorro.risks.rules.contracts import *  # noqa
+from prozorro.risks.rules import *  # noqa
 import asyncio
 import logging
 
 
 logger = logging.getLogger(__name__)
 
-RISK_RULES_MODULE = "prozorro.risks.rules.contracts"
+RISK_RULES_MODULE = "prozorro.risks.rules"
+RISK_MODULES = sys.modules[RISK_RULES_MODULE].__all__
+CONTRACT_RISKS = []
+for module_name in RISK_MODULES:
+    risk_module = getattr(sys.modules[RISK_RULES_MODULE], module_name)
+    risk_rule = getattr(risk_module, "RiskRule")()
+    if hasattr(risk_rule, "process_contract"):
+        CONTRACT_RISKS.append(risk_rule)
 API_RESOURCE = "contracts"
 
 
@@ -20,7 +28,7 @@ async def process_contract(contract):
     :param contract: dict Contract data
     """
     uid = contract.get("tender_id")
-    risks = await process_risks(RISK_RULES_MODULE, contract)
+    risks = await process_risks(contract, CONTRACT_RISKS, resource=API_RESOURCE)
     await update_tender_risks(
         uid,
         risks,

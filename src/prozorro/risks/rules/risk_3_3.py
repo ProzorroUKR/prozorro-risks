@@ -1,11 +1,11 @@
 from datetime import datetime
 
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.base import BaseRiskRule
+from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.historical_data import get_list_of_cpvs
 
 
-class RiskRule(BaseRiskRule):
+class RiskRule(BaseTenderRiskRule):
     identifier = "3-3"
     name = "Закупівля товарів та послуг у одного учасника"
     description = (
@@ -28,12 +28,7 @@ class RiskRule(BaseRiskRule):
     procurement_categories = ("goods", "services")
 
     async def process_tender(self, tender):
-        if (
-            tender["procurementMethodType"] in self.procurement_methods
-            and tender["status"] in self.tender_statuses
-            and tender["procuringEntity"]["kind"] in self.procuring_entity_kinds
-            and tender.get("mainProcurementCategory") in self.procurement_categories
-        ):
+        if self.tender_matches_requirements(tender):
             active_awards = [award for award in tender.get("awards", []) if award["status"] == "active"]
             # Якщо в процедурі немає жодного об’єкту data.awards, що має статус data.awards.status='active',
             # індикатор приймає значення 0, розрахунок завершується.
