@@ -39,7 +39,7 @@ async def test_tender_without_active_awards():
     tender_data["awards"][0]["status"] = "pending"
     risk_rule = RiskRule()
     indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.can_not_be_assessed
+    assert indicator == RiskIndicatorEnum.risk_not_found
 
 
 @patch(

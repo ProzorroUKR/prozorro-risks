@@ -42,7 +42,7 @@ async def test_tender_without_disqualified_award():
     tender_data["awards"][0]["status"] = "active"
     risk_rule = RiskRule()
     indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.can_not_be_assessed
+    assert indicator == RiskIndicatorEnum.risk_not_found
 
 
 async def test_tender_with_1_disqualified_award_without_lots():

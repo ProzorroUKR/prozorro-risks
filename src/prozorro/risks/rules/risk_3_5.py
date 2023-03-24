@@ -30,11 +30,11 @@ class RiskRule(BaseRiskRule):
             unsuccessful_awards = [award for award in tender["awards"] if award["status"] == "unsuccessful"]
 
             # Якщо в процедурі немає жодного об’єкту зі статусом data.awards.status='unsuccessful',
-            # індикатор приймає значення -2
+            # індикатор приймає значення 0
             if not unsuccessful_awards:
-                return RiskIndicatorEnum.can_not_be_assessed
+                return RiskIndicatorEnum.risk_not_found
 
-            if len(tender.get("lots", 0)):
+            if len(tender.get("lots", [])):
                 disqualified_lots_count = 0
                 for lot in tender["lots"]:
                     # Визначаємо кількість дискваліфікацій - кількість об’єктів data.awards, що посилаються
