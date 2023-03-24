@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from aiohttp.web_exceptions import HTTPBadRequest
 
+from prozorro.risks.exceptions import SkipException
 from prozorro.risks.models import RiskIndicatorEnum
 from prozorro.risks.requests import get_object_data
 from prozorro.risks.settings import TIMEZONE
@@ -82,25 +83,29 @@ async def process_risks(obj, rules, resource="tenders"):
     }
     for risk_rule in rules:
         process_method = getattr(risk_rule, RISKS_METHODS_MAPPING[resource])
-        risk_indicator = await process_method(obj)
-        if risk_indicator == RiskIndicatorEnum.risk_found:
-            risks["worked"].append(
-                {
-                    "id": risk_rule.identifier,
-                    "name": risk_rule.name,
-                    "description": risk_rule.description,
-                    "legitimateness": risk_rule.legitimateness,
-                    "development_basis": risk_rule.development_basis,
-                    "indicator": risk_indicator,
-                    "date": get_now().isoformat(),
-                }
-            )
+        try:
+            risk_indicator = await process_method(obj)
+        except SkipException:
+            return None
         else:
-            risks["other"].append(
-                {
-                    "id": risk_rule.identifier,
-                    "indicator": risk_indicator,
-                    "date": get_now().isoformat(),
-                }
-            )
+            if risk_indicator == RiskIndicatorEnum.risk_found:
+                risks["worked"].append(
+                    {
+                        "id": risk_rule.identifier,
+                        "name": risk_rule.name,
+                        "description": risk_rule.description,
+                        "legitimateness": risk_rule.legitimateness,
+                        "development_basis": risk_rule.development_basis,
+                        "indicator": risk_indicator,
+                        "date": get_now().isoformat(),
+                    }
+                )
+            else:
+                risks["other"].append(
+                    {
+                        "id": risk_rule.identifier,
+                        "indicator": risk_indicator,
+                        "date": get_now().isoformat(),
+                    }
+                )
     return risks

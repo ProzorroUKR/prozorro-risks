@@ -35,7 +35,7 @@ spec:
             - name: BACKWARD_OFFSET
               value: '1423058400.69246'
             - name: FORWARD_OFFSET
-              value: '1546293600.0'
+              value: '1672524000.0'
             - name: FORWARD_CHANGES_COOLDOWN_SECONDS
               value: '36000'
             - name: API_RESOURCE

@@ -29,11 +29,12 @@ async def process_contract(contract):
     """
     uid = contract.get("tender_id")
     risks = await process_risks(contract, CONTRACT_RISKS, resource=API_RESOURCE)
-    await update_tender_risks(
-        uid,
-        risks,
-        {"dateAssessed": get_now().isoformat()},
-    )
+    if risks:
+        await update_tender_risks(
+            uid,
+            risks,
+            {"dateAssessed": get_now().isoformat()},
+        )
 
 
 async def fetch_and_process_contract(session, contract_id):

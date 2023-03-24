@@ -1,8 +1,11 @@
 import sys
+from datetime import datetime
+
 from prozorro_crawler.main import main
 from prozorro.risks.db import init_mongodb, save_tender, update_tender_risks
 from prozorro.risks.logging import setup_logging
 from prozorro.risks.requests import get_object_data
+from prozorro.risks.settings import CRAWLER_START_DATE
 from prozorro.risks.utils import get_now, process_risks
 from prozorro.risks.rules import *  # noqa
 import asyncio
@@ -36,29 +39,33 @@ async def process_tender(tender):
     await save_tender(uid, tender)
 
     risks = await process_risks(tender, TENDER_RISKS)
-    await update_tender_risks(
-        uid,
-        risks,
-        {
-            "dateModified": tender.get("dateModified"),
-            "dateAssessed": get_now().isoformat(),
-            "value": tender.get("value"),
-            "procuringEntity": tender.get("procuringEntity"),
-            "procuringEntityRegion": tender.get("procuringEntity", {}).get("address", {}).get("region", "").lower(),
-            "procuringEntityEDRPOU": tender.get("procuringEntity", {}).get("identifier", {}).get("id", ""),
-        },
-    )
+    if risks:
+        await update_tender_risks(
+            uid,
+            risks,
+            {
+                "dateModified": tender.get("dateModified"),
+                "dateAssessed": get_now().isoformat(),
+                "value": tender.get("value"),
+                "procuringEntity": tender.get("procuringEntity"),
+                "procuringEntityRegion": tender.get("procuringEntity", {}).get("address", {}).get("region", "").lower(),
+                "procuringEntityEDRPOU": tender.get("procuringEntity", {}).get("identifier", {}).get("id", ""),
+            },
+        )
 
 
 async def fetch_and_process_tender(session, tender_id):
     """
-    Fetch more detailed information about tender and process tender whether it has risks
+    Fetch more detailed information about tender and process tender whether it has risks.
+    Crawler offset is watching dateModified field that's why here is validation
+    whether tender dateCreated is more than or equal CRAWLER_START_DATE, just to filter out old tenders.
 
     :param session: ClientSession
     :param tender_id: str Id of particular tender
     """
     tender = await get_object_data(session, tender_id)
-    await process_tender(tender)
+    if datetime.fromisoformat(tender["dateCreated"]) >= CRAWLER_START_DATE:
+        await process_tender(tender)
 
 
 async def risks_data_handler(session, items):
@@ -71,5 +78,5 @@ async def risks_data_handler(session, items):
 
 if __name__ == "__main__":
     setup_logging()
-    logger.info("Crawler started")
+    logger.info("Tender crawler started")
     main(risks_data_handler, init_task=init_mongodb)

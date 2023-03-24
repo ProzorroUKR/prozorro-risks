@@ -189,11 +189,11 @@ def join_old_risks_with_new_ones(risks, tender):
 async def update_tender_risks(uid, risks, additional_fields):
     filters = {"_id": uid}
     while True:
-        tender = await get_risks_collection().find_one({"_id": uid})
-        if tender:
-            risks = join_old_risks_with_new_ones(risks, tender)
-            filters["dateAssessed"] = tender.get("dateAssessed")
         try:
+            tender = await get_risks_collection().find_one({"_id": uid})
+            if tender:
+                risks = join_old_risks_with_new_ones(risks, tender)
+                filters["dateAssessed"] = tender.get("dateAssessed")
             result = await get_risks_collection().find_one_and_update(
                 filters,
                 {
@@ -251,9 +251,11 @@ async def aggregate_tenders(pipeline):
 
 async def get_tender(tender_id):
     collection = get_tenders_collection()
-    try:
-        result = await collection.find_one({"_id": tender_id})
-    except PyMongoError as e:
-        logger.error(f"Get tender {type(e)}: {e}", extra={"MESSAGE_ID": "MONGODB_EXC"})
-        return None
-    return result
+    while True:
+        try:
+            result = await collection.find_one({"_id": tender_id})
+        except PyMongoError as e:
+            logger.error(f"Get tender {type(e)}: {e}", extra={"MESSAGE_ID": "MONGODB_EXC"})
+            await asyncio.sleep(MONGODB_ERROR_INTERVAL)
+        else:
+            return result

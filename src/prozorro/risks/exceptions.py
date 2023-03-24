@@ -7,3 +7,7 @@ class RequestRetryException(RetryException):
         self.timeout = timeout
         self.response = response
         super(RequestRetryException, self).__init__()
+
+
+class SkipException(Exception):
+    pass

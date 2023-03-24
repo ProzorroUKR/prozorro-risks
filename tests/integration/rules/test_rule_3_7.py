@@ -1,6 +1,8 @@
+import pytest
 from copy import deepcopy
 from unittest.mock import patch
 
+from prozorro.risks.exceptions import SkipException
 from prozorro.risks.models import RiskIndicatorEnum
 from prozorro.risks.rules.risk_3_7 import RiskRule
 
@@ -72,3 +74,13 @@ async def test_tender_with_not_risky_procurement_category(mock_tender):
     risk_rule = RiskRule()
     indicator = await risk_rule.process_contract(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
+
+
+@patch("prozorro.risks.rules.risk_3_7.fetch_tender")
+async def test_contract_with_old_tender(mock_tender):
+    tender = deepcopy(tender_data)
+    tender["dateCreated"] = "2022-12-16T14:30:13.746921+02:00"
+    mock_tender.return_value = tender
+    risk_rule = RiskRule()
+    with pytest.raises(SkipException):
+        await risk_rule.process_contract(contract_data)

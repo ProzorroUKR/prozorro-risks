@@ -1,7 +1,10 @@
 import logging
+from datetime import datetime
 
+from prozorro.risks.exceptions import SkipException
 from prozorro.risks.models import RiskIndicatorEnum
 from prozorro.risks.rules.base import BaseContractRiskRule
+from prozorro.risks.settings import CRAWLER_START_DATE
 from prozorro.risks.rules.utils import count_days_between_two_dates
 from prozorro.risks.utils import fetch_tender
 
@@ -31,6 +34,8 @@ class RiskRule(BaseContractRiskRule):
         if contract["status"] in self.contract_statuses:
             # В контракті по полю data.tender_id знаходимо відповідний тендер
             tender = await fetch_tender(contract["tender_id"])
+            if datetime.fromisoformat(tender["dateCreated"]) < CRAWLER_START_DATE:
+                raise SkipException()
             if self.tender_matches_requirements(tender, status=False):
                 for tender_contract in tender.get("contracts", []):
                     # Якщо дата в контракті data.dateModified відрізняється менше ніж на 60 днів
