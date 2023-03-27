@@ -28,10 +28,11 @@ async def process_contract(contract):
     :param contract: dict Contract data
     """
     uid = contract.get("tender_id")
-    risks = await process_risks(contract, CONTRACT_RISKS, resource=API_RESOURCE)
+    worked_risks, risks = await process_risks(contract, CONTRACT_RISKS, resource=API_RESOURCE)
     if risks:
         await update_tender_risks(
             uid,
+            worked_risks,
             risks,
             {"dateAssessed": get_now().isoformat()},
         )

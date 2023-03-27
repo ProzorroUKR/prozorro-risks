@@ -71,7 +71,7 @@ async def init_risks_indexes():
     region_compound_index = IndexModel(
         [
             ("procuringEntityRegion", ASCENDING),
-            ("risks.worked.id", ASCENDING),
+            ("worked_risks", ASCENDING),
             ("dateAssessed", ASCENDING),
         ],
         background=True,
@@ -79,7 +79,7 @@ async def init_risks_indexes():
     edrpou_compound_with_date_index = IndexModel(
         [
             ("procuringEntityEDRPOU", ASCENDING),
-            ("risks.worked.id", ASCENDING),
+            ("worked_risks", ASCENDING),
             ("dateAssessed", ASCENDING),
         ],
         background=True,
@@ -87,7 +87,7 @@ async def init_risks_indexes():
     edrpou_compound_with_value_index = IndexModel(
         [
             ("procuringEntityEDRPOU", ASCENDING),
-            ("risks.worked.id", ASCENDING),
+            ("worked_risks", ASCENDING),
             ("value.amount", ASCENDING),
         ],
         background=True,
@@ -95,7 +95,7 @@ async def init_risks_indexes():
     date_assessed_index = IndexModel([("dateAssessed", ASCENDING)], background=True)
     risks_worked_index = IndexModel(
         [
-            ("risks.worked.id", ASCENDING),
+            ("worked_risks", ASCENDING),
             ("value.amount", ASCENDING),
         ],
         background=True,
@@ -149,7 +149,7 @@ def _build_tender_filters(**kwargs):
     if edrpou := kwargs.get("edrpou"):
         filters["procuringEntityEDRPOU"] = edrpou
     if risks_list := kwargs.get("risks"):
-        filters["risks.worked"] = {"$elemMatch": {"id": {"$in": risks_list}}}
+        filters["worked_risks"] = {"$in": risks_list}
     return filters
 
 
@@ -169,39 +169,40 @@ async def find_tenders(skip=0, limit=20, **kwargs):
         projection={
             "procuringEntityRegion": False,
             "procuringEntityEDRPOU": False,
+            "worked_risks": False,
         },
     )
     return result
 
 
-def join_old_risks_with_new_ones(risks, tender):
-    new_worked_risks = [risk["id"] for risk in risks["worked"]]
-    new_other_risks = [risk["id"] for risk in risks["other"]]
-    for worked_risk in tender.get("risks", {}).get("worked", []):
-        if worked_risk["id"] not in new_worked_risks:
-            risks["worked"].append(worked_risk)
-    for other_risk in tender.get("risks", {}).get("other", []):
-        if other_risk["id"] not in new_other_risks:
-            risks["other"].append(other_risk)
-    return risks
+def add_risks_history(risks, tender):
+    tender_risks = tender.get("risks", {}) if tender else {}
+    for risk_id, risk_data in risks.items():
+        log = {"date": risk_data["date"], "indicator": risk_data["indicator"]}
+        history = tender_risks.get(risk_id, {}).get("history", [])
+        history.append(log)
+        risks[risk_id]["history"] = history
+    tender_risks.update(risks)
+    return tender_risks
 
 
-async def update_tender_risks(uid, risks, additional_fields):
+async def update_tender_risks(uid, worked_risks, risks, additional_fields):
     filters = {"_id": uid}
     while True:
         try:
             tender = await get_risks_collection().find_one({"_id": uid})
+            risks = add_risks_history(risks, tender)
             if tender:
-                risks = join_old_risks_with_new_ones(risks, tender)
                 filters["dateAssessed"] = tender.get("dateAssessed")
             result = await get_risks_collection().find_one_and_update(
                 filters,
                 {
+                    "$addToSet": {"worked_risks": {"$each": worked_risks}},
                     "$set": {
                         "_id": uid,
                         "risks": risks,
                         **additional_fields,
-                    }
+                    },
                 },
                 upsert=True,
                 session=session_var.get(),

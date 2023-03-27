@@ -38,10 +38,11 @@ async def process_tender(tender):
     # for some risk rules it is required to have saved tenders in database for processing statistics
     await save_tender(uid, tender)
 
-    risks = await process_risks(tender, TENDER_RISKS)
+    worked_risks, risks = await process_risks(tender, TENDER_RISKS)
     if risks:
         await update_tender_risks(
             uid,
+            worked_risks,
             risks,
             {
                 "dateModified": tender.get("dateModified"),
