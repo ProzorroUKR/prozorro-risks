@@ -14,5 +14,10 @@
       }
     }
   ],
+  "value": {
+    "currency": "UAH",
+    "amount": 738300.0,
+    "valueAddedTaxIncluded": true
+  },
   "lotID": "c2bb6ff3e8e547bee11d8bff23e8a295"
 }
