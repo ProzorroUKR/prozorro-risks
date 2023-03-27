@@ -1,8 +1,8 @@
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.base import BaseRiskRule
+from prozorro.risks.rules.base import BaseTenderRiskRule
 
 
-class RiskRule(BaseRiskRule):
+class RiskRule(BaseTenderRiskRule):
     identifier = "2-16"
     name = "Відмова переможця від підписання договору"
     description = (
@@ -23,11 +23,7 @@ class RiskRule(BaseRiskRule):
     )
 
     def process_tender(self, tender):
-        if (
-            tender["procurementMethodType"] in self.procurement_methods
-            and tender["status"] in self.tender_statuses
-            and tender["procuringEntity"]["kind"] in self.procuring_entity_kinds
-        ):
+        if self.tender_matches_requirements(tender, category=False):
             for award in tender["awards"]:
                 if award.get("complaints"):
                     return RiskIndicatorEnum.risk_not_found

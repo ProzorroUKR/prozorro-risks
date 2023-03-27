@@ -1,8 +1,8 @@
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.base import BaseRiskRule
+from prozorro.risks.rules.base import BaseTenderRiskRule
 
 
-class RiskRule(BaseRiskRule):
+class RiskRule(BaseTenderRiskRule):
     identifier = "3-2"
     name = "Замовник відхилив тендерні пропозиції всіх учасників під час закупівлі товарів або послуг, крім переможця"
     description = (
@@ -30,12 +30,7 @@ class RiskRule(BaseRiskRule):
         return False
 
     async def process_tender(self, tender):
-        if (
-            tender["procurementMethodType"] in self.procurement_methods
-            and tender["status"] in self.tender_statuses
-            and tender["procuringEntity"]["kind"] in self.procuring_entity_kinds
-            and tender.get("mainProcurementCategory") in self.procurement_categories
-        ):
+        if self.tender_matches_requirements(tender):
             for lot in tender.get("lots", []):
                 disqualified_awards = set()
                 winner_count = 0

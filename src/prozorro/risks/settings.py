@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pymongo import ReadPreference
 from pymongo.write_concern import WriteConcern
 from pymongo.read_concern import ReadConcern
@@ -7,7 +9,7 @@ import os
 
 API_HOST = os.environ.get("PUBLIC_API_HOST", "https://api.prozorro.gov.ua")
 API_VERSION = os.environ.get("API_VERSION", "2.5")
-BASE_URL = f"{API_HOST}/api/{API_VERSION}/tenders"
+BASE_URL = f"{API_HOST}/api/{API_VERSION}"
 
 MONGODB_URL = os.environ.get("MONGODB_URL", "mongodb://mongo:27017/")
 DB_NAME = os.environ.get("DB_NAME", "prozorro-risks")
@@ -26,3 +28,5 @@ CLIENT_MAX_SIZE = int(os.getenv("CLIENT_MAX_SIZE", 1024**2 * 100))
 
 MAX_LIST_LIMIT = int(os.environ.get("MAX_LIST_LIMIT", 1000))
 MAX_TIME_QUERY = int(os.environ.get("MAX_TIME_QUERY", 5))  # query time limit during filtering risks
+MONGODB_ERROR_INTERVAL = float(os.getenv("MONGODB_ERROR_INTERVAL", 1))
+CRAWLER_START_DATE = datetime.fromisoformat(os.getenv("CRAWLER_START_DATE", "2023-01-01T00:00:00+02:00"))

@@ -1,0 +1,227 @@
+{
+  "awardID": "f57500d1bc224a9cb4753159a95a85bf",
+  "contractID": "UA-2018-01-09-000706-a-a1",
+  "contractNumber": "18",
+  "period": {
+    "startDate": "2018-01-30T00:00:00+02:00",
+    "endDate": "2018-12-31T00:00:00+02:00"
+  },
+  "dateSigned": "2018-01-30T10:04:00+02:00",
+  "dateModified": "2019-01-02T08:26:41.896142+02:00",
+  "dateCreated": "2018-01-30T10:06:03.516305+02:00",
+  "items": [
+    {
+      "id": "5174cd73788549879edd530b7e75347e",
+      "description": "постачання теплової енергії",
+      "quantity": 1.0,
+      "deliveryDate": {
+        "startDate": "2018-01-22T00:00:00+02:00",
+        "endDate": "2018-06-30T00:00:00+03:00"
+      },
+      "deliveryAddress": {
+        "streetAddress": "вул.Миру, б.4 (Карла Маркса,б.4)",
+        "locality": "смт.Черкаське",
+        "region": "Донецька область",
+        "postalCode": "84162",
+        "countryName": "Україна"
+      },
+      "classification": {
+        "description": "Пара, гаряча вода та пов’язана продукція",
+        "scheme": "ДК021",
+        "id": "09320000-8"
+      },
+      "unit": {
+        "name": "послуга",
+        "value": {
+          "amount": 0.0,
+          "currency": "UAH",
+          "valueAddedTaxIncluded": true
+        },
+        "code": "E48"
+      }
+    }
+  ],
+  "tender_id": "6c5430d968084628b3847162320edb91",
+  "owner": "prom.ua",
+  "status": "active",
+  "suppliers": [
+    {
+      "name": "Товариство з обмеженою відповідальністю \"Славенерго\"",
+      "identifier": {
+        "scheme": "UA-EDR",
+        "id": "39652298",
+        "legalName": "Товариство з обмеженою відповідальністю \"Славенерго\""
+      },
+      "address": {
+        "streetAddress": "вул.Леніна, 2",
+        "locality": "м.Слов'янськ",
+        "region": "Донецька область",
+        "postalCode": "84122",
+        "countryName": "Україна"
+      },
+      "contactPoint": {
+        "name": "Борисенко Марина Веніаминівна",
+        "telephone": "+380626225191"
+      }
+    }
+  ],
+  "procuringEntity": {
+    "name": "КОМУНАЛЬНИЙ ЗАКЛАД \"ЦЕНТР ПЕРВИННОЇ МЕДИКО-САНІТАРНОЇ ДОПОМОГИ\" СЛОВ'ЯНСЬКОЇ РАЙОННОЇ РАДИ ДОНЕЦЬКОЇ ОБЛАСТІ",
+    "identifier": {
+      "scheme": "UA-EDR",
+      "id": "37643758",
+      "legalName": "КОМУНАЛЬНИЙ ЗАКЛАД \"ЦЕНТР ПЕРВИННОЇ МЕДИКО-САНІТАРНОЇ ДОПОМОГИ\" СЛОВ'ЯНСЬКОЇ РАЙОННОЇ РАДИ ДОНЕЦЬКОЇ ОБЛАСТІ"
+    },
+    "address": {
+      "streetAddress": "вул. Шкільна, 61А",
+      "locality": "Слов'янський р-н, с. Рай-Олександрівка",
+      "region": "Донецька область",
+      "postalCode": "84182",
+      "countryName": "Україна"
+    },
+    "contactPoint": {
+      "name": "Юрченко Аліна",
+      "email": "centrslavmed@gmail.com",
+      "telephone": "+380665569156"
+    },
+    "kind": "general"
+  },
+  "changes": [
+    {
+      "id": "6c8eb9c8c75242ef8a624c7b9dec524a",
+      "status": "active",
+      "date": "2018-12-11T16:39:01.640632+02:00",
+      "rationale": "У зв'язку з збільшенням тарифу за 1м² збільшити ціни за одиницю у договорі №18 від 30.01.2018р. не більше, ніж на 10%.",
+      "rationaleTypes": [
+        "itemPriceVariation"
+      ],
+      "contractNumber": "18",
+      "dateSigned": "2018-12-11T16:34:00+02:00"
+    },
+    {
+      "id": "0e7642b0f12c49d89cd28883699abe5e",
+      "status": "active",
+      "date": "2018-12-12T08:38:00.674709+02:00",
+      "rationale": "У зв'язку з збільшенням тарифу за 1м² збільшити ціни за одиницю у договорі №18 від 30.01.2018р.",
+      "rationaleTypes": [
+        "itemPriceVariation"
+      ],
+      "contractNumber": "18",
+      "dateSigned": "2018-12-12T08:34:00+02:00"
+    },
+    {
+      "id": "08b075429f4d4a81b5919c26b97c7ce7",
+      "status": "active",
+      "date": "2018-12-12T09:02:38.867665+02:00",
+      "rationale": "Зменшити суму договору №18 від 30.01.2018р. за постачання теплової енергії на 2018 рік на суму 3929,40 грн. без ПДВ.",
+      "rationaleTypes": [
+        "itemPriceVariation"
+      ],
+      "contractNumber": "18",
+      "dateSigned": "2018-12-12T08:38:00+02:00"
+    }
+  ],
+  "documents": [
+    {
+      "id": "a00a4ae98c6146818b321066fbb4c5a5",
+      "hash": "md5:488cf9bae844aa2d7fcb1bd075dc851f",
+      "documentType": "contractSigned",
+      "title": "Договір №18.PDF",
+      "format": "application/pdf",
+      "url": "https://public.docs.openprocurement.org/get/73ba36368aae47cd9532104b05110791?KeyID=52462340&Signature=euIGAJtorbjYP%2FJj0F7O%252Bo1fm2%2F63Vb6yi1npgDcOnEac%2F4bv%252B6Ur3Thq5jjeBW%252BaslhxyG0%2FN2ZWssbLipIBg%253D%253D",
+      "datePublished": "2018-01-30T10:04:32.796288+02:00",
+      "dateModified": "2018-01-30T10:04:32.796312+02:00",
+      "documentOf": "tender"
+    },
+    {
+      "id": "cc7d540683824fa7ad54823630764ef8",
+      "hash": "md5:f5e1454f446c11db9ff7401c9132fcb5",
+      "title": "sign.p7s",
+      "format": "application/pkcs7-signature",
+      "url": "https://public.docs.openprocurement.org/get/4533bcabeb0a4b0c887dd53cfb5557d5?KeyID=52462340&Signature=ktRv11DFHnj4r9RyOrYn9d%252B9TTitLkJSjPO%2FY0YQ%252BrYaKB0hO4yIhX6YnBK30kWEgJKcC0dgqwmuPRg%2F%2FKR%2FAA%253D%253D",
+      "datePublished": "2018-01-30T10:05:31.851123+02:00",
+      "dateModified": "2018-01-30T10:05:31.851139+02:00",
+      "documentOf": "tender"
+    },
+    {
+      "id": "6821f6ae8510463fbff23b8d68399ef3",
+      "hash": "md5:f33dc0739632e00cb622d02e82d192d2",
+      "documentType": "contractAnnexe",
+      "title": "Додаткова угода №3.PDF",
+      "format": "application/pdf",
+      "url": "https://public.docs.openprocurement.org/get/5100844807584cf78e7d726a946ac646?KeyID=52462340&Signature=seGIT0ducIs%2FjTQ1KbPjZkbSt9fes1PoulhpgyVmswBwqiUHLfZcI6KHB%2F%252Brblphh10NF6d4H%2F5qaWu3DvfZAw%253D%253D",
+      "datePublished": "2018-12-11T16:37:31.500889+02:00",
+      "dateModified": "2018-12-11T16:37:31.500909+02:00",
+      "relatedItem": "6c8eb9c8c75242ef8a624c7b9dec524a",
+      "documentOf": "change"
+    },
+    {
+      "id": "e7865e77254b4e4ab1ce8f3e19d65ed8",
+      "hash": "md5:47f09918d8656507b8e1f02a2356b343",
+      "title": "sign.p7s",
+      "format": "application/pkcs7-signature",
+      "url": "https://public.docs.openprocurement.org/get/3e972bc06a8944bfa9883378595811b2?KeyID=52462340&Signature=6zgQo%2Fn93jqXbY2vCsN5SjcC647zZPul7YiS%2FhHX0hkAg1BPdQNwA8Pj7j%2F9u7%2FFZ9HZqXa8gtkpl5tPTR8SCA%253D%253D",
+      "datePublished": "2018-12-11T16:39:00.687185+02:00",
+      "dateModified": "2018-12-11T16:39:00.687205+02:00",
+      "relatedItem": "6c8eb9c8c75242ef8a624c7b9dec524a",
+      "documentOf": "change"
+    },
+    {
+      "id": "9615ceb0d6594b44937f6a8cf420bfb5",
+      "hash": "md5:1bb77da92ea404285c8bb492635aab17",
+      "documentType": "contractAnnexe",
+      "title": "Додаткова угода №4.PDF",
+      "format": "application/pdf",
+      "url": "https://public.docs.openprocurement.org/get/fd958733d7644692a28423d83617b069?KeyID=52462340&Signature=G%2FDyFX4O6DUjI6JFHBytwoxCxIq%2Fgg%2F%2F2jJLCE9O6YDWj2J8BV8kAPvmEZ2Xcxjy1Ba0eKE3VRLpUuvoEuJtCA%253D%253D",
+      "datePublished": "2018-12-12T08:36:08.630549+02:00",
+      "dateModified": "2018-12-12T08:36:08.630570+02:00",
+      "relatedItem": "0e7642b0f12c49d89cd28883699abe5e",
+      "documentOf": "change"
+    },
+    {
+      "id": "69ac23c8e6af49a1a6557db4bb4e3d1d",
+      "hash": "md5:0913b5ea98512d7c4c1cacf70fa85c32",
+      "title": "sign.p7s",
+      "format": "application/pkcs7-signature",
+      "url": "https://public.docs.openprocurement.org/get/4d90e09f3b994a0ab6ba3da23faf3865?KeyID=52462340&Signature=qz0EfUPnB%252BuyTMwDguhyJSeKfXfAF7LyqC02LW9T0sVy%2F7MbvdG5rgApnadpAOqhWiZSfiMJDhiGHsm7QmggDQ%253D%253D",
+      "datePublished": "2018-12-12T08:38:00.274719+02:00",
+      "dateModified": "2018-12-12T08:38:00.274739+02:00",
+      "relatedItem": "0e7642b0f12c49d89cd28883699abe5e",
+      "documentOf": "change"
+    },
+    {
+      "id": "8246fb4e8dbe4491a372eba5a912bb10",
+      "hash": "md5:1cb148556dbc5c9a18b7f85ad5d6bf78",
+      "documentType": "contractAnnexe",
+      "title": "Додаткова угода №5.PDF",
+      "format": "application/pdf",
+      "url": "https://public.docs.openprocurement.org/get/3103ee4fab2a4e52b9a5aac8400acdcb?KeyID=52462340&Signature=QVzqNvPQlmBagDp1nYkwnJMy%252BTqGebYTN0RxWXXt49ehMKT60Fon52U4W0VP7svsyEz5uS6U860UgF0NzyNJAQ%253D%253D",
+      "datePublished": "2018-12-12T09:02:13.376264+02:00",
+      "dateModified": "2018-12-12T09:02:13.376284+02:00",
+      "relatedItem": "08b075429f4d4a81b5919c26b97c7ce7",
+      "documentOf": "change"
+    },
+    {
+      "id": "128ef8a505914cad9077bf0e091b8926",
+      "hash": "md5:c2aedb4a040b2766eadb819daf7a3b6b",
+      "title": "sign.p7s",
+      "format": "application/pkcs7-signature",
+      "url": "https://public.docs.openprocurement.org/get/b413bf887ff4408a891679bb6a023300?KeyID=52462340&Signature=cAdFCfMTUaWg9WraAEgqGZGgA4%252B8EsFdQaJ9oqaNp6ujqaattzIQGx7TyTR9a7KeB95qTKD0Bhu%252BYjUbZRHrCQ%253D%253D",
+      "datePublished": "2018-12-12T09:02:38.443675+02:00",
+      "dateModified": "2018-12-12T09:02:38.443695+02:00",
+      "relatedItem": "08b075429f4d4a81b5919c26b97c7ce7",
+      "documentOf": "change"
+    }
+  ],
+  "amountPaid": {
+    "amount": 637182.66,
+    "currency": "UAH",
+    "valueAddedTaxIncluded": true
+  },
+  "value": {
+    "amount": 641112.06,
+    "currency": "UAH",
+    "valueAddedTaxIncluded": true
+  },
+  "id": "b30ee5ea395f4fa790f8f51a08d580e8"
+}

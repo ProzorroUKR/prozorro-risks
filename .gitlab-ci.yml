@@ -108,7 +108,8 @@ review:
   script:
     - helm3 upgrade -i ${RELEASE} helm/prozorro-risks --namespace dev-prozorro
         --set prozorro-risks.api.image.tag=$TAG
-        --set prozorro-risks.crawler.image.tag=$TAG
+        --set prozorro-risks.tenders-crawler.image.tag=$TAG
+        --set prozorro-risks.contracts-crawler.image.tag=$TAG
         --set "ingress.hosts[0].host=risks.${RELEASE}.k8s.prozorro.gov.ua,ingress.hosts[0].paths[0].path=/,ingress.hosts[0].paths[0].service=api"
   when: manual
   only:
