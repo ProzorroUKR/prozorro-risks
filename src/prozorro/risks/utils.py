@@ -2,6 +2,7 @@ import aiohttp
 import logging
 from datetime import datetime
 from aiohttp.web_exceptions import HTTPBadRequest
+from urllib.parse import quote
 
 from prozorro.risks.exceptions import SkipException
 from prozorro.risks.models import RiskIndicatorEnum
@@ -109,3 +110,12 @@ async def process_risks(obj, rules, resource="tenders"):
                     }
                 )
     return risks
+
+
+def build_content_disposition_name(file_name):
+    try:
+        file_name.encode("ascii")
+        file_expr = 'filename="{}"'.format(file_name)
+    except UnicodeEncodeError:
+        file_expr = "filename*=utf-8''{}".format(quote(file_name))
+    return f"attachment; {file_expr}"

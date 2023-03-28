@@ -9,6 +9,7 @@ from prozorro.risks.middleware import (
 from prozorro.risks.db import init_mongodb, cleanup_db_client
 from prozorro.risks.logging import AccessLogger, setup_logging
 from prozorro.risks.handlers import (
+    download_risks_report,
     get_region_values,
     get_tender_risks,
     get_version,
@@ -37,6 +38,7 @@ def create_application(on_cleanup=None):
     app.router.add_get(r"/api/risks/{tender_id:[\w-]+}", get_tender_risks, allow_head=False)
     app.router.add_get("/api/risks", list_tenders, allow_head=False)
     app.router.add_get("/api/regions", get_region_values, allow_head=False)
+    app.router.add_get("/api/risks-report", download_risks_report, allow_head=False)
 
     app.on_startup.append(init_mongodb)
     if on_cleanup:

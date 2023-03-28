@@ -142,7 +142,7 @@ async def get_risks(tender_id):
         return result
 
 
-def _build_tender_filters(**kwargs):
+def build_tender_filters(**kwargs):
     filters = {}
     if regions_list := kwargs.get("region"):
         filters["procuringEntityRegion"] = {"$in": [region.lower() for region in regions_list]}
@@ -156,7 +156,7 @@ def _build_tender_filters(**kwargs):
 async def find_tenders(skip=0, limit=20, **kwargs):
     collection = get_risks_collection()
     limit = min(limit, MAX_LIST_LIMIT)
-    filters = _build_tender_filters(**kwargs)
+    filters = build_tender_filters(**kwargs)
     request_sort = kwargs.get("sort")
     sort_field = request_sort if request_sort else "dateAssessed"
     sort_order = ASCENDING if kwargs.get("order") == "asc" else DESCENDING
@@ -166,6 +166,7 @@ async def find_tenders(skip=0, limit=20, **kwargs):
         skip,
         limit,
         sort=[(sort_field, sort_order)],
+        # TODO: remove history of risks from report
         projection={
             "procuringEntityRegion": False,
             "procuringEntityEDRPOU": False,
@@ -259,3 +260,23 @@ async def get_tender(tender_id):
             await asyncio.sleep(MONGODB_ERROR_INTERVAL)
         else:
             return result
+
+
+async def get_tender_risks_report(filters, **kwargs):
+    collection = get_risks_collection()
+    request_sort = kwargs.get("sort")
+    sort_field = request_sort if request_sort else "dateAssessed"
+    sort_order = ASCENDING if kwargs.get("order") == "asc" else DESCENDING
+    pipeline = [
+        {"$match": filters},
+        {"$sort": {sort_field: sort_order}},
+        {
+            "$addFields": {
+                "procuringEntityName": "$procuringEntity.name",
+                "valueAmount": "$value.amount",
+                "valueCurrency": "$value.currency",
+            }
+        },
+    ]
+    cursor = collection.aggregate(pipeline, allowDiskUse=True)
+    return cursor
