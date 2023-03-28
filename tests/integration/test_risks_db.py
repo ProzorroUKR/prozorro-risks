@@ -5,6 +5,7 @@ from tests.integration.conftest import get_fixture_json
 
 tender = get_fixture_json("risks")
 tender_with_3_1_risk_found = deepcopy(tender)
+tender_with_3_1_risk_found["_id"] = "f59a674045ac4c349a220c8fbaf184b9"
 tender_with_3_1_risk_found["risks"] = {
     "3-1": {
         "indicator": "risk_found",
@@ -67,3 +68,23 @@ async def test_update_tender_risks_with_non_existed_one(db):
     assert len(result["risks"]["3-1"]["history"]) == 1
     assert len(result["risks"]["3-2"]["history"]) == 1
     assert "dateAssessed" in result
+
+
+async def test_update_tender_with_previously_worked_risks(db):
+    worked_risks = ["3-2"]
+    risks = {
+        "3-1": {
+            "indicator": "risk_not_found",
+            "date": "2023-03-21T14:37:12.491341+02:00",
+        },
+        "3-2": {
+            "indicator": "risk_found",
+            "date": "2023-03-21T14:37:12.491341+02:00",
+        },
+    }
+    result = await db.risks.find_one("f59a674045ac4c349a220c8fbaf184b9")
+    assert result["worked_risks"] == ["3-1"]
+    await update_tender_risks(result["_id"], worked_risks, risks, {"dateAssessed": "2023-03-21T14:37:12.491341+02:00"})
+    result = await db.risks.find_one(result["_id"])
+    assert result["worked_risks"] == ["3-2"]
+    assert len(result["risks"].keys()) == 3

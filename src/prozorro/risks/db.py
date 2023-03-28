@@ -132,7 +132,13 @@ async def init_tender_indexes():
 async def get_risks(tender_id):
     collection = get_risks_collection()
     try:
-        result = await collection.find_one({"_id": tender_id})
+        result = await collection.find_one(
+            {"_id": tender_id},
+            projection={
+                "procuringEntityRegion": False,
+                "procuringEntityEDRPOU": False,
+            },
+        )
     except PyMongoError as e:
         logger.error(f"Get tender {type(e)}: {e}", extra={"MESSAGE_ID": "MONGODB_EXC"})
         raise web.HTTPInternalServerError()
@@ -175,15 +181,19 @@ async def find_tenders(skip=0, limit=20, **kwargs):
     return result
 
 
-def add_risks_history(risks, tender):
-    tender_risks = tender.get("risks", {}) if tender else {}
+def add_risks_history(risks, tender, worked_risks):
+    tender_risks = tender.get("risks", {})
+    old_worked_risks = set(tender.get("worked_risks", []))
     for risk_id, risk_data in risks.items():
         log = {"date": risk_data["date"], "indicator": risk_data["indicator"]}
         history = tender_risks.get(risk_id, {}).get("history", [])
         history.append(log)
         risks[risk_id]["history"] = history
+        if risk_id not in worked_risks and risk_id in old_worked_risks:
+            old_worked_risks.remove(risk_id)
     tender_risks.update(risks)
-    return tender_risks
+    old_worked_risks.update(set(worked_risks))
+    return tender_risks, list(old_worked_risks)
 
 
 async def update_tender_risks(uid, worked_risks, risks, additional_fields):
@@ -191,16 +201,16 @@ async def update_tender_risks(uid, worked_risks, risks, additional_fields):
     while True:
         try:
             tender = await get_risks_collection().find_one({"_id": uid})
-            risks = add_risks_history(risks, tender)
+            risks, worked_risks = add_risks_history(risks, tender if tender else {}, worked_risks)
             if tender:
                 filters["dateAssessed"] = tender.get("dateAssessed")
             result = await get_risks_collection().find_one_and_update(
                 filters,
                 {
-                    "$addToSet": {"worked_risks": {"$each": worked_risks}},
                     "$set": {
                         "_id": uid,
                         "risks": risks,
+                        "worked_risks": worked_risks,
                         **additional_fields,
                     },
                 },
