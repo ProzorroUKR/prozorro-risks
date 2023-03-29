@@ -2,6 +2,7 @@ import aiohttp
 import logging
 from datetime import datetime
 from aiohttp.web_exceptions import HTTPBadRequest
+from urllib.parse import quote
 
 from prozorro.risks.requests import get_object_data
 from prozorro.risks.settings import TIMEZONE
@@ -59,3 +60,12 @@ async def fetch_tender(tender_id):
         async with aiohttp.ClientSession() as session:
             tender = await get_object_data(session, tender_id)
     return tender
+
+
+def build_content_disposition_name(file_name):
+    try:
+        file_name.encode("ascii")
+        file_expr = 'filename="{}"'.format(file_name)
+    except UnicodeEncodeError:
+        file_expr = "filename*=utf-8''{}".format(quote(file_name))
+    return f"attachment; {file_expr}"

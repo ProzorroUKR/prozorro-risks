@@ -1,3 +1,4 @@
+from aiohttp.hdrs import CONTENT_DISPOSITION, CONTENT_TYPE
 from copy import deepcopy
 from bson.objectid import ObjectId
 from tests.integration.conftest import get_fixture_json
@@ -178,3 +179,29 @@ async def test_get_risks(api, db):
 
     response = await api.get(f"/api/risks/{str(ObjectId())}")
     assert response.status == 404
+
+
+async def test_get_tender_risks_report(api, db):
+    tender_with_no_risks_found["procuringEntityEDRPOU"] = "22518133"
+    await db.risks.insert_many(
+        [
+            tender_with_no_risks_found,
+            tender_with_3_1_risk_found,
+            tender_with_3_2_risk_found,
+        ]
+    )
+    response = await api.get("/api/risks-report?edrpou=22518133")
+    assert response.status == 200
+    result = await response.text()
+    assert response.headers[CONTENT_DISPOSITION] == 'attachment; filename="Tender_risks_report.csv"'
+    assert response.headers[CONTENT_TYPE] == "text/csv"
+    csv_rows = result.split("\n")
+    assert (
+        csv_rows[0] == "_id,dateAssessed,dateModified,procuringEntityRegion,procuringEntityEDRPOU,"
+        "procuringEntityName,valueAmount,valueCurrency,worked_risks\r"
+    )
+    assert csv_rows[1].split(",")[:3] == [
+        str(tender_with_no_risks_found["_id"]),
+        tender_with_no_risks_found["dateAssessed"],
+        tender_with_no_risks_found["dateModified"],
+    ]

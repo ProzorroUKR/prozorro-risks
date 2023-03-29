@@ -1,0 +1,37 @@
+tags:
+- Tender risks data report
+description: Get report of tender risks
+operationId: download_risks_report
+parameters:
+- in: query
+  name: risks
+  schema:
+    type: string
+  description: Filter by risks.id. Can be one value or sequence of values separated by ;
+- in: query
+  name: region
+  schema:
+    type: string
+  description: Filter by procuring entity's region
+- in: query
+  name: edrpou
+  schema:
+    type: string
+  description: Filter by procuring entity's edrpou. Can be one value or sequence of values separated by ;
+- in: query
+  name: sort
+  schema:
+    type: string
+  description: Field for sorting (e.g. 'name')
+- in: query
+  name: order
+  schema:
+    type: string
+  description: Sorting order (e.g. 'asc')
+produces:
+- application/json
+responses:
+  "200":
+    description: successful operation
+    content:
+      text/csv: {}
