@@ -4,9 +4,9 @@ from abc import ABC, abstractmethod
 class BaseRiskRule(ABC):
     identifier: str
     name: str
-    description: str
-    legitimateness: str
-    development_basis: str
+    description: str = None
+    legitimateness: str = None
+    development_basis: str = None
     procurement_methods: tuple
     tender_statuses: tuple
     procurement_categories: tuple

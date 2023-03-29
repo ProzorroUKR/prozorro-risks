@@ -1,9 +1,10 @@
 import sys
 from prozorro_crawler.main import main
+from prozorro.risks.crawlers.base import process_risks
 from prozorro.risks.db import init_mongodb, update_tender_risks
 from prozorro.risks.logging import setup_logging
 from prozorro.risks.requests import get_object_data
-from prozorro.risks.utils import get_now, process_risks
+from prozorro.risks.utils import get_now
 from prozorro.risks.rules import *  # noqa
 import asyncio
 import logging
