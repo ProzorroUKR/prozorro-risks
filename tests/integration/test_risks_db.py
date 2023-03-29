@@ -33,9 +33,7 @@ async def test_update_tender_risks_with_already_existed_one(db):
             "date": "2023-03-21T14:37:12.491341+02:00",
         },
     }
-    await update_tender_risks(
-        tender_obj.inserted_id, risks, {"dateAssessed": "2023-03-21T14:37:12.491341+02:00"}
-    )
+    await update_tender_risks(tender_obj.inserted_id, risks, {"dateAssessed": "2023-03-21T14:37:12.491341+02:00"})
     result = await db.risks.find_one(tender_obj.inserted_id)
     assert result["worked_risks"] == ["3-1"]
     assert len(result["risks"].keys()) == 3

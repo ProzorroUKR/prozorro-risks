@@ -6,6 +6,7 @@ from prozorro.risks.settings import (
     MONGODB_URL,
     DB_NAME,
     READ_PREFERENCE,
+    REPORT_ITEMS_LIMIT,
     WRITE_CONCERN,
     READ_CONCERN,
     MAX_LIST_LIMIT,
@@ -281,7 +282,8 @@ async def get_tender_risks_report(filters, **kwargs):
     sort_order = ASCENDING if kwargs.get("order") == "asc" else DESCENDING
     pipeline = [
         {"$match": filters},
-        {"$sort": {sort_field: sort_order}},
+        {"$sort": {sort_field: sort_order, "_id": 1}},  # including _id field guarantee sort consistency during limit
+        {"$limit": REPORT_ITEMS_LIMIT},
         {
             "$addFields": {
                 "procuringEntityName": "$procuringEntity.name",
@@ -290,5 +292,6 @@ async def get_tender_risks_report(filters, **kwargs):
             }
         },
     ]
+    #  allowDiskUse = True allow writing temporary files on disk when a pipeline stage exceeds the 100 megabyte limit
     cursor = collection.aggregate(pipeline, allowDiskUse=True)
     return cursor

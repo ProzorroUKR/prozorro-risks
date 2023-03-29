@@ -47,7 +47,7 @@ async def list_tenders(request):
         skip=skip,
         limit=limit,
         **requests_params(request, "sort", "order", "edrpou"),
-        **requests_sequence_params(request, "risks", "region", separator=";")
+        **requests_sequence_params(request, "risks", "region", separator=";"),
     )
     return result
 
