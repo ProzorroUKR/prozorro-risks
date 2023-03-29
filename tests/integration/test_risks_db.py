@@ -23,7 +23,6 @@ tender_with_3_1_risk_found["worked_risks"] = ["3-1"]
 
 async def test_update_tender_risks_with_already_existed_one(db):
     tender_obj = await db.risks.insert_one(tender_with_3_1_risk_found)
-    worked_risks = ["3-1"]
     risks = {
         "3-1": {
             "indicator": "risk_found",
@@ -35,7 +34,7 @@ async def test_update_tender_risks_with_already_existed_one(db):
         },
     }
     await update_tender_risks(
-        tender_obj.inserted_id, worked_risks, risks, {"dateAssessed": "2023-03-21T14:37:12.491341+02:00"}
+        tender_obj.inserted_id, risks, {"dateAssessed": "2023-03-21T14:37:12.491341+02:00"}
     )
     result = await db.risks.find_one(tender_obj.inserted_id)
     assert result["worked_risks"] == ["3-1"]
@@ -47,7 +46,6 @@ async def test_update_tender_risks_with_already_existed_one(db):
 
 
 async def test_update_tender_risks_with_non_existed_one(db):
-    worked_risks = ["3-1", "3-2"]
     risks = {
         "3-1": {
             "indicator": "risk_found",
@@ -59,7 +57,7 @@ async def test_update_tender_risks_with_non_existed_one(db):
         },
     }
     await update_tender_risks(
-        "bab6d5f695cc4b51a7a5bdaff8181550", worked_risks, risks, {"dateAssessed": "2023-03-21T14:37:12.491341+02:00"}
+        "bab6d5f695cc4b51a7a5bdaff8181550", risks, {"dateAssessed": "2023-03-21T14:37:12.491341+02:00"}
     )
     result = await db.risks.find_one({"_id": "bab6d5f695cc4b51a7a5bdaff8181550"})
     assert len(result["worked_risks"]) == 2
@@ -71,7 +69,6 @@ async def test_update_tender_risks_with_non_existed_one(db):
 
 
 async def test_update_tender_with_previously_worked_risks(db):
-    worked_risks = ["3-2"]
     risks = {
         "3-1": {
             "indicator": "risk_not_found",
@@ -84,7 +81,7 @@ async def test_update_tender_with_previously_worked_risks(db):
     }
     result = await db.risks.find_one("f59a674045ac4c349a220c8fbaf184b9")
     assert result["worked_risks"] == ["3-1"]
-    await update_tender_risks(result["_id"], worked_risks, risks, {"dateAssessed": "2023-03-21T14:37:12.491341+02:00"})
+    await update_tender_risks(result["_id"], risks, {"dateAssessed": "2023-03-21T14:37:12.491341+02:00"})
     result = await db.risks.find_one(result["_id"])
     assert result["worked_risks"] == ["3-2"]
     assert len(result["risks"].keys()) == 3

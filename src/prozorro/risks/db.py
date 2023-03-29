@@ -12,7 +12,7 @@ from prozorro.risks.settings import (
     MAX_TIME_QUERY,
     MONGODB_ERROR_INTERVAL,
 )
-from prozorro.risks.models import PaginatedList
+from prozorro.risks.models import PaginatedList, RiskIndicatorEnum
 from pymongo import ASCENDING, DESCENDING, IndexModel
 from pymongo.errors import ExecutionTimeout, PyMongoError
 from aiohttp import web
@@ -181,27 +181,28 @@ async def find_tenders(skip=0, limit=20, **kwargs):
     return result
 
 
-def add_risks_history(risks, tender, worked_risks):
+def join_old_risks_with_new_ones(risks, tender):
     tender_risks = tender.get("risks", {})
-    old_worked_risks = set(tender.get("worked_risks", []))
+    tender_worked_risks = set(tender.get("worked_risks", []))
     for risk_id, risk_data in risks.items():
         log = {"date": risk_data["date"], "indicator": risk_data["indicator"]}
         history = tender_risks.get(risk_id, {}).get("history", [])
         history.append(log)
         risks[risk_id]["history"] = history
-        if risk_id not in worked_risks and risk_id in old_worked_risks:
-            old_worked_risks.remove(risk_id)
+        if risk_data["indicator"] == RiskIndicatorEnum.risk_found:
+            tender_worked_risks.add(risk_id)
+        elif risk_id in tender_worked_risks:
+            tender_worked_risks.remove(risk_id)
     tender_risks.update(risks)
-    old_worked_risks.update(set(worked_risks))
-    return tender_risks, list(old_worked_risks)
+    return tender_risks, list(tender_worked_risks)
 
 
-async def update_tender_risks(uid, worked_risks, risks, additional_fields):
+async def update_tender_risks(uid, risks, additional_fields):
     filters = {"_id": uid}
     while True:
         try:
             tender = await get_risks_collection().find_one({"_id": uid})
-            risks, worked_risks = add_risks_history(risks, tender if tender else {}, worked_risks)
+            risks, worked_risks = join_old_risks_with_new_ones(risks, tender if tender else {})
             if tender:
                 filters["dateAssessed"] = tender.get("dateAssessed")
             result = await get_risks_collection().find_one_and_update(

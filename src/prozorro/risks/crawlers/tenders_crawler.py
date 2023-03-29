@@ -2,11 +2,12 @@ import sys
 from datetime import datetime
 
 from prozorro_crawler.main import main
+from prozorro.risks.crawlers.base import process_risks
 from prozorro.risks.db import init_mongodb, save_tender, update_tender_risks
 from prozorro.risks.logging import setup_logging
 from prozorro.risks.requests import get_object_data
 from prozorro.risks.settings import CRAWLER_START_DATE
-from prozorro.risks.utils import get_now, process_risks
+from prozorro.risks.utils import get_now
 from prozorro.risks.rules import *  # noqa
 import asyncio
 import logging
@@ -38,11 +39,10 @@ async def process_tender(tender):
     # for some risk rules it is required to have saved tenders in database for processing statistics
     await save_tender(uid, tender)
 
-    worked_risks, risks = await process_risks(tender, TENDER_RISKS)
+    risks = await process_risks(tender, TENDER_RISKS)
     if risks:
         await update_tender_risks(
             uid,
-            worked_risks,
             risks,
             {
                 "dateModified": tender.get("dateModified"),

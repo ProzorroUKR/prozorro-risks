@@ -24,7 +24,7 @@ spec:
         - name: {{ .Chart.Name }}-tenders-crawler
           image: "{{ .Values.tenders-crawler.image.repository }}:{{ .Values.tenders-crawler.image.tag }}"
           imagePullPolicy: {{ .Values.tenders-crawler.image.pullPolicy }}
-          command: ["python", "-m", "prozorro.risks.tenders_crawler"]
+          command: ["python", "-m", "prozorro.risks.crawlers.tenders_crawler"]
           env:
             - name: MONGODB_URL
               value: 'mongodb://root:pass@mongodb-risks.data.svc.cluster.local:27017'
