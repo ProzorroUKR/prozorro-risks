@@ -31,7 +31,7 @@ services:
             FORWARD_CHANGES_COOLDOWN_SECONDS: '36000'  # 10 hours in seconds
             BACKWARD_OFFSET: '1423058400.69246'  # 2015-02-23T12:00:00.756010+02:00
             FORWARD_OFFSET: '1672524000.0'  # 2023-01-01T00:00:00+02:00
-        command: python -m prozorro.risks.tenders_crawler
+        command: python -m prozorro.risks.crawlers.tenders_crawler
         volumes:
             - ./src/prozorro:/app/prozorro
 
@@ -48,7 +48,7 @@ services:
             BACKWARD_OFFSET: '1423058400.69246'  # 2015-02-23T12:00:00.756010+02:00
             FORWARD_OFFSET: '1672524000.0'  # 2023-01-01T00:00:00+02:00
             LOCK_PROCESS_NAME: 'contracts_crawler_lock'
-        command: python -m prozorro.risks.contracts_crawler
+        command: python -m prozorro.risks.crawlers.contracts_crawler
         volumes:
             - ./src/prozorro:/app/prozorro
 
