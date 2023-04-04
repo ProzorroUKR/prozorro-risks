@@ -63,6 +63,11 @@ services:
         ports:
             - 27017:27017
 
+    frontend:
+        image: "${IMAGE_FRONTEND}"
+        ports:
+            - 9090:80
+
     risks-test-integration: &test_app
         <<: *base_app
         image: "${IMAGE_TEST}"

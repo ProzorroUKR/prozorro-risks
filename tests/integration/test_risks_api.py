@@ -114,7 +114,7 @@ async def test_list_tenders_filter_by_risks_worked(api, db):
 
 
 async def test_list_tenders_filter_by_region(api, db):
-    tender_with_no_risks_found["procuringEntityRegion"] = "харківська область"
+    tender_with_no_risks_found["procuringEntityRegion"] = "Харківська область"
     tender_with_no_risks_found["procuringEntity"]["address"]["region"] = "Харківська область"
     await db.risks.insert_many(
         [

@@ -89,6 +89,8 @@ push-tagged-image:
   script:
     - docker tag $IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$IMAGE_FRONTEND:$CI_COMMIT_REF_SLUG
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE_FRONTEND:$CI_COMMIT_REF_SLUG
   only:
     - tags
 
@@ -110,7 +112,7 @@ review:
         --set prozorro-risks.api.image.tag=$TAG
         --set prozorro-risks.tenders-crawler.image.tag=$TAG
         --set prozorro-risks.contracts-crawler.image.tag=$TAG
-        --set "ingress.hosts[0].host=risks.${RELEASE}.k8s.prozorro.gov.ua,ingress.hosts[0].paths[0].path=/,ingress.hosts[0].paths[0].service=api"
+        --set "ingress.hosts[0].host=risks.${RELEASE}.k8s.prozorro.gov.ua,ingress.hosts[0].paths[0].path=/api,ingress.hosts[0].paths[0].service=api,ingress.hosts[0].paths[1].path=/,ingress.hosts[0].paths[1].service=frontend"
   when: manual
   only:
     - branches

@@ -94,6 +94,7 @@ async def init_risks_indexes():
         background=True,
     )
     date_assessed_index = IndexModel([("dateAssessed", ASCENDING)], background=True)
+    value_amount_index = IndexModel([("value.amount", ASCENDING)], background=True)
     risks_worked_index = IndexModel(
         [
             ("worked_risks", ASCENDING),
@@ -109,6 +110,7 @@ async def init_risks_indexes():
                 edrpou_compound_with_date_index,
                 edrpou_compound_with_value_index,
                 date_assessed_index,
+                value_amount_index,
                 risks_worked_index,
             ]
         )
@@ -138,6 +140,7 @@ async def get_risks(tender_id):
             projection={
                 "procuringEntityRegion": False,
                 "procuringEntityEDRPOU": False,
+                "worked_risks": False,
             },
         )
     except PyMongoError as e:
@@ -152,7 +155,7 @@ async def get_risks(tender_id):
 def build_tender_filters(**kwargs):
     filters = {}
     if regions_list := kwargs.get("region"):
-        filters["procuringEntityRegion"] = {"$in": [region.lower() for region in regions_list]}
+        filters["procuringEntityRegion"] = {"$in": regions_list}
     if edrpou := kwargs.get("edrpou"):
         filters["procuringEntityEDRPOU"] = edrpou
     if risks_list := kwargs.get("risks"):
@@ -237,7 +240,6 @@ async def save_tender(uid, tender_data):
 
 
 async def paginated_result(collection, filters, skip, limit, sort=None, projection=None):
-    limit = min(limit, MAX_LIST_LIMIT)
     count = await collection.count_documents(filters)
     try:
         cursor = collection.find(filters, projection=projection, max_time_ms=MAX_TIME_QUERY).skip(skip).limit(limit)
@@ -250,7 +252,7 @@ async def paginated_result(collection, filters, skip, limit, sort=None, projecti
 
 
 async def get_distinct_values(field):
-    return await get_risks_collection().distinct(field)
+    return await get_risks_collection().distinct(field, {field: {"$nin": ["", None]}})
 
 
 async def aggregate_tenders(pipeline):

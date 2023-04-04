@@ -49,7 +49,7 @@ async def process_tender(tender):
                 "dateAssessed": get_now().isoformat(),
                 "value": tender.get("value"),
                 "procuringEntity": tender.get("procuringEntity"),
-                "procuringEntityRegion": tender.get("procuringEntity", {}).get("address", {}).get("region", "").lower(),
+                "procuringEntityRegion": tender.get("procuringEntity", {}).get("address", {}).get("region", ""),
                 "procuringEntityEDRPOU": tender.get("procuringEntity", {}).get("identifier", {}).get("id", ""),
             },
         )

@@ -33,3 +33,4 @@ CRAWLER_START_DATE = datetime.fromisoformat(os.getenv("CRAWLER_START_DATE", "202
 
 # Excel cannot handle more than 1,048,576 rows
 REPORT_ITEMS_LIMIT = min(int(os.environ.get("REPORT_ITEMS_LIMIT", 100000)), 1048500)
+ALLOW_ALL_ORIGINS = bool(os.environ.get("ALLOW_ALL_ORIGINS", True))
