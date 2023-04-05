@@ -8,7 +8,13 @@ let totalPages = 0;
 async function fetchRisks(skip= 0) {
     let filters = getFilterValues();
     await fetch(`api/risks?skip=${skip}&${filters}`)
-        .then((response) => response.json())
+        .then((response) => {
+            if(!response.ok) {
+                return response.text().then(text => { throw new Error(text) })
+            } else {
+                return response.json();
+            }
+        })
         .then((data) => {
             totalRecords = data.count;
             totalPages = Math.ceil(totalRecords / perPage);
@@ -19,7 +25,7 @@ async function fetchRisks(skip= 0) {
             document.body.insertAdjacentHTML(
                 'beforebegin',
                 `<div class="alert alert-danger alert-dismissible fade show position-fixed z-999 w-100" role="alert">
-                  Server error. Try again!
+                  ${error.message}
                   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
                 </div>`
             )
@@ -166,8 +172,8 @@ function getFilterValues() {
     let edrpou = document.getElementById('edrpou').value;
     let sorting = document.getElementById('sorting').value.split('-');
     let filters = {
-        region: regionValues.join(';'),
         edrpou,
+        region: regionValues.join(';'),
         risks: risksValues.join(';'),
         sort: sorting[0],
         order: sorting[1],

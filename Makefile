@@ -53,7 +53,7 @@ docker-build:
  								  --build-arg NODE_ENV=$(NODE_ENV) -t $(IMAGE) .
 	@docker build --target=test --build-arg version=$(GIT_STAMP)  \
 								--build-arg NODE_ENV=development -t $(IMAGE_TEST) .
- 	@docker build -t ${IMAGE_FRONTEND} . -f frontend/Dockerfile
+	@docker build -t ${IMAGE_FRONTEND} . -f frontend/Dockerfile
 
 ## Runs integration tests | Tests
 test-integration: $(REBUILD_IMAGES_FOR_TESTS)

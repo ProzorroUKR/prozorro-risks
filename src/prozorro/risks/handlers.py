@@ -46,12 +46,15 @@ async def get_tender_risks(request, tender_id):
 @swagger_path("/swagger/risks_list.yaml")
 async def list_tenders(request):
     skip, limit = pagination_params(request)
-    result = await find_tenders(
-        skip=skip,
-        limit=limit,
-        **requests_params(request, "sort", "order", "edrpou"),
-        **requests_sequence_params(request, "risks", "region", separator=";"),
-    )
+    try:
+        result = await find_tenders(
+            skip=skip,
+            limit=limit,
+            **requests_params(request, "sort", "order", "edrpou"),
+            **requests_sequence_params(request, "risks", "region", separator=";"),
+        )
+    except web.HTTPRequestTimeout as exc:
+        return web.Response(text=exc.text, status=exc.status)
     return result
 
 

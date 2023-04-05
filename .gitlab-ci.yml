@@ -77,6 +77,8 @@ push-latest-image:
   script:
     - docker tag $IMAGE $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
+    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$IMAGE_FRONTEND:latest
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE_FRONTEND:latest
   only:
     - master
 
@@ -134,6 +136,22 @@ stop_review:
     - branches
   except:
     - master
+    - schedules
+
+deploy:
+  stage: deploy
+  tags:
+    - shell
+  variables:
+    TAG: latest
+    RELEASE: risks-master
+  script:
+    - helm3 upgrade -i ${RELEASE} helm/prozorro-risks --namespace dev-prozorro
+  after_script:
+    - kubectl --namespace dev-prozorro rollout restart deployment ${RELEASE}
+  only:
+    - master
+  except:
     - schedules
 
 cleanup-test-images:
