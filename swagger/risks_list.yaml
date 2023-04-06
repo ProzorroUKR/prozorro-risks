@@ -59,7 +59,11 @@ responses:
                 properties:
                   _id:
                     type: string
-                  description: Tender id
+                    description: Tender id
+                  dateAssessed:
+                    type: string
+                    format: date-time
+                    description: Last date of assessing risks for tender
                   dateModified:
                     type: string
                     format: date-time
@@ -77,6 +81,19 @@ responses:
                   procuringEntity:
                     type: object
                     properties:
+                      name:
+                        type: string
+                      identifier:
+                        type: object
+                        properties:
+                          scheme:
+                            type: string
+                            example: UA-EDR
+                          id:
+                            type: string
+                            example: 38313713
+                          legalName:
+                            type: string
                       address:
                         type: object
                         properties:
@@ -90,51 +107,59 @@ responses:
                             type: string
                           countryName:
                             type: string
+                      contactPoint:
+                        type: object
+                        properties:
+                          email:
+                            type: string
+                          telephone:
+                            type: string
+                          name:
+                            type: string
+                      kind:
+                        type: string
+                        example: general
                   risks:
                     type: object
                     properties:
-                      worked:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              description: Risk id
-                            indicator:
-                              type: integer
-                              description: Risk indicator
-                            date:
-                              type: string
-                              format: date-time
-                              description: Date of risk evaluating
-                            name:
-                              type: string
-                              description: Risk name
-                            description:
-                              type: string
-                              description: Risk name
-                            legitimateness:
-                              type: string
-                              description: Risk legitimateness
-                            development_basis:
-                              type: string
-                              description: Risk development basis
-                      other:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              description: Risk id
-                            indicator:
-                              type: integer
-                              description: Risk indicator
-                            date:
-                              type: string
-                              format: date-time
-                              description: Date of risk evaluating
+                      X-X:
+                        type: object
+                        description: Risk identifier
+                        properties:
+                          indicator:
+                            type: string
+                            description: Risk indicator
+                            example: risk_not_found
+                          date:
+                            type: string
+                            format: date-time
+                            description: Date of risk evaluating
+                          name:
+                            type: string
+                            description: Risk name
+                          description:
+                            type: string
+                            description: Risk description
+                          legitimateness:
+                            type: string
+                            description: Risk legitimateness
+                          development_basis:
+                            type: string
+                            description: Risk development basis
+                          history:
+                            type: array
+                            description: History logs for all risk's assessements
+                            items:
+                              type: object
+                              properties:
+                                date:
+                                  type: string
+                                  format: date-time
+                                  description: Date of risk evaluating
+                                indicator:
+                                  type: string
+                                  description: Risk indicator
+                                  example: risk_found
   "408":
     description: Request timeout
     content:
