@@ -150,7 +150,10 @@ deploy:
   script:
     - helm3 upgrade -i ${RELEASE} helm/prozorro-risks --namespace dev-prozorro
   after_script:
-    - kubectl --namespace dev-prozorro rollout restart deployment ${RELEASE}
+    - kubectl --namespace dev-prozorro rollout restart deployment risks-master-prozorro-risks-api
+    - kubectl --namespace dev-prozorro rollout restart deployment risks-master-prozorro-risks-frontend
+    - kubectl --namespace dev-prozorro rollout restart deployment risks-master-prozorro-risks-contracts-crawler
+    - kubectl --namespace dev-prozorro rollout restart deployment risks-master-prozorro-risks-tenders-crawler
   only:
     - master
   except:
