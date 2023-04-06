@@ -145,6 +145,8 @@ async def get_risks(tender_id):
 
 def build_tender_filters(**kwargs):
     filters = {}
+    if tender_id := kwargs.get("tender_id"):
+        filters["_id"] = tender_id
     if regions_list := kwargs.get("region"):
         filters["procuringEntityRegion"] = {"$in": regions_list}
     if edrpou := kwargs.get("edrpou"):

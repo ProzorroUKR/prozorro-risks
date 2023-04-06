@@ -78,6 +78,7 @@ function clearFilters() {
     document.getElementById('regions').selectedIndex = -1;
     document.getElementById('risks').selectedIndex = -1;
     document.getElementById('edrpou').value = '';
+    document.getElementById('tender_id').value = '';
     document.getElementById('sorting').selectedIndex = 0;
     filterRisks();
 }
@@ -170,8 +171,10 @@ function getFilterValues() {
     let risksOptions = document.getElementById('risks').selectedOptions;
     let risksValues = Array.from(risksOptions).map(({ value }) => value);
     let edrpou = document.getElementById('edrpou').value;
+    let tender_id = document.getElementById('tender_id').value;
     let sorting = document.getElementById('sorting').value.split('-');
     let filters = {
+        tender_id,
         edrpou,
         region: regionValues.join(';'),
         risks: risksValues.join(';'),

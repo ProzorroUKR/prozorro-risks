@@ -16,17 +16,19 @@
       <div class="filters">
         <div class="row my-3">
           <div class="col-4">
-            <label for="regions" class="form-label">Регіон замовника</label>
-            <select class="form-select" multiple="multiple" id="regions" size="5"></select>
+            <label for="regions" class="form-label mb-1">Регіон замовника</label>
+            <select class="form-select" multiple="multiple" id="regions" size="8"></select>
           </div>
           <div class="col-4">
-            <label for="risks" class="form-label">Ризики, що спрацювали</label>
-            <select class="form-select" multiple="multiple" id="risks" size="5"></select>
+            <label for="risks" class="form-label mb-1">Ризики, що спрацювали</label>
+            <select class="form-select" multiple="multiple" id="risks" size="8"></select>
           </div>
           <div class="col-4">
-            <label for="edrpou" class="form-label">ЄДРПОУ замовника</label>
+            <label for="edrpou" class="form-label mb-1">ЄДРПОУ замовника</label>
             <input class="form-control" id="edrpou" placeholder="11111111">
-            <label for="sorting" class="form-label pt-2">Сортування</label>
+            <label for="tender_id" class="form-label mb-1" style="padding-top: 0.15rem">ID тендера</label>
+            <input class="form-control" id="tender_id" placeholder="8c674aed0e434a56b98e4ac006775eef">
+            <label for="sorting" class="form-label mb-1" style="padding-top: 0.15rem">Сортування</label>
             <select class="form-select" id="sorting">
               <option value="dateAssessed-desc" selected>Дата спрацювання в порядку зменшення</option>
               <option value="dateAssessed-asc">Дата спрацювання в порядку збільшення</option>

@@ -24,12 +24,17 @@ parameters:
   name: region
   schema:
     type: string
-  description: Filter by procuring entity's region
+  description: Filter by procuring entity's region. Can be one value or sequence of values separated by ;
 - in: query
   name: edrpou
   schema:
     type: string
-  description: Filter by procuring entity's edrpou. Can be one value or sequence of values separated by ;
+  description: Filter by procuring entity's edrpou
+- in: query
+  name: tender_id
+  schema:
+    type: string
+  description: Filter by tender id
 - in: query
   name: sort
   schema:
