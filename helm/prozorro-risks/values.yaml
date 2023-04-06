@@ -1,3 +1,10 @@
+MONGODB_URL: 'mongodb://root:pass@mongodb-risks.data.svc.cluster.local:27017'
+SENTRY_DSN: 'http://c921e523b5384eb990c5cd2737d2aa79@sentry.dc.prozorro.gov.ua/55'
+PUBLIC_API_HOST: 'http://api.master.k8s.prozorro.gov.ua'
+BACKWARD_OFFSET: '1423058400.69246'
+FORWARD_OFFSET: '1672524000.0'
+FORWARD_CHANGES_COOLDOWN_SECONDS: '36000'
+
 api:
   replicaCount: 1
   image:

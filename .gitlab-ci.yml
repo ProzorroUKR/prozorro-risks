@@ -11,6 +11,8 @@ image: docker-registry.prozorro.gov.ua/cdb/openprocurement.api/ci
 variables:
   IMAGE: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA
   IMAGE_TEST: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-test
+  IMAGE_FRONTEND: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-frontend
+  CI_REGISTRY_FRONTEND_IMAGE_NAME: 'prozorro-risks-frontend'
 
 code-style-check:
   image: python:3.9-alpine3.14
@@ -77,8 +79,8 @@ push-latest-image:
   script:
     - docker tag $IMAGE $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
-    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$IMAGE_FRONTEND:latest
-    - docker push $CI_REGISTRY_IMAGE/$IMAGE_FRONTEND:latest
+    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:latest
+    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:latest
   only:
     - master
 
@@ -91,8 +93,8 @@ push-tagged-image:
   script:
     - docker tag $IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$IMAGE_FRONTEND:$CI_COMMIT_REF_SLUG
-    - docker push $CI_REGISTRY_IMAGE/$IMAGE_FRONTEND:$CI_COMMIT_REF_SLUG
+    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:$CI_COMMIT_REF_SLUG
+    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:$CI_COMMIT_REF_SLUG
   only:
     - tags
 

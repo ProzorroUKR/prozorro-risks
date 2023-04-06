@@ -27,17 +27,17 @@ spec:
           command: ["python", "-m", "prozorro.risks.crawlers.contracts_crawler"]
           env:
             - name: MONGODB_URL
-              value: 'mongodb://root:pass@mongodb-risks.data.svc.cluster.local:27017'
+              value: '{{ .Values.MONGODB_URL }}'
             - name: PUBLIC_API_HOST
-              value: 'http://api.master.k8s.prozorro.gov.ua'
+              value: '{{ .Values.PUBLIC_API_HOST }}'
             - name: MONGODB_STATE_ID
               value: 'prozorro-contracts-risks'
             - name: BACKWARD_OFFSET
-              value: '1423058400.69246'
+              value: '{{ .Values.BACKWARD_OFFSET }}'
             - name: FORWARD_OFFSET
-              value: '1672524000.0'
+              value: '{{ .Values.FORWARD_OFFSET }}'
             - name: FORWARD_CHANGES_COOLDOWN_SECONDS
-              value: '36000'
+              value: '{{ .Values.FORWARD_CHANGES_COOLDOWN_SECONDS }}'
             - name: API_RESOURCE
               value: 'contracts'
             - name: LOCK_PROCESS_NAME
