@@ -1,6 +1,6 @@
 from prozorro.risks.logging import request_id_var
-from prozorro.risks.models import PaginatedList
 from prozorro.risks.serialization import json_response
+from prozorro.risks.utils import build_headers_for_fixing_cors
 from aiohttp.web import middleware
 from uuid import uuid4
 import logging
@@ -39,15 +39,17 @@ async def request_unpack_params(request, handler):
 @middleware
 async def convert_response_to_json(request, handler):
     """
-    convert dicts and PaginatedList model objects
-    into valid json responses
+    Convert dicts into valid json responses
     """
     response = await handler(request)
-    if isinstance(response, PaginatedList):
-        if not isinstance(response.items, list):
-            response.items = [i async for i in response.items]
-        response = dict(items=response.items, count=response.count)
     if isinstance(response, dict):
         status_code = 201 if request.method == "POST" else 200
         response = json_response(response, status=status_code)
+    return response
+
+
+@middleware
+async def cors_middleware(request, handler):
+    response = await handler(request)
+    build_headers_for_fixing_cors(request, response)
     return response

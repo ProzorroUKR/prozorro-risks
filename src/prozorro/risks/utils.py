@@ -1,11 +1,13 @@
 import aiohttp
 import logging
 from datetime import datetime
+
+from aiohttp import web
 from aiohttp.web_exceptions import HTTPBadRequest
 from urllib.parse import quote
 
 from prozorro.risks.requests import get_object_data
-from prozorro.risks.settings import TIMEZONE
+from prozorro.risks.settings import ALLOW_ALL_ORIGINS, TIMEZONE
 
 logger = logging.getLogger(__name__)
 
@@ -69,3 +71,21 @@ def build_content_disposition_name(file_name):
     except UnicodeEncodeError:
         file_expr = "filename*=utf-8''{}".format(quote(file_name))
     return f"attachment; {file_expr}"
+
+
+def build_headers_for_fixing_cors(request, response):
+    if ALLOW_ALL_ORIGINS and isinstance(response, web.StreamResponse):
+        # fixes cors preflight OPTIONS requests
+        if request.method == "OPTIONS" and response.status in (401, 405):
+            response = web.StreamResponse()
+
+        response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "")
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+
+        allow_methods = request.headers.get("Access-Control-Request-Method")
+        if allow_methods:
+            response.headers["Access-Control-Allow-Methods"] = allow_methods
+
+        req_headers = request.headers.get("Access-Control-Request-Headers")
+        if req_headers:
+            response.headers["Access-Control-Allow-Headers"] = req_headers.upper()

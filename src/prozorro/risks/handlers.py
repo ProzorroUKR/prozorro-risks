@@ -1,6 +1,8 @@
 import csv
 import io
 import logging
+import sys
+
 from aiohttp import web
 from aiohttp.hdrs import CONTENT_DISPOSITION, CONTENT_TYPE
 from aiohttp_swagger import swagger_path
@@ -19,6 +21,7 @@ from prozorro.risks.utils import (
     requests_sequence_params,
     requests_params,
 )
+from prozorro.risks.rules import *  # noqa
 
 logger = logging.getLogger(__name__)
 MAX_BUFFER_LINES = 1000
@@ -43,27 +46,26 @@ async def get_tender_risks(request, tender_id):
 @swagger_path("/swagger/risks_list.yaml")
 async def list_tenders(request):
     skip, limit = pagination_params(request)
-    result = await find_tenders(
-        skip=skip,
-        limit=limit,
-        **requests_params(request, "sort", "order", "edrpou"),
-        **requests_sequence_params(request, "risks", "region", separator=";"),
-    )
+    try:
+        result = await find_tenders(
+            skip=skip,
+            limit=limit,
+            **requests_params(request, "sort", "order", "edrpou"),
+            **requests_sequence_params(request, "risks", "region", separator=";"),
+        )
+    except web.HTTPRequestTimeout as exc:
+        return web.Response(text=exc.text, status=exc.status)
     return result
 
 
-@swagger_path("/swagger/region_values.yaml")
-async def get_region_values(request):
-    regions = await get_distinct_values("procuringEntity.address.region")
-    result = []
-    for region in regions:
-        if region:
-            result.append(
-                {
-                    "name": region,
-                    "value": region.lower(),
-                }
-            )
+@swagger_path("/swagger/filter_values.yaml")
+async def get_filter_values(request):
+    regions = await get_distinct_values("procuringEntityRegion")
+    risk_modules = sys.modules["prozorro.risks.rules"].__all__
+    result = {
+        "regions": regions,
+        "risk_rules": [risk.removeprefix("risk_").replace("_", "-") for risk in risk_modules],
+    }
     return json_response(result, status=200)
 
 

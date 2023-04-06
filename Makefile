@@ -1,6 +1,7 @@
 PROJECT_NAME=risks
 IMAGE ?= prozorro-$(PROJECT_NAME):develop
 IMAGE_TEST ?= prozorro-$(PROJECT_NAME):develop-test
+IMAGE_FRONTEND ?= prozorro-$(PROJECT_NAME)-frontend:develop
 CI_COMMIT_SHORT_SHA ?= $(shell git rev-parse --short HEAD)
 GIT_STAMP ?= $(shell git describe || echo v0.1.0)
 COMPOSE_PROJECT_NAME ?= $(PROJECT_NAME)-$(CI_PIPELINE_ID)
@@ -22,7 +23,7 @@ clean: remove-compose
 
 ## Runs application development on docker. Builds, creates, starts containers for a service. | Common
 run: docker-build
-	@docker-compose up $(PROJECT_NAME)
+	@docker-compose up $(PROJECT_NAME) frontend
 
 ## Stops application. Stops running container without removing them.
 stop:
@@ -52,6 +53,7 @@ docker-build:
  								  --build-arg NODE_ENV=$(NODE_ENV) -t $(IMAGE) .
 	@docker build --target=test --build-arg version=$(GIT_STAMP)  \
 								--build-arg NODE_ENV=development -t $(IMAGE_TEST) .
+	@docker build -t ${IMAGE_FRONTEND} . -f frontend/Dockerfile
 
 ## Runs integration tests | Tests
 test-integration: $(REBUILD_IMAGES_FOR_TESTS)

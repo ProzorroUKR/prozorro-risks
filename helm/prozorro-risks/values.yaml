@@ -5,17 +5,24 @@ api:
     tag: latest
     pullPolicy: Always
 
-tenders-crawler:
+tenders_crawler:
   replicaCount: 1
   image:
     repository: docker-registry.prozorro.gov.ua/cdb/prozorro-risks
     tag: latest
     pullPolicy: Always
 
-contracts-crawler:
+contracts_crawler:
   replicaCount: 1
   image:
     repository: docker-registry.prozorro.gov.ua/cdb/prozorro-risks
+    tag: latest
+    pullPolicy: Always
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: docker-registry.prozorro.gov.ua/cdb/prozorro-risks/prozorro-risks-frontend
     tag: latest
     pullPolicy: Always
 
@@ -32,6 +39,8 @@ ingress:
     - host: risks.latest.k8s.prozorro.gov.ua
       paths:
         - path: /
+          service: frontend
+        - path: /api
           service: api
   tls: []
 

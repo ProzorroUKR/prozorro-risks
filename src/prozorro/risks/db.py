@@ -13,7 +13,7 @@ from prozorro.risks.settings import (
     MAX_TIME_QUERY,
     MONGODB_ERROR_INTERVAL,
 )
-from prozorro.risks.models import PaginatedList, RiskIndicatorEnum
+from prozorro.risks.models import RiskIndicatorEnum
 from pymongo import ASCENDING, DESCENDING, IndexModel
 from pymongo.errors import ExecutionTimeout, PyMongoError
 from aiohttp import web
@@ -85,15 +85,8 @@ async def init_risks_indexes():
         ],
         background=True,
     )
-    edrpou_compound_with_value_index = IndexModel(
-        [
-            ("procuringEntityEDRPOU", ASCENDING),
-            ("worked_risks", ASCENDING),
-            ("value.amount", ASCENDING),
-        ],
-        background=True,
-    )
     date_assessed_index = IndexModel([("dateAssessed", ASCENDING)], background=True)
+    value_amount_index = IndexModel([("value.amount", ASCENDING)], background=True)
     risks_worked_index = IndexModel(
         [
             ("worked_risks", ASCENDING),
@@ -107,8 +100,8 @@ async def init_risks_indexes():
             [
                 region_compound_index,
                 edrpou_compound_with_date_index,
-                edrpou_compound_with_value_index,
                 date_assessed_index,
+                value_amount_index,
                 risks_worked_index,
             ]
         )
@@ -138,6 +131,7 @@ async def get_risks(tender_id):
             projection={
                 "procuringEntityRegion": False,
                 "procuringEntityEDRPOU": False,
+                "worked_risks": False,
             },
         )
     except PyMongoError as e:
@@ -152,7 +146,7 @@ async def get_risks(tender_id):
 def build_tender_filters(**kwargs):
     filters = {}
     if regions_list := kwargs.get("region"):
-        filters["procuringEntityRegion"] = {"$in": [region.lower() for region in regions_list]}
+        filters["procuringEntityRegion"] = {"$in": regions_list}
     if edrpou := kwargs.get("edrpou"):
         filters["procuringEntityEDRPOU"] = edrpou
     if risks_list := kwargs.get("risks"):
@@ -173,7 +167,6 @@ async def find_tenders(skip=0, limit=20, **kwargs):
         skip,
         limit,
         sort=[(sort_field, sort_order)],
-        # TODO: remove history of risks from report
         projection={
             "procuringEntityRegion": False,
             "procuringEntityEDRPOU": False,
@@ -237,20 +230,20 @@ async def save_tender(uid, tender_data):
 
 
 async def paginated_result(collection, filters, skip, limit, sort=None, projection=None):
-    limit = min(limit, MAX_LIST_LIMIT)
-    count = await collection.count_documents(filters)
     try:
+        count = await collection.count_documents(filters, maxTimeMS=MAX_TIME_QUERY)
         cursor = collection.find(filters, projection=projection, max_time_ms=MAX_TIME_QUERY).skip(skip).limit(limit)
+        if sort:
+            cursor = cursor.sort(sort)
+        items = await cursor.to_list(length=None)
     except ExecutionTimeout as exc:
         logger.error(f"Filter tenders {type(exc)}: {exc}, filters: {filters}", extra={"MESSAGE_ID": "MONGODB_EXC"})
         raise web.HTTPRequestTimeout(text="Please change filters combination to optimize query (e.g. edrpou + risks)")
-    if sort:
-        cursor = cursor.sort(sort)
-    return PaginatedList(items=cursor, count=count)
+    return dict(items=items, count=count)
 
 
 async def get_distinct_values(field):
-    return await get_risks_collection().distinct(field)
+    return await get_risks_collection().distinct(field, {field: {"$nin": ["", None]}})
 
 
 async def aggregate_tenders(pipeline):
@@ -293,5 +286,5 @@ async def get_tender_risks_report(filters, **kwargs):
         },
     ]
     #  allowDiskUse = True allow writing temporary files on disk when a pipeline stage exceeds the 100 megabyte limit
-    cursor = collection.aggregate(pipeline, allowDiskUse=True)
+    cursor = collection.aggregate(pipeline, allowDiskUse=True, maxTimeMS=MAX_TIME_QUERY)
     return cursor

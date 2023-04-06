@@ -5,7 +5,7 @@ metadata:
   labels:
 {{ include "prozorro.risks.labels" . | indent 4 }}
 spec:
-  replicas: {{ .Values.contracts-crawler.replicaCount }}
+  replicas: {{ .Values.contracts_crawler.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "prozorro.risks.name" . }}-contracts-crawler
@@ -22,8 +22,8 @@ spec:
     {{- end }}
       containers:
         - name: {{ .Chart.Name }}-contracts-crawler
-          image: "{{ .Values.contracts-crawler.image.repository }}:{{ .Values.contracts-crawler.image.tag }}"
-          imagePullPolicy: {{ .Values.contracts-crawler.image.pullPolicy }}
+          image: "{{ .Values.contracts_crawler.image.repository }}:{{ .Values.contracts_crawler.image.tag }}"
+          imagePullPolicy: {{ .Values.contracts_crawler.image.pullPolicy }}
           command: ["python", "-m", "prozorro.risks.crawlers.contracts_crawler"]
           env:
             - name: MONGODB_URL

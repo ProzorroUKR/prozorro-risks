@@ -1,11 +1,4 @@
 from enum import Enum
-from typing import Any
-from pydantic import BaseModel
-
-
-class PaginatedList(BaseModel):
-    items: Any
-    count: int
 
 
 class RiskIndicatorEnum(str, Enum):

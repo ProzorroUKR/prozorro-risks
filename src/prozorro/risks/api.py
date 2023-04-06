@@ -2,6 +2,7 @@ from aiohttp import web
 from aiohttp_swagger import setup_swagger
 from prozorro import version
 from prozorro.risks.middleware import (
+    cors_middleware,
     request_id_middleware,
     request_unpack_params,
     convert_response_to_json,
@@ -10,7 +11,7 @@ from prozorro.risks.db import init_mongodb, cleanup_db_client
 from prozorro.risks.logging import AccessLogger, setup_logging
 from prozorro.risks.handlers import (
     download_risks_report,
-    get_region_values,
+    get_filter_values,
     get_tender_risks,
     get_version,
     list_tenders,
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 def create_application(on_cleanup=None):
     app = web.Application(
         middlewares=(
+            cors_middleware,
             request_id_middleware,
             convert_response_to_json,
             request_unpack_params,
@@ -37,7 +39,7 @@ def create_application(on_cleanup=None):
     app.router.add_get("/api/version", get_version, allow_head=False)
     app.router.add_get(r"/api/risks/{tender_id:[\w-]+}", get_tender_risks, allow_head=False)
     app.router.add_get("/api/risks", list_tenders, allow_head=False)
-    app.router.add_get("/api/regions", get_region_values, allow_head=False)
+    app.router.add_get("/api/filter-values", get_filter_values, allow_head=False)
     app.router.add_get("/api/risks-report", download_risks_report, allow_head=False)
 
     app.on_startup.append(init_mongodb)
