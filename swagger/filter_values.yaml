@@ -20,5 +20,22 @@ responses:
             risk_rules:
               type: array
               items:
-                type: string
+                type: object
                 description: Risk rules
+                properties:
+                  identifier:
+                    type: string
+                    description: Risk identifier
+                    example: 3-1
+                  start_date:
+                    type: string
+                    format: date-time
+                    description: Date when assessment started for risk
+                  end_date:
+                    type: string
+                    format: date-time
+                    description: Date when assessment ended for risk (archive)
+                  status:
+                    type: string
+                    example: active
+                    description: Risk status (archived/active)

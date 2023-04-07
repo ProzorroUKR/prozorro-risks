@@ -6,6 +6,7 @@ import sys
 from aiohttp import web
 from aiohttp.hdrs import CONTENT_DISPOSITION, CONTENT_TYPE
 from aiohttp_swagger import swagger_path
+from datetime import datetime
 from prozorro import version as api_version
 from prozorro.risks.db import (
     build_tender_filters,
@@ -17,6 +18,7 @@ from prozorro.risks.db import (
 from prozorro.risks.serialization import json_response
 from prozorro.risks.utils import (
     build_content_disposition_name,
+    get_now,
     pagination_params,
     requests_sequence_params,
     requests_params,
@@ -61,10 +63,24 @@ async def list_tenders(request):
 @swagger_path("/swagger/filter_values.yaml")
 async def get_filter_values(request):
     regions = await get_distinct_values("procuringEntityRegion")
-    risk_modules = sys.modules["prozorro.risks.rules"].__all__
+    risk_rules = []
+    risk_rule_module = sys.modules["prozorro.risks.rules"]
+    for module_name in risk_rule_module.__all__:
+        risk_module = getattr(risk_rule_module, module_name)
+        risk_rule = getattr(risk_module, "RiskRule")()
+        risk_rules.append(
+            {
+                "identifier": risk_rule.identifier,
+                "start_date": risk_rule.start_date,
+                "end_date": risk_rule.end_date,
+                "status": "archived"
+                if risk_rule.end_date and get_now().date() >= datetime.strptime(risk_rule.end_date, "%Y-%m-%d").date()
+                else "active",
+            }
+        )
     result = {
         "regions": regions,
-        "risk_rules": [risk.removeprefix("risk_").replace("_", "-") for risk in risk_modules],
+        "risk_rules": risk_rules,
     }
     return json_response(result, status=200)
 

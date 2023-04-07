@@ -76,6 +76,9 @@ async def init_risks_indexes():
             ("dateAssessed", ASCENDING),
         ],
         background=True,
+        partialFilterExpression={
+            "has_risks": True,
+        },
     )
     edrpou_compound_with_date_index = IndexModel(
         [
@@ -84,15 +87,33 @@ async def init_risks_indexes():
             ("dateAssessed", ASCENDING),
         ],
         background=True,
+        partialFilterExpression={
+            "has_risks": True,
+        },
     )
-    date_assessed_index = IndexModel([("dateAssessed", ASCENDING)], background=True)
-    value_amount_index = IndexModel([("value.amount", ASCENDING)], background=True)
+    date_assessed_index = IndexModel(
+        [("dateAssessed", ASCENDING)],
+        background=True,
+        partialFilterExpression={
+            "has_risks": True,
+        },
+    )
+    value_amount_index = IndexModel(
+        [("value.amount", ASCENDING)],
+        background=True,
+        partialFilterExpression={
+            "has_risks": True,
+        },
+    )
     risks_worked_index = IndexModel(
         [
             ("worked_risks", ASCENDING),
             ("value.amount", ASCENDING),
         ],
         background=True,
+        partialFilterExpression={
+            "has_risks": True,
+        },
     )
 
     try:
@@ -147,6 +168,7 @@ def build_tender_filters(**kwargs):
     filters = {}
     if tender_id := kwargs.get("tender_id"):
         filters["_id"] = tender_id
+    filters["has_risks"] = True
     if regions_list := kwargs.get("region"):
         filters["procuringEntityRegion"] = {"$in": regions_list}
     if edrpou := kwargs.get("edrpou"):
@@ -209,6 +231,7 @@ async def update_tender_risks(uid, risks, additional_fields):
                         "_id": uid,
                         "risks": risks,
                         "worked_risks": worked_risks,
+                        "has_risks": len(worked_risks) > 0,
                         **additional_fields,
                     },
                 },

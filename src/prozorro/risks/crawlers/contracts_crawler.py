@@ -1,4 +1,6 @@
 import sys
+from datetime import datetime
+
 from prozorro_crawler.main import main
 from prozorro.risks.crawlers.base import process_risks
 from prozorro.risks.db import init_mongodb, update_tender_risks
@@ -18,6 +20,8 @@ CONTRACT_RISKS = []
 for module_name in RISK_MODULES:
     risk_module = getattr(sys.modules[RISK_RULES_MODULE], module_name)
     risk_rule = getattr(risk_module, "RiskRule")()
+    if risk_rule.end_date and get_now().date() >= datetime.strptime(risk_rule.end_date, "%Y-%m-%d").date():
+        break
     if hasattr(risk_rule, "process_contract"):
         CONTRACT_RISKS.append(risk_rule)
 API_RESOURCE = "contracts"

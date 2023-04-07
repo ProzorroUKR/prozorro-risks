@@ -12,6 +12,8 @@ class BaseRiskRule(ABC):
     procurement_categories: tuple
     procuring_entity_kinds: tuple
     contract_statuses: tuple
+    start_date: str = "2023-01-01"
+    end_date: str = None
 
     def tender_matches_requirements(self, tender, status=True, category=True):
         status_matches = tender["status"] in self.tender_statuses if status else True
