@@ -1,3 +1,4 @@
+from datetime import datetime
 from prozorro.risks.exceptions import SkipException
 from prozorro.risks.utils import get_now
 
@@ -19,6 +20,8 @@ async def process_risks(obj, rules, resource="tenders"):
     """
     risks = {}
     for risk_rule in rules:
+        if risk_rule.end_date and get_now().date() >= datetime.strptime(risk_rule.end_date, "%Y-%m-%d").date():
+            break
         process_method = getattr(risk_rule, RISKS_METHODS_MAPPING[resource])
         try:
             risk_indicator = await process_method(obj)

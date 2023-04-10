@@ -21,6 +21,8 @@ TENDER_RISKS = []
 for module_name in RISK_MODULES:
     risk_module = getattr(sys.modules[RISK_RULES_MODULE], module_name)
     risk_rule = getattr(risk_module, "RiskRule")()
+    if risk_rule.end_date and get_now().date() >= datetime.strptime(risk_rule.end_date, "%Y-%m-%d").date():
+        break
     if hasattr(risk_rule, "process_tender"):
         TENDER_RISKS.append(risk_rule)
 

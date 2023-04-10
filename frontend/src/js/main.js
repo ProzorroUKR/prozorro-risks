@@ -64,7 +64,9 @@ async function fetchFilterData() {
             document.getElementById('regions').innerHTML = regionOptions;
             let risksOptions = '';
             for (let item of data.risk_rules) {
-                risksOptions += `<option value="${item}">${item}</option>`
+                risksOptions += `<option value="${item.identifier}">
+                  ${item.identifier} ${item.status === 'archived' ? '(архів)' : ''}
+                </option>`
             }
             document.getElementById('risks').innerHTML = risksOptions;
         })
