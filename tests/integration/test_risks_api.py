@@ -6,17 +6,19 @@ from tests.integration.conftest import get_fixture_json
 tender = get_fixture_json("risks")
 tender_with_3_1_risk_found = deepcopy(tender)
 tender_with_3_1_risk_found["risks"] = {
-    "3-1": {
+    "sas-3-1": {
         "indicator": "risk_found",
         "date": "2023-03-13T14:37:12.491341+02:00",
     }
 }
-tender_with_3_1_risk_found["worked_risks"] = ["3-1"]
+tender_with_3_1_risk_found["worked_risks"] = ["sas-3-1"]
 tender_with_3_1_risk_found["has_risks"] = True
 
 tender_with_3_2_risk_found = deepcopy(tender)
-tender_with_3_2_risk_found["risks"] = {"3-2": {"indicator": "risk_found", "date": "2023-03-13T14:37:12.491341+02:00"}}
-tender_with_3_2_risk_found["worked_risks"] = ["3-2"]
+tender_with_3_2_risk_found["risks"] = {
+    "sas-3-2": {"indicator": "risk_found", "date": "2023-03-13T14:37:12.491341+02:00"}
+}
+tender_with_3_2_risk_found["worked_risks"] = ["sas-3-2"]
 tender_with_3_2_risk_found["has_risks"] = True
 
 tender_with_no_risks_found = deepcopy(tender)
@@ -48,7 +50,7 @@ async def test_list_tenders_skip_and_limit(api, db):
     assert resp_json["count"] == 2
 
 
-async def test_list_tenders_sort_by_date_modified(api, db):
+async def test_list_tenders_sort_by_date_assessed(api, db):
     tender_with_3_2_risk_found["dateAssessed"] = "2019-02-14T21:37:16.832566+02:00"
     tender_with_3_1_risk_found["dateAssessed"] = "2019-03-14T21:37:16.832566+02:00"
     await db.risks.insert_many([tender_with_3_2_risk_found, tender_with_3_1_risk_found])
@@ -90,24 +92,24 @@ async def test_list_tenders_filter_by_risks_worked(api, db):
             tender_with_3_2_risk_found,
         ]
     )
-    response = await api.get("/api/risks?risks=3-1")
+    response = await api.get("/api/risks?risks=sas-3-1")
     assert response.status == 200
     resp_json = await response.json()
     assert resp_json["count"] == 1
-    assert resp_json["items"][0]["risks"]["3-1"]["indicator"] == "risk_found"
+    assert resp_json["items"][0]["risks"]["sas-3-1"]["indicator"] == "risk_found"
 
-    response = await api.get("/api/risks?risks=3-2")
+    response = await api.get("/api/risks?risks=sas-3-2")
     assert response.status == 200
     resp_json = await response.json()
     assert resp_json["count"] == 1
-    assert resp_json["items"][0]["risks"]["3-2"]["indicator"] == "risk_found"
+    assert resp_json["items"][0]["risks"]["sas-3-2"]["indicator"] == "risk_found"
 
-    response = await api.get("/api/risks?risks=3-1;3-2")
+    response = await api.get("/api/risks?risks=sas-3-1;sas-3-2")
     assert response.status == 200
     resp_json = await response.json()
     assert resp_json["count"] == 2
 
-    response = await api.get("/api/risks?risks=3-2-1")
+    response = await api.get("/api/risks?risks=sas-3-2-1")
     assert response.status == 200
     resp_json = await response.json()
     assert resp_json["count"] == 0
@@ -172,7 +174,7 @@ async def test_get_risks(api, db):
     response = await api.get(f"/api/risks/{tender_obj.inserted_id}")
     assert response.status == 200
     resp_json = await response.json()
-    assert resp_json["risks"]["3-1"]["indicator"] == "risk_found"
+    assert resp_json["risks"]["sas-3-1"]["indicator"] == "risk_found"
 
     response = await api.get(f"/api/risks/{str(ObjectId())}")
     assert response.status == 404
@@ -202,3 +204,44 @@ async def test_get_tender_risks_report(api, db):
         tender_with_3_1_risk_found["dateAssessed"],
         tender_with_3_1_risk_found["dateModified"],
     ]
+
+
+async def test_list_tenders_filter_by_owner(api, db):
+    tender_with_bank_risk_found = deepcopy(tender)
+    tender_with_bank_risk_found["risks"] = {
+        "bank-3-1": {
+            "indicator": "risk_found",
+            "date": "2023-03-13T14:37:12.491341+02:00",
+        }
+    }
+    tender_with_bank_risk_found["worked_risks"] = ["bank-3-1"]
+    tender_with_bank_risk_found["has_risks"] = True
+    await db.risks.insert_many(
+        [
+            tender_with_bank_risk_found,
+            tender_with_3_1_risk_found,  # sas
+            tender_with_3_2_risk_found,  # sas
+        ]
+    )
+    response = await api.get("/api/risks?owner=sas")
+    assert response.status == 200
+    resp_json = await response.json()
+    assert resp_json["count"] == 2
+    assert resp_json["items"][0]["risks"]["sas-3-1"]["indicator"] == "risk_found"
+    assert resp_json["items"][1]["risks"]["sas-3-2"]["indicator"] == "risk_found"
+
+    response = await api.get("/api/risks?owner=bank")
+    assert response.status == 200
+    resp_json = await response.json()
+    assert resp_json["count"] == 1
+    assert resp_json["items"][0]["risks"]["bank-3-1"]["indicator"] == "risk_found"
+
+    response = await api.get("/api/risks?owner=sas;bank")
+    assert response.status == 200
+    resp_json = await response.json()
+    assert resp_json["count"] == 3
+
+    response = await api.get("/api/risks?owner=bank&risks=sas-3-2")
+    assert response.status == 200
+    resp_json = await response.json()
+    assert resp_json["count"] == 2

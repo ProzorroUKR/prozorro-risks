@@ -16,7 +16,7 @@ async def process_risks(obj, rules, resource="tenders"):
     :param obj: dict Object for processing (could be tender or contract)
     :param rules: list List of RiskRule instances
     :param resource: str Resource that points what kind of objects should be processed
-    :return: dict Processed risks for object (e.g. {"3-1": {...}, "3-2": {...}})
+    :return: dict Processed risks for object (e.g. {"sas-3-1": {...}, "sas-3-2": {...}})
     """
     risks = {}
     for risk_rule in rules:

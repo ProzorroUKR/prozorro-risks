@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 from contextvars import ContextVar
 from motor.motor_asyncio import AsyncIOMotorClient
 from prozorro.risks.settings import (
@@ -166,6 +167,7 @@ async def get_risks(tender_id):
 
 def build_tender_filters(**kwargs):
     filters = {}
+    worked_risks_filter = []
     if tender_id := kwargs.get("tender_id"):
         filters["_id"] = tender_id
     filters["has_risks"] = True
@@ -173,8 +175,12 @@ def build_tender_filters(**kwargs):
         filters["procuringEntityRegion"] = {"$in": regions_list}
     if edrpou := kwargs.get("edrpou"):
         filters["procuringEntityEDRPOU"] = edrpou
+    if owners_list := kwargs.get("owner"):
+        worked_risks_filter = [re.compile(f"^{owner}") for owner in owners_list]
     if risks_list := kwargs.get("risks"):
-        filters["worked_risks"] = {"$in": risks_list}
+        worked_risks_filter.extend(risks_list)
+    if worked_risks_filter:
+        filters["worked_risks"] = {"$in": worked_risks_filter}
     return filters
 
 

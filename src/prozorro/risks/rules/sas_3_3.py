@@ -6,7 +6,7 @@ from prozorro.risks.historical_data import get_list_of_cpvs
 
 
 class RiskRule(BaseTenderRiskRule):
-    identifier = "3-3"
+    identifier = "sas-3-3"
     name = "Закупівля товарів та послуг у одного учасника"
     description = (
         "Даний індикатор виявляє ситуації, коли замовник проводить закупівлі у одного постачальника за 4 "

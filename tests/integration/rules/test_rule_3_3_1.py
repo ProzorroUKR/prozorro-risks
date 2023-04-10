@@ -2,7 +2,7 @@ from copy import deepcopy
 from unittest.mock import patch
 
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.risk_3_3_1 import RiskRule
+from prozorro.risks.rules.sas_3_3_1 import RiskRule
 from tests.integration.conftest import get_fixture_json
 
 tender_data = get_fixture_json("base_tender")
@@ -43,7 +43,7 @@ async def test_tender_without_active_awards():
 
 
 @patch(
-    "prozorro.risks.rules.risk_3_3.get_list_of_cpvs",
+    "prozorro.risks.rules.sas_3_3.get_list_of_cpvs",
     return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1", "45310000-5"]},
 )
 async def test_tender_for_4_and_more_cpvs(mock_cpvs):
@@ -54,7 +54,7 @@ async def test_tender_for_4_and_more_cpvs(mock_cpvs):
 
 
 @patch(
-    "prozorro.risks.rules.risk_3_3.get_list_of_cpvs", return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1"]}
+    "prozorro.risks.rules.sas_3_3.get_list_of_cpvs", return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1"]}
 )
 async def test_tender_for_3_cpvs_and_no_new_one(mock_cpvs):
     tender_data["awards"][0]["status"] = "active"
@@ -72,7 +72,7 @@ async def test_tender_for_3_cpvs_and_no_new_one(mock_cpvs):
 
 
 @patch(
-    "prozorro.risks.rules.risk_3_3.get_list_of_cpvs", return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1"]}
+    "prozorro.risks.rules.sas_3_3.get_list_of_cpvs", return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1"]}
 )
 async def test_tender_for_3_cpvs_and_new_one_cpv(mock_cpvs):
     tender_data["awards"][0]["status"] = "active"
@@ -89,7 +89,7 @@ async def test_tender_for_3_cpvs_and_new_one_cpv(mock_cpvs):
     assert indicator_without_lots == RiskIndicatorEnum.risk_found
 
 
-@patch("prozorro.risks.rules.risk_3_3.get_list_of_cpvs", return_value={"cpv": ["45310000-3", "45310000-2"]})
+@patch("prozorro.risks.rules.sas_3_3.get_list_of_cpvs", return_value={"cpv": ["45310000-3", "45310000-2"]})
 async def test_tender_for_less_than_3_cpvs(mock_cpvs):
     tender_data["awards"][0]["status"] = "active"
     risk_rule = RiskRule()
@@ -97,7 +97,7 @@ async def test_tender_for_less_than_3_cpvs(mock_cpvs):
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
-@patch("prozorro.risks.rules.risk_3_3.get_list_of_cpvs", return_value={})
+@patch("prozorro.risks.rules.sas_3_3.get_list_of_cpvs", return_value={})
 async def test_tenders_with_no_matching_identifiers(mock_cpvs):
     tender_data["awards"][0]["status"] = "active"
     risk_rule = RiskRule()

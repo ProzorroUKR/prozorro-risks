@@ -3,7 +3,7 @@ from prozorro.risks.rules.base import BaseTenderRiskRule
 
 
 class RiskRule(BaseTenderRiskRule):
-    identifier = "2-16"
+    identifier = "sas-2-16"
     name = "Відмова переможця від підписання договору"
     description = (
         "Даний індикатор виявляє ситуації, коли переможець за результатами тендеру/спрощеної закупівлі, в яких не "

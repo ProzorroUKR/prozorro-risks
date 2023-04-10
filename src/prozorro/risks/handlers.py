@@ -53,7 +53,7 @@ async def list_tenders(request):
             skip=skip,
             limit=limit,
             **requests_params(request, "sort", "order", "edrpou", "tender_id"),
-            **requests_sequence_params(request, "risks", "region", separator=";"),
+            **requests_sequence_params(request, "risks", "region", "owner", separator=";"),
         )
     except web.HTTPRequestTimeout as exc:
         return web.Response(text=exc.text, status=exc.status)

@@ -4,7 +4,7 @@ from prozorro.risks.rules.utils import get_satisfied_complaints
 
 
 class RiskRule(BaseTenderRiskRule):
-    identifier = "3-9"
+    identifier = "sas-3-9"
     name = "Повторне визнання переможцем учасника після винесення рішення органом оскарження по ньому"
     procurement_methods = ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold")
     tender_statuses = ("active.qualification", "active.awarded")

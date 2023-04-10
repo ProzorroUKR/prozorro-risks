@@ -3,7 +3,7 @@ from prozorro.risks.rules.base import BaseTenderRiskRule
 
 
 class RiskRule(BaseTenderRiskRule):
-    identifier = "3-2"
+    identifier = "sas-3-2"
     name = "Замовник відхилив тендерні пропозиції всіх учасників під час закупівлі товарів або послуг, крім переможця"
     description = (
         "Даний індикатор виявляє ситуації, коли замовник дискваліфікував усіх учасників лота або процедури "

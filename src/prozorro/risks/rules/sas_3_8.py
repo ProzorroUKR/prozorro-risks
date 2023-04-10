@@ -6,7 +6,7 @@ from prozorro.risks.rules.utils import get_satisfied_complaints
 
 
 class RiskRule(BaseTenderRiskRule):
-    identifier = "3-8"
+    identifier = "sas-3-8"
     name = "Застосування 24 годин після винесення рішення органом оскарження по постачальнику"
     procurement_methods = ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold")
     tender_statuses = ("active.qualification", "active.awarded")

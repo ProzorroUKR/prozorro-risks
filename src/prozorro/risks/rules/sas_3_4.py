@@ -11,7 +11,7 @@ SIGNING_DAYS_LIMIT = 90
 
 
 class RiskRule(BaseContractRiskRule):
-    identifier = "3-4"
+    identifier = "sas-3-4"
     name = "Зміна істотних умов договору (ціни за одиницю товару)"
     description = "Індикатор свідчить про незаконну зміну ціни договору частіше ніж один раз у 90 днів"
     legitimateness = (
