@@ -204,15 +204,17 @@ def join_old_risks_with_new_ones(risks, tender):
     tender_risks = tender.get("risks", {})
     tender_worked_risks = set(tender.get("worked_risks", []))
     for risk_id, risk_data in risks.items():
+        if risk_data["indicator"] == RiskIndicatorEnum.risk_found:
+            tender_worked_risks.add(risk_id)
+        elif risk_data["indicator"] == RiskIndicatorEnum.use_previous_result:
+            continue
+        elif risk_id in tender_worked_risks:
+            tender_worked_risks.remove(risk_id)
         log = {"date": risk_data["date"], "indicator": risk_data["indicator"]}
         history = tender_risks.get(risk_id, {}).get("history", [])
         history.append(log)
-        risks[risk_id]["history"] = history
-        if risk_data["indicator"] == RiskIndicatorEnum.risk_found:
-            tender_worked_risks.add(risk_id)
-        elif risk_id in tender_worked_risks:
-            tender_worked_risks.remove(risk_id)
-    tender_risks.update(risks)
+        risk_data["history"] = history
+        tender_risks[risk_id] = risk_data
     return tender_risks, list(tender_worked_risks)
 
 

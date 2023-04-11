@@ -63,4 +63,6 @@ class RiskRule(BaseTenderRiskRule):
 
             if award_complaints:
                 return self.check_decision_delta(award_complaints)
+        elif tender.get("status") == self.stop_assessment_status:
+            return RiskIndicatorEnum.use_previous_result
         return RiskIndicatorEnum.risk_not_found

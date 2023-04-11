@@ -105,3 +105,24 @@ async def test_update_tender_with_no_risks(db):
     assert len(result["worked_risks"]) == 0
     assert len(result["risks"].keys()) == 2
     assert result["has_risks"] is False
+
+
+async def test_update_tender_with_previous_result(db):
+    risks = {
+        "3-1": {
+            "indicator": "risk_not_found",
+            "date": "2023-03-21T14:37:12.491341+02:00",
+        },
+        "3-2": {
+            "indicator": "use_previous_result",
+            "date": "2023-03-21T14:37:12.491341+02:00",
+        },
+    }
+    result = await db.risks.find_one("f59a674045ac4c349a220c8fbaf184b9")
+    assert result["worked_risks"] == ["3-2"]
+    assert len(result["risks"]["3-2"]["history"]) == 2
+    await update_tender_risks(result["_id"], risks, {"dateAssessed": "2023-03-21T14:37:12.491341+02:00"})
+    result = await db.risks.find_one(result["_id"])
+    assert result["worked_risks"] == ["3-2"]
+    assert len(result["risks"].keys()) == 3
+    assert len(result["risks"]["3-2"]["history"]) == 2

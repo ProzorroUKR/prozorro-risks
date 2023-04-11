@@ -1,3 +1,4 @@
+import pytest
 from copy import deepcopy
 
 from prozorro.risks.models import RiskIndicatorEnum
@@ -55,9 +56,19 @@ async def test_tender_without_disqualified_award():
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
-async def test_tender_with_violations():
+@pytest.mark.parametrize(
+    "lot_status,risk_indicator",
+    [
+        ("active", RiskIndicatorEnum.risk_found),
+        ("cancelled", RiskIndicatorEnum.risk_not_found),
+        ("unsuccessful", RiskIndicatorEnum.risk_not_found),
+    ],
+)
+async def test_tender_with_violations_for_different_lot_status(lot_status, risk_indicator):
+    tender = deepcopy(tender_data)
+    tender["lots"][0]["status"] = lot_status
     # 4 bidders
-    bid["lotValues"][0]["relatedLot"] = tender_data["lots"][0]["id"]
+    bid["lotValues"][0]["relatedLot"] = tender["lots"][0]["id"]
     bid["status"] = "active"
     bid_2 = deepcopy(bid)
     bid_2["tenderers"][0]["identifier"]["id"] = "11111111"
@@ -67,7 +78,7 @@ async def test_tender_with_violations():
     bid_4["tenderers"][0]["identifier"]["id"] = "33333333"
 
     # 3 disqualified award and 1 winner
-    disqualified_award["lotID"] = tender_data["lots"][0]["id"]
+    disqualified_award["lotID"] = tender["lots"][0]["id"]
     disqualified_award_1 = deepcopy(disqualified_award)
     disqualified_award_1["suppliers"][0]["identifier"]["id"] = "11111111"
     disqualified_award_2 = deepcopy(disqualified_award)
@@ -77,7 +88,7 @@ async def test_tender_with_violations():
     winner = deepcopy(disqualified_award)
     winner["status"] = "active"
 
-    tender_data.update(
+    tender.update(
         {
             "bids": [bid, bid_2, bid_3, bid_4],
             "awards": [
@@ -89,8 +100,8 @@ async def test_tender_with_violations():
         }
     )
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_found
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == risk_indicator
 
 
 async def test_tender_with_less_than_2_disqualified_awards():
@@ -236,7 +247,7 @@ async def test_tender_with_not_unique_awards():
 async def test_tender_with_not_risky_tender_status():
     tender_data.update(
         {
-            "status": "compete",
+            "status": "cancelled",
         }
     )
     risk_rule = RiskRule()
@@ -271,3 +282,10 @@ async def test_tender_with_not_risky_procurement_category():
     risk_rule = RiskRule()
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
+
+
+async def test_tender_with_complete_status():
+    tender_data["status"] = "complete"
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender_data)
+    assert indicator == RiskIndicatorEnum.use_previous_result

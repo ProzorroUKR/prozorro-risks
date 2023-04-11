@@ -62,4 +62,6 @@ class RiskRule(BaseTenderRiskRule):
                                 classifications.add(item["classification"]["id"])
                         if len(classifications.difference(set(result["cpv"]))):
                             return RiskIndicatorEnum.risk_found
+        elif tender.get("status") == self.stop_assessment_status:
+            return RiskIndicatorEnum.use_previous_result
         return RiskIndicatorEnum.risk_not_found

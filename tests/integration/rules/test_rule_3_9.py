@@ -1,3 +1,4 @@
+import pytest
 from copy import deepcopy
 
 from prozorro.risks.models import RiskIndicatorEnum
@@ -54,7 +55,15 @@ async def test_tender_with_active_awards_and_complaint_different_bid_id_without_
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
-async def test_tender_with_active_awards_and_complaint_same_bid_id_with_lots():
+@pytest.mark.parametrize(
+    "lot_status,risk_indicator",
+    [
+        ("active", RiskIndicatorEnum.risk_found),
+        ("cancelled", RiskIndicatorEnum.risk_not_found),
+        ("unsuccessful", RiskIndicatorEnum.risk_not_found),
+    ],
+)
+async def test_tender_with_active_awards_and_complaint_same_bid_id_with_lots(lot_status, risk_indicator):
     active_award = deepcopy(disqualified_award)
     active_award["status"] = "active"
     active_award["bid_id"] = award_with_complaints["complaints"][0]["bid_id"]
@@ -65,12 +74,12 @@ async def test_tender_with_active_awards_and_complaint_same_bid_id_with_lots():
     tender["lots"] = [
         {
             "title": "Бетон та розчин будівельний",
-            "status": "active",
+            "status": lot_status,
             "id": "c2bb6ff3e8e547bee11d8bff23e8a295",
         }
     ]
     indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_found
+    assert indicator == risk_indicator
 
 
 async def test_tender_with_active_awards_and_complaint_different_bid_id_with_lots():
@@ -95,7 +104,7 @@ async def test_tender_with_active_awards_and_complaint_different_bid_id_with_lot
 async def test_tender_with_not_risky_tender_status():
     tender_data.update(
         {
-            "status": "compete",
+            "status": "cancelled",
         }
     )
     indicator = await risk_rule.process_tender(tender_data)
@@ -116,3 +125,10 @@ async def test_tender_with_not_risky_procurement_entity_kind():
     tender_data["procuringEntity"]["kind"] = "other"
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
+
+
+async def test_tender_with_complete_status():
+    tender_data["status"] = "complete"
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender_data)
+    assert indicator == RiskIndicatorEnum.use_previous_result

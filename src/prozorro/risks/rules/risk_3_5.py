@@ -36,7 +36,7 @@ class RiskRule(BaseTenderRiskRule):
                     # Визначаємо кількість дискваліфікацій - кількість об’єктів data.awards, що посилаються
                     # на лот data.awards.lotID=data.lots.id та мають data.awards.status='unsuccessful'
                     for award in unsuccessful_awards:
-                        if award.get("lotID") == lot["id"]:
+                        if award.get("lotID") == lot["id"] and lot["status"] not in ("cancelled", "unsuccessful"):
                             disqualified_lots_count += 1
                     # Якщо кількість дискваліфікацій дорівнює 2 або більше, індикатор приймає значення 1
                     if disqualified_lots_count >= 2:
@@ -46,4 +46,6 @@ class RiskRule(BaseTenderRiskRule):
                 # індикатор приймає значення 1
                 if len(unsuccessful_awards) >= 2:
                     return RiskIndicatorEnum.risk_found
+        elif tender.get("status") == self.stop_assessment_status:
+            return RiskIndicatorEnum.use_previous_result
         return RiskIndicatorEnum.risk_not_found

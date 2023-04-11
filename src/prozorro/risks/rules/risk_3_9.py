@@ -41,10 +41,12 @@ class RiskRule(BaseTenderRiskRule):
                 # у яких є awards.satisfied_complaints, на які посилається data.awards.lotID
                 if len(tender.get("lots", [])):
                     for lot in tender["lots"]:
-                        if lot["id"] == award["lotID"]:
+                        if lot["status"] not in ("cancelled", "unsuccessful") and lot["id"] == award["lotID"]:
                             if self.tender_has_active_awards_with_complaint_bid(tender["awards"], satisfied_complaints):
                                 return RiskIndicatorEnum.risk_found
                 else:
                     if self.tender_has_active_awards_with_complaint_bid(tender["awards"], satisfied_complaints):
                         return RiskIndicatorEnum.risk_found
+        elif tender.get("status") == self.stop_assessment_status:
+            return RiskIndicatorEnum.use_previous_result
         return RiskIndicatorEnum.risk_not_found

@@ -1,3 +1,4 @@
+import pytest
 from copy import deepcopy
 
 from prozorro.risks.models import RiskIndicatorEnum
@@ -59,14 +60,23 @@ async def test_tender_without_lots_with_difference_in_amounts_less_than_30_perce
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
-async def test_tender_with_big_difference_in_lot_and_award_amounts():
+@pytest.mark.parametrize(
+    "lot_status,risk_indicator",
+    [
+        ("active", RiskIndicatorEnum.risk_found),
+        ("cancelled", RiskIndicatorEnum.risk_not_found),
+        ("unsuccessful", RiskIndicatorEnum.risk_not_found),
+    ],
+)
+async def test_tender_with_big_difference_in_lot_and_award_amounts(lot_status, risk_indicator):
     tender = deepcopy(tender_data)
+    tender["lots"][0]["status"] = lot_status
     tender["lots"][0]["value"]["amount"] = 1000
     award["lotID"] = tender["lots"][0]["id"]
     award["value"]["amount"] = 700
     tender["awards"] = [award]
     indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_found
+    assert indicator == risk_indicator
 
 
 async def test_tender_with_difference_in_lot_and_award_amounts_less_than_30_percents():
@@ -88,7 +98,7 @@ async def test_tender_with_lots_not_matched_awards():
 async def test_tender_with_not_risky_tender_status():
     tender_data.update(
         {
-            "status": "compete",
+            "status": "cancelled",
         }
     )
     indicator = await risk_rule.process_tender(tender_data)
@@ -109,3 +119,10 @@ async def test_tender_with_not_risky_procurement_entity_kind():
     tender_data["procuringEntity"]["kind"] = "other"
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
+
+
+async def test_tender_with_complete_status():
+    tender_data["status"] = "complete"
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender_data)
+    assert indicator == RiskIndicatorEnum.use_previous_result

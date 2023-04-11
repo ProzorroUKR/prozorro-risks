@@ -20,6 +20,7 @@ class RiskRule(BaseContractRiskRule):
     )
     development_basis = "Автоматичний контроль терміном внесення змін до договору відсутній в системі."
     contract_statuses = ("active",)
+    stop_assessment_status = "terminated"
 
     async def process_contract(self, contract):
         if contract["status"] in self.contract_statuses:
@@ -47,4 +48,6 @@ class RiskRule(BaseContractRiskRule):
                 # розрахунок завершується
                 if count_days_between_two_dates(dates[idx + 1], date) < SIGNING_DAYS_LIMIT:
                     return RiskIndicatorEnum.risk_found
+        elif contract["status"] == self.stop_assessment_status:
+            return RiskIndicatorEnum.use_previous_result
         return RiskIndicatorEnum.risk_not_found

@@ -72,7 +72,7 @@ async def test_tender_with_milestone_date_less_than_complaint_date_decision():
 async def test_tender_with_not_risky_tender_status():
     tender_data.update(
         {
-            "status": "compete",
+            "status": "cancelled",
         }
     )
     indicator = await risk_rule.process_tender(tender_data)
@@ -93,3 +93,10 @@ async def test_tender_with_not_risky_procurement_entity_kind():
     tender_data["procuringEntity"]["kind"] = "other"
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
+
+
+async def test_tender_with_complete_status():
+    tender_data["status"] = "complete"
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender_data)
+    assert indicator == RiskIndicatorEnum.use_previous_result
