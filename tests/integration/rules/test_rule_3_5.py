@@ -89,6 +89,24 @@ async def test_tender_with_2_disqualified_award_with_related_lots():
     assert indicator == RiskIndicatorEnum.risk_found
 
 
+async def test_tender_with_1_disqualified_award_with_one_related_lots_and_1_for_another():
+    tender = deepcopy(tender_data)
+    tender["lots"].append(
+        {
+            "title": "Бетон та розчин будівельний",
+            "status": "active",
+            "id": "c2bb6ff3e8e547bee11d8bff23e8a290",
+        }
+    )
+    disqualified_award["lotID"] = tender_data["lots"][0]["id"]
+    disqualified_award_2 = deepcopy(disqualified_award)
+    disqualified_award_2["lotID"] = "c2bb6ff3e8e547bee11d8bff23e8a290"
+    tender["awards"] = [disqualified_award, disqualified_award_2]
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == RiskIndicatorEnum.risk_not_found
+
+
 @pytest.mark.parametrize(
     "lot_status,risk_indicator",
     [

@@ -31,8 +31,8 @@ class RiskRule(BaseTenderRiskRule):
                 return RiskIndicatorEnum.risk_not_found
 
             if len(tender.get("lots", [])):
-                disqualified_lots_count = 0
                 for lot in tender["lots"]:
+                    disqualified_lots_count = 0
                     # Визначаємо кількість дискваліфікацій - кількість об’єктів data.awards, що посилаються
                     # на лот data.awards.lotID=data.lots.id та мають data.awards.status='unsuccessful'
                     for award in unsuccessful_awards:
