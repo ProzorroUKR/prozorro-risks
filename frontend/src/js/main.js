@@ -129,7 +129,7 @@ function createTableContent(data) {
                 </td>
             </tr>
             <tr>
-                <td colspan="6" class="p-0 border-bottom-0">
+                <td colspan="7" class="p-0 border-bottom-0 w-100">
                     <div id="accordion-${item._id}" class="collapse mx-5">
                         <table class="table">
                           <thead>

@@ -32,6 +32,8 @@ class RiskRule(BaseTenderRiskRule):
     async def process_tender(self, tender):
         if self.tender_matches_requirements(tender):
             for lot in tender.get("lots", []):
+                if lot["status"] in ("cancelled", "unsuccessful"):
+                    continue
                 disqualified_awards = set()
                 winner_count = 0
                 bidders = set()
@@ -59,4 +61,6 @@ class RiskRule(BaseTenderRiskRule):
 
                 if bidders_count == winner_count + disqualifications_count:
                     return RiskIndicatorEnum.risk_found
+        elif tender.get("status") == self.stop_assessment_status:
+            return RiskIndicatorEnum.use_previous_result
         return RiskIndicatorEnum.risk_not_found

@@ -67,7 +67,7 @@ async def test_tender_with_less_than_90_days_between_date_signed_changes(mock_te
 
 async def test_tender_with_not_risky_contract_status():
     contract = deepcopy(contract_data)
-    contract["status"] = "terminated"
+    contract["status"] = "cancelled"
     risk_rule = RiskRule()
     indicator = await risk_rule.process_contract(contract)
     assert indicator == RiskIndicatorEnum.risk_not_found
@@ -81,3 +81,10 @@ async def test_contract_with_old_tender(mock_tender):
     risk_rule = RiskRule()
     with pytest.raises(SkipException):
         await risk_rule.process_contract(contract_data)
+
+
+async def test_contract_with_terminated_status():
+    contract_data["status"] = "terminated"
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_contract(contract_data)
+    assert indicator == RiskIndicatorEnum.use_previous_result

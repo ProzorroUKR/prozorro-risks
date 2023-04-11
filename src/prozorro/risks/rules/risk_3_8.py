@@ -39,4 +39,6 @@ class RiskRule(BaseTenderRiskRule):
                             for date in day_milestones_dates
                         ):
                             return RiskIndicatorEnum.risk_found
+        elif tender.get("status") == self.stop_assessment_status:
+            return RiskIndicatorEnum.use_previous_result
         return RiskIndicatorEnum.risk_not_found

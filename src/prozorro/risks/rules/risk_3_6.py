@@ -28,7 +28,7 @@ class RiskRule(BaseTenderRiskRule):
                 for lot in tender["lots"]:
                     lot_value = lot.get("value", {}).get("amount", 0)
                     for award in tender.get("awards", []):
-                        if award.get("lotID") == lot["id"]:
+                        if award.get("lotID") == lot["id"] and lot["status"] not in ("cancelled", "unsuccessful"):
                             award_value = award.get("value", {}).get("amount", 0)
 
                             # Якщо різниця менша на 30% і більше індикатор приймає значення 1, розрахунок завершується.
@@ -43,4 +43,6 @@ class RiskRule(BaseTenderRiskRule):
                     # Якщо різниця менша на 30% і більше індикатор приймає значення 1, розрахунок завершується.
                     if count_percentage_between_two_values(tender_value, award_value) >= PERCENTAGE_LIMIT:
                         return RiskIndicatorEnum.risk_found
+        elif tender.get("status") == self.stop_assessment_status:
+            return RiskIndicatorEnum.use_previous_result
         return RiskIndicatorEnum.risk_not_found

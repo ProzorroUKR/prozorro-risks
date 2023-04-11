@@ -21,12 +21,12 @@ async def process_risks(obj, rules, resource="tenders"):
     risks = {}
     for risk_rule in rules:
         if risk_rule.end_date and get_now().date() >= datetime.strptime(risk_rule.end_date, "%Y-%m-%d").date():
-            break
+            continue
         process_method = getattr(risk_rule, RISKS_METHODS_MAPPING[resource])
         try:
             risk_indicator = await process_method(obj)
         except SkipException:
-            return None
+            continue
         else:
             risks[risk_rule.identifier] = {
                 "name": risk_rule.name,
