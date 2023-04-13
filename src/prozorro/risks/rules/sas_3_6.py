@@ -6,7 +6,7 @@ PERCENTAGE_LIMIT = 30
 
 
 class RiskRule(BaseTenderRiskRule):
-    identifier = "3-6"
+    identifier = "sas-3-6"
     name = "Явне завищення очікуваної вартості"
     description = "Сума вказана у повідомленні про намір укласти договір менша за очікувану вартість на 30% і більше"
     procurement_methods = ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold")

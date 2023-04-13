@@ -3,7 +3,7 @@ from prozorro.risks.rules.base import BaseTenderRiskRule
 
 
 class RiskRule(BaseTenderRiskRule):
-    identifier = "3-5"
+    identifier = "sas-3-5"
     name = "Замовник відхилив мінімум 2 учасників"
     description = "Даний індикатор виявляє ситуації, коли замовник відхиляє мінімум 2 учасників"
     legitimateness = (

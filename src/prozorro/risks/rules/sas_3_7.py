@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class RiskRule(BaseContractRiskRule):
-    identifier = "3-7"
+    identifier = "sas-3-7"
     name = "Короткий строк виконання договору при закупівлі робіт"
     description = (
         "Дата оприлюднення договору на роботи  і дата звіту про виконання договору відрізняються менше, ніж на 60 днів"

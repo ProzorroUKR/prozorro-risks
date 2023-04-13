@@ -7,7 +7,7 @@ DECISION_LIMIT = 30
 
 
 class RiskRule(BaseTenderRiskRule):
-    identifier = "3-1"
+    identifier = "sas-3-1"
     name = "Невиконання замовником рішення органу оскарження"
     description = (
         "Індикатор свідчить про: Невиконання замовником рішення органу оскарження у встановлений законом термін."

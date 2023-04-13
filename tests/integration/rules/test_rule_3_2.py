@@ -2,7 +2,7 @@ import pytest
 from copy import deepcopy
 
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.risk_3_2 import RiskRule
+from prozorro.risks.rules.sas_3_2 import RiskRule
 from tests.integration.conftest import get_fixture_json
 
 tender_data = get_fixture_json("base_tender")

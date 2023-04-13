@@ -36,6 +36,11 @@ parameters:
     type: string
   description: Filter by tender id
 - in: query
+  name: owner
+  schema:
+    type: string
+  description: Filter by risk owner. Can be one value or sequence of values separated by ;
+- in: query
   name: sort
   schema:
     type: string

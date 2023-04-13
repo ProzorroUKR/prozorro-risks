@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.rules.risk_3_1 import RiskRule
+from prozorro.risks.rules.sas_3_1 import RiskRule
 from prozorro.risks.utils import get_now
 from tests.integration.conftest import get_fixture_json
 
