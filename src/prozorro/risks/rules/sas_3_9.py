@@ -1,6 +1,6 @@
 from prozorro.risks.models import RiskIndicatorEnum
 from prozorro.risks.rules.base import BaseTenderRiskRule
-from prozorro.risks.rules.utils import get_satisfied_complaints
+from prozorro.risks.rules.utils import get_complaints
 
 
 class RiskRule(BaseTenderRiskRule):
@@ -33,7 +33,7 @@ class RiskRule(BaseTenderRiskRule):
             for award in tender.get("awards", []):
                 # Шукаємо в процедурі блоки data.awards.complaints, що мають complaints.type='complaint'
                 # та complaints.status = 'satisfied'
-                satisfied_complaints = get_satisfied_complaints(award)
+                satisfied_complaints = get_complaints(award, status="satisfied")
                 if not satisfied_complaints:
                     continue
 
