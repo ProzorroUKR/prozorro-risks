@@ -1,6 +1,6 @@
 from prozorro.risks.models import RiskIndicatorEnum
 from prozorro.risks.rules.base import BaseTenderRiskRule
-from prozorro.risks.rules.utils import count_days_between_two_dates, get_satisfied_complaints, flatten
+from prozorro.risks.rules.utils import count_days_between_two_dates, get_complaints, flatten
 from prozorro.risks.utils import get_now
 
 DECISION_LIMIT = 30
@@ -55,8 +55,10 @@ class RiskRule(BaseTenderRiskRule):
 
     async def process_tender(self, tender):
         if self.tender_matches_requirements(tender, category=False):
-            complaints = get_satisfied_complaints(tender)
-            award_complaints = flatten([get_satisfied_complaints(award) for award in tender.get("awards", [])])
+            complaints = get_complaints(tender, status="satisfied")
+            award_complaints = flatten(
+                [get_complaints(award, status="satisfied") for award in tender.get("awards", [])]
+            )
 
             if complaints:
                 return self.check_decision_delta(complaints)

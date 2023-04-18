@@ -11,15 +11,17 @@ def count_percentage_between_two_values(initial_value, delta_value):
     return (initial_value - delta_value) * 100 / initial_value
 
 
-def get_satisfied_complaints(obj):
+def get_complaints(obj, status=None):
     """
     Return list of complaints in object with status "satisfied" and type "complaint"
     :param obj: dict Object with complaints (can be tender or tender["awards"])
+    :param status: str Whether complaint should have particular status
     :return: list List of complaints
     """
     complaints = []
     for complaint in obj.get("complaints", []):
-        if complaint["type"] == "complaint" and complaint["status"] == "satisfied":
+        has_status = complaint["status"] == status if status else True
+        if complaint["type"] == "complaint" and has_status:
             complaints.append(complaint)
     return complaints
 
