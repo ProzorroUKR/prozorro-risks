@@ -17,6 +17,7 @@ tender_data.update(
 )
 disqualified_award = get_fixture_json("disqualified_award")
 award_with_complaints = deepcopy(disqualified_award)
+award_with_complaints["bid_id"] = "f6e09f31d3024049b3bf227742e31bd6"
 award_with_complaints["complaints"] = get_fixture_json("complaints")
 tender_data["awards"] = [award_with_complaints]
 
@@ -36,7 +37,8 @@ async def test_tender_with_complaints_not_matching_status():
 async def test_tender_with_active_awards_and_complaint_same_bid_id_without_lots():
     active_award = deepcopy(disqualified_award)
     active_award["status"] = "active"
-    active_award["bid_id"] = award_with_complaints["complaints"][0]["bid_id"]
+    active_award["id"] = "f2588db5ac4b4fe0a3628fcb1b5fda75"
+    active_award["bid_id"] = award_with_complaints["bid_id"]
     tender = deepcopy(tender_data)
     tender["awards"] = [award_with_complaints, active_award]
     tender["awards"][0]["complaints"][0]["status"] = "satisfied"
@@ -47,6 +49,7 @@ async def test_tender_with_active_awards_and_complaint_same_bid_id_without_lots(
 async def test_tender_with_active_awards_and_complaint_different_bid_id_without_lots():
     active_award = deepcopy(disqualified_award)
     active_award["status"] = "active"
+    active_award["id"] = "f2588db5ac4b4fe0a3628fcb1b5fda75"
     active_award["bid_id"] = "e1cb6a5520984996a0d99c83aa93cd10"  # another bidder
     tender = deepcopy(tender_data)
     tender["awards"] = [award_with_complaints, active_award]
@@ -66,7 +69,8 @@ async def test_tender_with_active_awards_and_complaint_different_bid_id_without_
 async def test_tender_with_active_awards_and_complaint_same_bid_id_with_lots(lot_status, risk_indicator):
     active_award = deepcopy(disqualified_award)
     active_award["status"] = "active"
-    active_award["bid_id"] = award_with_complaints["complaints"][0]["bid_id"]
+    active_award["id"] = "f2588db5ac4b4fe0a3628fcb1b5fda75"
+    active_award["bid_id"] = award_with_complaints["bid_id"]
     award_with_complaints["lotID"] = "c2bb6ff3e8e547bee11d8bff23e8a295"
     tender = deepcopy(tender_data)
     tender["awards"] = [award_with_complaints, active_award]
@@ -85,6 +89,7 @@ async def test_tender_with_active_awards_and_complaint_same_bid_id_with_lots(lot
 async def test_tender_with_active_awards_and_complaint_different_bid_id_with_lots():
     active_award = deepcopy(disqualified_award)
     active_award["status"] = "active"
+    active_award["id"] = "f2588db5ac4b4fe0a3628fcb1b5fda75"
     active_award["bid_id"] = "e1cb6a5520984996a0d99c83aa93cd10"  # another bidder
     award_with_complaints["lotID"] = "c2bb6ff3e8e547bee11d8bff23e8a295"
     tender = deepcopy(tender_data)
