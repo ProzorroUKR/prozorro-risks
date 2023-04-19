@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 class BaseRiskRule(ABC):
     identifier: str
     name: str
+    owner: str = "sas"
     description: str = None
     legitimateness: str = None
     development_basis: str = None
