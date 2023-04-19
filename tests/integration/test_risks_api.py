@@ -241,7 +241,8 @@ async def test_list_tenders_filter_by_owner(api, db):
     resp_json = await response.json()
     assert resp_json["count"] == 3
 
+    # if there are filters by owner and by risks, then db is looking only at risks filter
     response = await api.get("/api/risks?owner=bank&risks=sas-3-2")
     assert response.status == 200
     resp_json = await response.json()
-    assert resp_json["count"] == 2
+    assert resp_json["count"] == 1

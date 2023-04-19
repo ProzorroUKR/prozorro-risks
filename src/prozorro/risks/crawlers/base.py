@@ -30,6 +30,7 @@ async def process_risks(obj, rules, resource="tenders"):
         else:
             risks[risk_rule.identifier] = {
                 "name": risk_rule.name,
+                "owner": risk_rule.owner,
                 "description": risk_rule.description,
                 "legitimateness": risk_rule.legitimateness,
                 "development_basis": risk_rule.development_basis,

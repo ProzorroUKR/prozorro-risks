@@ -177,8 +177,9 @@ def build_tender_filters(**kwargs):
         filters["procuringEntityEDRPOU"] = edrpou
     if owners_list := kwargs.get("owner"):
         worked_risks_filter = [re.compile(f"^{owner}") for owner in owners_list]
+    # if there are filters by owner and by risks, then we are looking only at risks filter
     if risks_list := kwargs.get("risks"):
-        worked_risks_filter.extend(risks_list)
+        worked_risks_filter = risks_list
     if worked_risks_filter:
         filters["worked_risks"] = {"$in": worked_risks_filter}
     return filters
