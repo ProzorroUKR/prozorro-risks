@@ -17,16 +17,21 @@ class RiskRule(BaseTenderRiskRule):
     )
 
     @staticmethod
-    def tender_has_active_awards_with_complaint_bid(awards, satisfied_complaints):
-        # Для кожного complaint блоку перевіряємо чи є ще інші data.awards в статусі data.awards.status= "active"
+    def tender_has_active_awards_with_same_bid(awards, current_award):
+        # перевіряємо чи є ще інші data.awards в статусі data.awards.status= "active"
         # із таким же data.awards.bid_id
-        for complaint in satisfied_complaints:
-            active_awards = [
-                award for award in awards if award["status"] == "active" and award["bid_id"] == complaint["bid_id"]
-            ]
-            if active_awards:
-                return True
-        return False
+        active_awards = [
+            award
+            for award in awards
+            if all(
+                [
+                    award["id"] != current_award["id"],
+                    award["status"] == "active",
+                    award["bid_id"] == current_award["bid_id"],
+                ]
+            )
+        ]
+        return len(active_awards) > 0
 
     async def process_tender(self, tender):
         if self.tender_matches_requirements(tender, category=False):
@@ -42,10 +47,10 @@ class RiskRule(BaseTenderRiskRule):
                 if len(tender.get("lots", [])):
                     for lot in tender["lots"]:
                         if lot["status"] not in ("cancelled", "unsuccessful") and lot["id"] == award["lotID"]:
-                            if self.tender_has_active_awards_with_complaint_bid(tender["awards"], satisfied_complaints):
+                            if self.tender_has_active_awards_with_same_bid(tender["awards"], award):
                                 return RiskIndicatorEnum.risk_found
                 else:
-                    if self.tender_has_active_awards_with_complaint_bid(tender["awards"], satisfied_complaints):
+                    if self.tender_has_active_awards_with_same_bid(tender["awards"], award):
                         return RiskIndicatorEnum.risk_found
         elif tender.get("status") == self.stop_assessment_status:
             return RiskIndicatorEnum.use_previous_result
