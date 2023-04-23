@@ -106,7 +106,7 @@ function createTableContent(data) {
                       <th scope="col">Регіон</th>
                       <th scope="col">ЄДРПОУ</th>
                       <th scope="col">Вартість</th>
-                      <th scope="col">Дата спрацювання</th>
+                      <th scope="col">Дата перевірки</th>
                       <th scope="col">Ризики</th>
                  </tr>
             </thead>`;
