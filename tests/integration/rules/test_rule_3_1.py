@@ -1,5 +1,7 @@
+from copy import deepcopy
 from datetime import timedelta
 
+import pytest
 from prozorro.risks.models import RiskIndicatorEnum
 from prozorro.risks.rules.sas_3_1 import RiskRule
 from prozorro.risks.utils import get_now
@@ -119,3 +121,123 @@ async def test_tender_with_complete_status():
     risk_rule = RiskRule()
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.use_previous_result
+
+
+@pytest.mark.parametrize(
+    "tender_status,date_decision,risk_indicator",
+    [
+        (
+            "active.pre-qualification.stand-still",
+            (get_now() - timedelta(days=31)).isoformat(),
+            RiskIndicatorEnum.risk_found,
+        ),
+        (
+            "active.pre-qualification.stand-still",
+            (get_now() - timedelta(days=10)).isoformat(),
+            RiskIndicatorEnum.risk_not_found,
+        ),
+        ("active.pre-qualification", (get_now() - timedelta(days=31)).isoformat(), RiskIndicatorEnum.risk_found),
+        ("active.pre-qualification", (get_now() - timedelta(days=10)).isoformat(), RiskIndicatorEnum.risk_not_found),
+    ],
+)
+async def test_tender_on_pre_qualification_with_complaint(tender_status, date_decision, risk_indicator):
+    complaints[0]["dateDecision"] = date_decision
+    complaints[0]["status"] = "satisfied"
+    tender = deepcopy(tender_data)
+    tender["procuringEntity"]["kind"] = "special"
+    tender.update(
+        {
+            "procurementMethodType": "aboveThresholdEU",
+            "status": tender_status,
+            "qualifications": [
+                {
+                    "id": "17bcbec085fd474c8057b7464c6b817c",
+                    "status": "active",
+                    "date": "2023-05-01T12:10:23.372754+03:00",
+                    "complaints": complaints,
+                }
+            ],
+        }
+    )
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == risk_indicator
+
+
+async def test_tender_on_pre_qualification_without_complaint():
+    tender = deepcopy(tender_data)
+    tender["procuringEntity"]["kind"] = "special"
+    tender.update(
+        {
+            "procurementMethodType": "aboveThresholdEU",
+            "status": "active.pre-qualification",
+            "qualifications": [
+                {
+                    "id": "17bcbec085fd474c8057b7464c6b817c",
+                    "status": "active",
+                    "date": "2023-05-01T12:10:23.372754+03:00",
+                }
+            ],
+        }
+    )
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == RiskIndicatorEnum.risk_not_found
+
+
+@pytest.mark.parametrize(
+    "tender_status,date_decision,risk_indicator",
+    [
+        ("active.tendering", (get_now() - timedelta(days=31)).isoformat(), RiskIndicatorEnum.risk_found),
+        (
+            "active.pre-qualification.stand-still",
+            (get_now() - timedelta(days=10)).isoformat(),
+            RiskIndicatorEnum.risk_not_found,
+        ),
+        ("active.pre-qualification", (get_now() - timedelta(days=31)).isoformat(), RiskIndicatorEnum.risk_found),
+        ("active.awarded", (get_now() - timedelta(days=10)).isoformat(), RiskIndicatorEnum.risk_not_found),
+    ],
+)
+async def test_tender_on_cancellation_with_complaint(tender_status, date_decision, risk_indicator):
+    complaints[0]["dateDecision"] = date_decision
+    complaints[0]["status"] = "satisfied"
+    tender = deepcopy(tender_data)
+    tender["procuringEntity"]["kind"] = "special"
+    tender.update(
+        {
+            "procurementMethodType": "aboveThresholdEU",
+            "status": tender_status,
+            "cancellations": [
+                {
+                    "id": "17bcbec085fd474c8057b7464c6b817c",
+                    "status": "active",
+                    "date": "2023-05-01T12:10:23.372754+03:00",
+                    "complaints": complaints,
+                }
+            ],
+        }
+    )
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == risk_indicator
+
+
+async def test_tender_on_cancellation_without_complaint():
+    tender = deepcopy(tender_data)
+    tender["procuringEntity"]["kind"] = "special"
+    tender.update(
+        {
+            "procurementMethodType": "aboveThresholdEU",
+            "status": "active.pre-qualification",
+            "cancellations": [
+                {
+                    "id": "17bcbec085fd474c8057b7464c6b817c",
+                    "status": "active",
+                    "date": "2023-05-01T12:10:23.372754+03:00",
+                }
+            ],
+        }
+    )
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == RiskIndicatorEnum.risk_not_found
