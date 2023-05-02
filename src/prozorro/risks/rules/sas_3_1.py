@@ -32,7 +32,6 @@ class RiskRule(BaseTenderRiskRule):
     tender_statuses = (
         "active",
         "active.tendering",
-        "active.prequalification",
         "active.pre-qualification.stand-still",
         "active.pre-qualification",
         "active.qualification",
@@ -59,12 +58,27 @@ class RiskRule(BaseTenderRiskRule):
             award_complaints = flatten(
                 [get_complaints(award, status="satisfied") for award in tender.get("awards", [])]
             )
+            cancellation_complaints = flatten(
+                [get_complaints(cancellation, status="satisfied") for cancellation in tender.get("cancellations", [])]
+            )
+            if "active.pre-qualification" in tender["status"]:
+                qualifications_complaints = flatten(
+                    [
+                        get_complaints(qualification, status="satisfied")
+                        for qualification in tender.get("qualifications", [])
+                    ]
+                )
+                if qualifications_complaints:
+                    return self.check_decision_delta(qualifications_complaints)
 
             if complaints:
                 return self.check_decision_delta(complaints)
 
             if award_complaints:
                 return self.check_decision_delta(award_complaints)
+
+            if cancellation_complaints:
+                return self.check_decision_delta(cancellation_complaints)
         elif tender.get("status") == self.stop_assessment_status:
             return RiskIndicatorEnum.use_previous_result
         return RiskIndicatorEnum.risk_not_found
