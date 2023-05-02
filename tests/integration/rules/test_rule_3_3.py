@@ -62,7 +62,7 @@ async def test_tender_for_3_cpvs_and_no_new_one(mock_cpvs):
     tender_without_lots = deepcopy(tender_data)
     tender_without_lots.pop("lots", None)
     tender_data["items"][0]["relatedLot"] = tender_data["lots"][0]["id"]
-    tender_data["awards"][0]["relatedLot"] = tender_data["lots"][0]["id"]
+    tender_data["awards"][0]["lotID"] = tender_data["lots"][0]["id"]
     risk_rule = RiskRule()
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
@@ -80,7 +80,7 @@ async def test_tender_for_3_cpvs_and_new_one_cpv(mock_cpvs):
     tender_without_lots = deepcopy(tender_data)
     tender_without_lots.pop("lots", None)
     tender_data["items"][0]["relatedLot"] = tender_data["lots"][0]["id"]
-    tender_data["awards"][0]["relatedLot"] = tender_data["lots"][0]["id"]
+    tender_data["awards"][0]["lotID"] = tender_data["lots"][0]["id"]
     risk_rule = RiskRule()
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_found
