@@ -1,6 +1,7 @@
 from copy import deepcopy
 from unittest.mock import patch
 
+import pytest
 from prozorro.risks.models import RiskIndicatorEnum
 from prozorro.risks.rules.sas_3_3 import RiskRule
 from tests.integration.conftest import get_fixture_json
@@ -51,6 +52,29 @@ async def test_tender_for_4_and_more_cpvs(mock_cpvs):
     risk_rule = RiskRule()
     indicator = await risk_rule.process_tender(tender_data)
     assert indicator == RiskIndicatorEnum.risk_found
+
+
+@patch(
+    "prozorro.risks.rules.sas_3_3.get_list_of_cpvs",
+    return_value={"cpv": ["45310000-3", "45310000-2", "45310000-1"]},
+)
+@pytest.mark.parametrize(
+    "lot_status,risk_indicator",
+    [
+        ("active", RiskIndicatorEnum.risk_found),
+        ("cancelled", RiskIndicatorEnum.risk_not_found),
+        ("unsuccessful", RiskIndicatorEnum.risk_not_found),
+    ],
+)
+async def test_tender_for_3_and_one_more_cpvs_for_tender_with_lots(mock_cpvs, lot_status, risk_indicator):
+    tender_data["awards"][0]["status"] = "active"
+    tender_with_lot = deepcopy(tender_data)
+    tender_with_lot["lots"][0]["status"] = lot_status
+    tender_with_lot["awards"][0]["lotID"] = tender_with_lot["lots"][0]["id"]
+    tender_with_lot["items"][0]["relatedLot"] = tender_with_lot["lots"][0]["id"]
+    tender_with_lot["items"][0]["classification"]["id"] = "45310000-5"
+    risk_rule = RiskRule()
+    assert await risk_rule.process_tender(tender_with_lot) == risk_indicator
 
 
 @patch(

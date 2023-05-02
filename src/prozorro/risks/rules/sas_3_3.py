@@ -58,8 +58,15 @@ class RiskRule(BaseTenderRiskRule):
                     elif len(result.get("cpv", [])) == 3:
                         classifications = set()
                         for item in tender.get("items", []):
-                            if not len(tender.get("lots", [])) or item.get("relatedLot") == award.get("lotID"):
+                            if not len(tender.get("lots", [])):
                                 classifications.add(item["classification"]["id"])
+                            elif item.get("relatedLot") == award.get("lotID"):
+                                for lot in tender["lots"]:
+                                    if (
+                                        lot["status"] not in ("cancelled", "unsuccessful")
+                                        and lot["id"] == award["lotID"]
+                                    ):
+                                        classifications.add(item["classification"]["id"])
                         if len(classifications.difference(set(result["cpv"]))):
                             return RiskIndicatorEnum.risk_found
         elif tender.get("status") == self.stop_assessment_status:
