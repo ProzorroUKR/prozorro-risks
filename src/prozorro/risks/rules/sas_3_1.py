@@ -61,15 +61,14 @@ class RiskRule(BaseTenderRiskRule):
             cancellation_complaints = flatten(
                 [get_complaints(cancellation, status="satisfied") for cancellation in tender.get("cancellations", [])]
             )
-            if "active.pre-qualification" in tender["status"]:
-                qualifications_complaints = flatten(
-                    [
-                        get_complaints(qualification, status="satisfied")
-                        for qualification in tender.get("qualifications", [])
-                    ]
-                )
-                if qualifications_complaints:
-                    return self.check_decision_delta(qualifications_complaints)
+            qualifications_complaints = flatten(
+                [
+                    get_complaints(qualification, status="satisfied")
+                    for qualification in tender.get("qualifications", [])
+                ]
+            )
+            if qualifications_complaints:
+                return self.check_decision_delta(qualifications_complaints)
 
             if complaints:
                 return self.check_decision_delta(complaints)
