@@ -54,7 +54,7 @@ async def test_tender_with_not_risky_procurement_type(mock_tender):
     tender_data.update({"procurementMethodType": "reporting"})
     mock_tender.return_value = tender_data
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_contract(tender_data)
+    indicator = await risk_rule.process_contract(contract_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
@@ -63,7 +63,7 @@ async def test_tender_with_not_risky_procurement_entity_kind(mock_tender):
     tender_data["procuringEntity"]["kind"] = "other"
     mock_tender.return_value = tender_data
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_contract(tender_data)
+    indicator = await risk_rule.process_contract(contract_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
@@ -72,7 +72,7 @@ async def test_tender_with_not_risky_procurement_category(mock_tender):
     tender_data.update({"mainProcurementCategory": "services"})
     mock_tender.return_value = tender_data
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_contract(tender_data)
+    indicator = await risk_rule.process_contract(contract_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 

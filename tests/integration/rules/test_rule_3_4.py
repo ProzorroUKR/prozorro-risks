@@ -10,6 +10,7 @@ from tests.integration.conftest import get_fixture_json
 
 contract_data = get_fixture_json("contract")
 tender_data = get_fixture_json("base_tender")
+tender_data["procuringEntity"]["kind"] = "social"
 
 
 @patch("prozorro.risks.rules.sas_3_4.fetch_tender", return_value=tender_data)
@@ -70,6 +71,15 @@ async def test_tender_with_not_risky_contract_status():
     contract["status"] = "cancelled"
     risk_rule = RiskRule()
     indicator = await risk_rule.process_contract(contract)
+    assert indicator == RiskIndicatorEnum.risk_not_found
+
+
+@patch("prozorro.risks.rules.sas_3_4.fetch_tender")
+async def test_tender_with_not_risky_procurement_entity_kind(mock_tender):
+    tender_data["procuringEntity"]["kind"] = "other"
+    mock_tender.return_value = tender_data
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_contract(contract_data)
     assert indicator == RiskIndicatorEnum.risk_not_found
 
 
