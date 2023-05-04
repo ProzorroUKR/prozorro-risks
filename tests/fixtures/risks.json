@@ -26,18 +26,18 @@
   "procuringEntityRegion": "Полтавська область",
   "procuringEntityEDRPOU": "22518134",
   "risks": {
-    "sas-3-1": {
+    "sas-3-1": [{
       "indicator": "risk_found",
       "date": "2023-03-13T14:37:12.491341+02:00"
-    },
-    "sas-3-2": {
+    }],
+    "sas-3-2": [{
       "indicator": "risk_found",
       "date": "2023-03-13T14:37:12.491365+02:00"
-    },
-    "sas-3-2-1": {
+    }],
+    "sas-3-2-1": [{
       "indicator": "risk_not_found",
       "date": "2023-03-13T14:37:12.491385+02:00"
-    }
+    }]
   },
   "worked_risks": ["sas-3-1", "sas-3-2"],
   "value": {

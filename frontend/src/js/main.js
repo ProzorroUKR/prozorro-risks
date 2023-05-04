@@ -143,20 +143,24 @@ function createTableContent(data) {
                                   </small></p>
                                   </th>
                                   <th scope="col" width="30%">Дата</th>
+                                  <th scope="col" width="20%">Об'єкт перевірки</th>
                                </tr>
                           </thead>
                         <tbody>`;
-        for (let [key, value] of Object.entries(item.risks)) {
-            body += `<tr>
+        for (let [key, items] of Object.entries(item.risks)) {
+            for (let item of items) {
+                body += `<tr>
                     <td>${key}</td>
-                    <td>${value.name}</td>
+                    <td>${item.name}</td>
                     <td class="text-center">
-                    ${value.indicator === 'risk_found' ? 
+                    ${item.indicator === 'risk_found' ? 
                     `<i class="bi bi-exclamation-triangle text-danger"></i>` : 
                     `<i class="bi bi-check-circle text-success"></i>`}
                     </td>
-                    <td>${value.date}</td>
+                    <td>${item.date}</td>
+                    <td>${item.item ? item.item.type + ' - ' + item.item.id : 'tender'}</td>
                  </tr>`;
+            }
         }
         body += `</tbody></table></div></td></tr>`;
     }

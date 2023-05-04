@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 
 from prozorro.risks.exceptions import SkipException
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseContractRiskRule
 from prozorro.risks.settings import CRAWLER_START_DATE
 from prozorro.risks.rules.utils import count_days_between_two_dates
@@ -45,5 +45,5 @@ class RiskRule(BaseContractRiskRule):
                         and count_days_between_two_dates(contract["dateModified"], tender_contract["date"])
                         < CONTRACT_MODIFYING_DAYS_LIMIT
                     ):
-                        return RiskIndicatorEnum.risk_found
-        return RiskIndicatorEnum.risk_not_found
+                        return RiskFound(type="contract", id=contract["id"])
+        return RiskNotFound(type="contract", id=contract["id"])

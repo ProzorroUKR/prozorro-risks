@@ -1,4 +1,4 @@
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import count_days_between_two_dates, get_complaints, flatten
 from prozorro.risks.utils import get_now
@@ -49,8 +49,8 @@ class RiskRule(BaseTenderRiskRule):
     def check_decision_delta(complaints):
         for complaint in complaints:
             if count_days_between_two_dates(get_now(), complaint["dateDecision"]) > DECISION_LIMIT:
-                return RiskIndicatorEnum.risk_found
-        return RiskIndicatorEnum.risk_not_found
+                return RiskFound()
+        return RiskNotFound()
 
     async def process_tender(self, tender):
         if self.tender_matches_requirements(tender, category=False):
@@ -79,5 +79,5 @@ class RiskRule(BaseTenderRiskRule):
             if cancellation_complaints:
                 return self.check_decision_delta(cancellation_complaints)
         elif tender.get("status") == self.stop_assessment_status:
-            return RiskIndicatorEnum.use_previous_result
-        return RiskIndicatorEnum.risk_not_found
+            return RiskFromPreviousResult()
+        return RiskNotFound()

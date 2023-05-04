@@ -1,4 +1,4 @@
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
 
 
@@ -28,7 +28,7 @@ class RiskRule(BaseTenderRiskRule):
             # Якщо в процедурі немає жодного об’єкту зі статусом data.awards.status='unsuccessful',
             # індикатор приймає значення 0
             if not unsuccessful_awards:
-                return RiskIndicatorEnum.risk_not_found
+                return RiskNotFound()
 
             if len(tender.get("lots", [])):
                 for lot in tender["lots"]:
@@ -40,12 +40,12 @@ class RiskRule(BaseTenderRiskRule):
                             disqualified_lots_count += 1
                     # Якщо кількість дискваліфікацій дорівнює 2 або більше, індикатор приймає значення 1
                     if disqualified_lots_count >= 2:
-                        return RiskIndicatorEnum.risk_found
+                        return RiskFound()
             else:
                 # Якщо процедура не має лотів i кількість дискваліфікацій дорівнює 2 або більше,
                 # індикатор приймає значення 1
                 if len(unsuccessful_awards) >= 2:
-                    return RiskIndicatorEnum.risk_found
+                    return RiskFound()
         elif tender.get("status") == self.stop_assessment_status:
-            return RiskIndicatorEnum.use_previous_result
-        return RiskIndicatorEnum.risk_not_found
+            return RiskFromPreviousResult()
+        return RiskNotFound()

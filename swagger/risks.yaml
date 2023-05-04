@@ -84,43 +84,45 @@ responses:
               type: object
               properties:
                 X-X:
-                  type: object
+                  type: array
                   description: Risk identifier
-                  properties:
-                    indicator:
-                      type: string
-                      description: Risk indicator
-                      example: risk_not_found
-                    date:
-                      type: string
-                      format: date-time
-                      description: Date of risk evaluating
-                    name:
-                      type: string
-                      description: Risk name
-                    description:
-                      type: string
-                      description: Risk description
-                    legitimateness:
-                      type: string
-                      description: Risk legitimateness
-                    development_basis:
-                      type: string
-                      description: Risk development basis
-                    history:
-                      type: array
-                      description: History logs for all risk's assessements
-                      items:
-                        type: object
-                        properties:
-                          date:
-                            type: string
-                            format: date-time
-                            description: Date of risk evaluating
-                          indicator:
-                            type: string
-                            description: Risk indicator
-                            example: risk_found
+                  items:
+                    type: object
+                    properties:
+                      indicator:
+                        type: string
+                        description: Risk indicator
+                        example: risk_not_found
+                      date:
+                        type: string
+                        format: date-time
+                        description: Date of risk evaluating
+                      name:
+                        type: string
+                        description: Risk name
+                      description:
+                        type: string
+                        description: Risk description
+                      legitimateness:
+                        type: string
+                        description: Risk legitimateness
+                      development_basis:
+                        type: string
+                        description: Risk development basis
+                      history:
+                        type: array
+                        description: History logs for all risk's assessements
+                        items:
+                          type: object
+                          properties:
+                            date:
+                              type: string
+                              format: date-time
+                              description: Date of risk evaluating
+                            indicator:
+                              type: string
+                              description: Risk indicator
+                              example: risk_found
   "404":
     description: Not found
     content:

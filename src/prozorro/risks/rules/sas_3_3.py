@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.historical_data import get_list_of_cpvs
 
@@ -33,7 +33,7 @@ class RiskRule(BaseTenderRiskRule):
             # Якщо в процедурі немає жодного об’єкту data.awards, що має статус data.awards.status='active',
             # індикатор приймає значення 0, розрахунок завершується.
             if not active_awards:
-                return RiskIndicatorEnum.risk_not_found
+                return RiskNotFound()
 
             for award in active_awards:
                 for supplier in award.get("suppliers", []):
@@ -50,7 +50,7 @@ class RiskRule(BaseTenderRiskRule):
                     # За ідентифікатором замовника та ідентифікатором перможця рахуємо коди CPV.
                     # Якщо кількість унікальних предметів закупівлі 4 або більше, індикатор приймає значення 1.
                     if len(result.get("cpv", [])) >= 4:
-                        return RiskIndicatorEnum.risk_found
+                        return RiskFound()
 
                     # Якщо кількість предметів закупівлі дорівнює 3, то перевіряємо, чи входить у список
                     # в рядку поточні коди предметів закупівлі. Якщо хоч один не входить у список,
@@ -68,7 +68,7 @@ class RiskRule(BaseTenderRiskRule):
                                     ):
                                         classifications.add(item["classification"]["id"])
                         if len(classifications.difference(set(result["cpv"]))):
-                            return RiskIndicatorEnum.risk_found
+                            return RiskFound()
         elif tender.get("status") == self.stop_assessment_status:
-            return RiskIndicatorEnum.use_previous_result
-        return RiskIndicatorEnum.risk_not_found
+            return RiskFromPreviousResult()
+        return RiskNotFound()

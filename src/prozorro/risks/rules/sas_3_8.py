@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import get_complaints
 
@@ -58,9 +58,9 @@ class RiskRule(BaseTenderRiskRule):
                     for lot in tender["lots"]:
                         if lot["status"] not in ("cancelled", "unsuccessful") and lot["id"] == award["lotID"]:
                             if self.tender_has_another_award_with_same_bid_and_milestone(award, awards_with_milestones):
-                                return RiskIndicatorEnum.risk_found
+                                return RiskFound()
                 elif self.tender_has_another_award_with_same_bid_and_milestone(award, awards_with_milestones):
-                    return RiskIndicatorEnum.risk_found
+                    return RiskFound()
         elif tender.get("status") == self.stop_assessment_status:
-            return RiskIndicatorEnum.use_previous_result
-        return RiskIndicatorEnum.risk_not_found
+            return RiskFromPreviousResult()
+        return RiskNotFound()

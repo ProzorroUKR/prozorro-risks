@@ -1,4 +1,4 @@
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseTenderRiskRule
 
 
@@ -26,7 +26,7 @@ class RiskRule(BaseTenderRiskRule):
         if self.tender_matches_requirements(tender, category=False):
             for award in tender["awards"]:
                 if award.get("complaints"):
-                    return RiskIndicatorEnum.risk_not_found
+                    return RiskNotFound()
                 if award["status"] == "cancelled":
-                    return RiskIndicatorEnum.risk_found
-        return RiskIndicatorEnum.risk_not_found
+                    return RiskFound()
+        return RiskNotFound()

@@ -1,7 +1,7 @@
 import pytest
 from copy import deepcopy
 
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.sas_3_8 import RiskRule
 from tests.integration.conftest import get_fixture_json
 
@@ -27,28 +27,28 @@ tender_data["awards"] = [award, award_2]
 async def test_tender_without_complaints():
     tender = deepcopy(tender_data)
     tender["awards"][0].pop("complaints", None)
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_complaints_not_matching_status():
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_without_milestones():
     tender = deepcopy(tender_data)
     tender["awards"][0].pop("milestones", None)
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_milestones_not_matching_code():
     milestone = {"code": "test", "date": "2023-01-01T00:00:03+02:00"}
     tender = deepcopy(tender_data)
     tender["awards"][0]["milestones"] = [milestone]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_milestone_date_more_than_complaint_date_for_same_award():
@@ -58,16 +58,16 @@ async def test_tender_with_milestone_date_more_than_complaint_date_for_same_awar
     milestone_1 = {"code": "24h", "date": "2023-01-01T10:00:03+02:00"}
     milestone_2 = {"code": "24h", "date": "2023-01-02T10:00:03+02:00"}
     tender["awards"][0]["milestones"] = [milestone_1, milestone_2]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_award_for_same_bidder_without_milestones_without_lots():
     tender = deepcopy(tender_data)
     tender.pop("lots", None)
     tender["awards"][1]["bid_id"] = tender["awards"][0]["bid_id"]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_milestone_date_more_than_complaint_date_for_same_bidder_without_lots():
@@ -78,8 +78,8 @@ async def test_tender_with_milestone_date_more_than_complaint_date_for_same_bidd
     milestone_1 = {"code": "24h", "date": "2023-01-01T10:00:03+02:00"}
     milestone_2 = {"code": "24h", "date": "2023-01-02T10:00:03+02:00"}
     tender["awards"][1]["milestones"] = [milestone_1, milestone_2]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskFound()
 
 
 async def test_tender_with_milestone_date_more_than_complaint_date_for_another_bidder_without_lots():
@@ -90,8 +90,8 @@ async def test_tender_with_milestone_date_more_than_complaint_date_for_another_b
     milestone_1 = {"code": "24h", "date": "2023-01-01T10:00:03+02:00"}
     milestone_2 = {"code": "24h", "date": "2023-01-02T10:00:03+02:00"}
     tender["awards"][1]["milestones"] = [milestone_1, milestone_2]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_award_for_same_bidder_without_milestones_with_lots():
@@ -105,21 +105,19 @@ async def test_tender_with_award_for_same_bidder_without_milestones_with_lots():
         }
     ]
     tender["awards"][1]["bid_id"] = tender["awards"][0]["bid_id"]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 @pytest.mark.parametrize(
-    "lot_status,risk_indicator",
+    "lot_status,risk_result",
     [
-        ("active", RiskIndicatorEnum.risk_found),
-        ("cancelled", RiskIndicatorEnum.risk_not_found),
-        ("unsuccessful", RiskIndicatorEnum.risk_not_found),
+        ("active", RiskFound()),
+        ("cancelled", RiskNotFound()),
+        ("unsuccessful", RiskNotFound()),
     ],
 )
-async def test_tender_with_milestone_date_more_than_complaint_date_for_same_bidder_with_lots(
-    lot_status, risk_indicator
-):
+async def test_tender_with_milestone_date_more_than_complaint_date_for_same_bidder_with_lots(lot_status, risk_result):
     tender = deepcopy(tender_data)
     tender["awards"][0]["lotID"] = "c2bb6ff3e8e547bee11d8bff23e8a295"
     tender["lots"] = [
@@ -134,20 +132,20 @@ async def test_tender_with_milestone_date_more_than_complaint_date_for_same_bidd
     milestone_1 = {"code": "24h", "date": "2023-01-01T10:00:03+02:00"}
     milestone_2 = {"code": "24h", "date": "2023-01-02T10:00:03+02:00"}
     tender["awards"][1]["milestones"] = [milestone_1, milestone_2]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == risk_indicator
+    result = await risk_rule.process_tender(tender)
+    assert result == risk_result
 
 
 @pytest.mark.parametrize(
-    "lot_status,risk_indicator",
+    "lot_status,risk_result",
     [
-        ("active", RiskIndicatorEnum.risk_not_found),
-        ("cancelled", RiskIndicatorEnum.risk_not_found),
-        ("unsuccessful", RiskIndicatorEnum.risk_not_found),
+        ("active", RiskNotFound()),
+        ("cancelled", RiskNotFound()),
+        ("unsuccessful", RiskNotFound()),
     ],
 )
 async def test_tender_with_milestone_date_more_than_complaint_date_for_another_bidder_with_lots(
-    lot_status, risk_indicator
+    lot_status, risk_result
 ):
     tender = deepcopy(tender_data)
     tender["awards"][0]["lotID"] = "c2bb6ff3e8e547bee11d8bff23e8a295"
@@ -163,8 +161,8 @@ async def test_tender_with_milestone_date_more_than_complaint_date_for_another_b
     milestone_1 = {"code": "24h", "date": "2023-01-01T10:00:03+02:00"}
     milestone_2 = {"code": "24h", "date": "2023-01-02T10:00:03+02:00"}
     tender["awards"][1]["milestones"] = [milestone_1, milestone_2]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == risk_indicator
+    result = await risk_rule.process_tender(tender)
+    assert result == risk_result
 
 
 async def test_tender_with_milestone_date_less_than_complaint_date_decision():
@@ -173,8 +171,8 @@ async def test_tender_with_milestone_date_less_than_complaint_date_decision():
     milestone_1 = {"code": "24h", "date": "2023-01-09T10:00:03+02:00"}
     milestone_2 = {"code": "24h", "date": "2023-01-08T05:00:03+02:00"}
     tender["awards"][0]["milestones"] = [milestone_1, milestone_2]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_tender_status():
@@ -183,8 +181,8 @@ async def test_tender_with_not_risky_tender_status():
             "status": "cancelled",
         }
     )
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_type():
@@ -193,18 +191,18 @@ async def test_tender_with_not_risky_procurement_type():
             "procurementMethodType": "reporting",
         }
     )
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender_data["procuringEntity"]["kind"] = "other"
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_complete_status():
     tender_data["status"] = "complete"
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.use_previous_result
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskFromPreviousResult()
