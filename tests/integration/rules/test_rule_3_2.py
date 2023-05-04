@@ -244,6 +244,194 @@ async def test_tender_with_not_unique_awards():
     assert indicator == RiskIndicatorEnum.risk_found
 
 
+async def test_tender_with_violations_without_lots():
+    tender = deepcopy(tender_data)
+    tender.pop("lots", None)
+    # 4 bidders
+    bid.pop("lotValues", None)
+    bid["status"] = "active"
+    bid_2 = deepcopy(bid)
+    bid_2["tenderers"][0]["identifier"]["id"] = "11111111"
+    bid_3 = deepcopy(bid)
+    bid_3["tenderers"][0]["identifier"]["id"] = "22222222"
+    bid_4 = deepcopy(bid)
+    bid_4["tenderers"][0]["identifier"]["id"] = "33333333"
+
+    # 3 disqualified award and 1 winner
+    disqualified_award.pop("lotID", None)
+    disqualified_award_1 = deepcopy(disqualified_award)
+    disqualified_award_1["suppliers"][0]["identifier"]["id"] = "11111111"
+    disqualified_award_2 = deepcopy(disqualified_award)
+    disqualified_award_2["suppliers"][0]["identifier"]["id"] = "22222222"
+    disqualified_award_3 = deepcopy(disqualified_award)
+    disqualified_award_3["suppliers"][0]["identifier"]["id"] = "33333333"
+    winner = deepcopy(disqualified_award)
+    winner["status"] = "active"
+
+    tender.update(
+        {
+            "bids": [bid, bid_2, bid_3, bid_4],
+            "awards": [
+                disqualified_award_1,
+                disqualified_award_2,
+                disqualified_award_3,
+                winner,
+            ],
+        }
+    )
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == RiskIndicatorEnum.risk_found
+
+
+async def test_tender_with_less_than_2_disqualified_awards_without_lots():
+    tender = deepcopy(tender_data)
+    tender.pop("lots", None)
+    # 2 bidders
+    bid.pop("lotValues", None)
+    bid["status"] = "active"
+    bid_2 = deepcopy(bid)
+    bid_2["tenderers"][0]["identifier"]["id"] = "11111111"
+
+    # 1 disqualified award and 1 winner
+    disqualified_award.pop("lotID", None)
+    disqualified_award_1 = deepcopy(disqualified_award)
+    disqualified_award_1["suppliers"][0]["identifier"]["id"] = "11111111"
+    winner = deepcopy(disqualified_award)
+    winner["status"] = "active"
+
+    tender.update({"bids": [bid, bid_2], "awards": [disqualified_award_1, winner]})
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == RiskIndicatorEnum.risk_not_found
+
+
+async def test_tender_without_violations_without_lots():
+    tender = deepcopy(tender_data)
+    tender.pop("lots", None)
+    # 4 bidders
+    bid.pop("lotValues", None)
+    bid["status"] = "active"
+    bid_2 = deepcopy(bid)
+    bid_2["tenderers"][0]["identifier"]["id"] = "11111111"
+    bid_3 = deepcopy(bid)
+    bid_3["tenderers"][0]["identifier"]["id"] = "22222222"
+    bid_4 = deepcopy(bid)
+    bid_4["tenderers"][0]["identifier"]["id"] = "33333333"
+
+    # 2 disqualified award and 1 winner and 1 pending
+    disqualified_award.pop("lotID", None)
+    winner = deepcopy(disqualified_award)
+    winner["status"] = "active"
+    pending_award = deepcopy(disqualified_award)
+    pending_award["suppliers"][0]["identifier"]["id"] = "11111111"
+    pending_award["status"] = "pending"
+    disqualified_award_1 = deepcopy(disqualified_award)
+    disqualified_award_1["suppliers"][0]["identifier"]["id"] = "22222222"
+    disqualified_award_2 = deepcopy(disqualified_award)
+    disqualified_award_2["suppliers"][0]["identifier"]["id"] = "33333333"
+
+    tender.update(
+        {
+            "bids": [bid, bid_2, bid_3, bid_4],
+            "awards": [
+                disqualified_award_1,
+                pending_award,
+                winner,
+                disqualified_award_2,
+            ],
+        }
+    )
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == RiskIndicatorEnum.risk_not_found
+
+
+async def test_tender_with_not_unique_bidders_without_lots():
+    tender = deepcopy(tender_data)
+    tender.pop("lots", None)
+    # 5 bidders
+    bid.pop("lotValues", None)
+    bid["status"] = "active"
+    bid_2 = deepcopy(bid)
+    bid_2["tenderers"][0]["identifier"]["id"] = "11111111"
+    bid_3 = deepcopy(bid)
+    bid_3["tenderers"][0]["identifier"]["id"] = "22222222"
+    bid_4 = deepcopy(bid)
+    bid_4["tenderers"][0]["identifier"]["id"] = "33333333"
+    # not unique bidder must not be counted
+    bid_5 = deepcopy(bid_4)
+
+    # 3 disqualified award and 1 winner
+    disqualified_award.pop("lotID", None)
+    disqualified_award_1 = deepcopy(disqualified_award)
+    disqualified_award_1["suppliers"][0]["identifier"]["id"] = "11111111"
+    disqualified_award_2 = deepcopy(disqualified_award)
+    disqualified_award_2["suppliers"][0]["identifier"]["id"] = "22222222"
+    disqualified_award_3 = deepcopy(disqualified_award)
+    disqualified_award_3["suppliers"][0]["identifier"]["id"] = "33333333"
+    winner = deepcopy(disqualified_award)
+    winner["status"] = "active"
+
+    tender.update(
+        {
+            "bids": [bid, bid_2, bid_3, bid_4, bid_5],
+            "awards": [
+                disqualified_award_1,
+                disqualified_award_2,
+                disqualified_award_3,
+                winner,
+            ],
+        }
+    )
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == RiskIndicatorEnum.risk_found
+
+
+async def test_tender_with_not_unique_awards_without_lots():
+    tender = deepcopy(tender_data)
+    tender.pop("lots", None)
+    # 4 bidders
+    bid.pop("lotValues", None)
+    bid["status"] = "active"
+    bid_2 = deepcopy(bid)
+    bid_2["tenderers"][0]["identifier"]["id"] = "11111111"
+    bid_3 = deepcopy(bid)
+    bid_3["tenderers"][0]["identifier"]["id"] = "22222222"
+    bid_4 = deepcopy(bid)
+    bid_4["tenderers"][0]["identifier"]["id"] = "33333333"
+
+    # 4 disqualified award and 1 winner
+    disqualified_award.pop("lotID", None)
+    disqualified_award_1 = deepcopy(disqualified_award)
+    disqualified_award_1["suppliers"][0]["identifier"]["id"] = "11111111"
+    disqualified_award_2 = deepcopy(disqualified_award)
+    disqualified_award_2["suppliers"][0]["identifier"]["id"] = "22222222"
+    disqualified_award_3 = deepcopy(disqualified_award)
+    disqualified_award_3["suppliers"][0]["identifier"]["id"] = "33333333"
+    winner = deepcopy(disqualified_award)
+    winner["status"] = "active"
+    # not unique award must not be counted
+    disqualified_award_4 = deepcopy(disqualified_award_3)
+
+    tender.update(
+        {
+            "bids": [bid, bid_2, bid_3, bid_4],
+            "awards": [
+                disqualified_award_1,
+                disqualified_award_2,
+                disqualified_award_3,
+                disqualified_award_4,
+                winner,
+            ],
+        }
+    )
+    risk_rule = RiskRule()
+    indicator = await risk_rule.process_tender(tender)
+    assert indicator == RiskIndicatorEnum.risk_found
+
+
 async def test_tender_with_not_risky_tender_status():
     tender_data.update(
         {
