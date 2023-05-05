@@ -78,6 +78,9 @@ responses:
                     type: string
                     format: date-time
                     description: Date of tender modifying
+                  tenderID:
+                    type: string
+                    desscription: Tender code
                   value:
                     type: object
                     properties:

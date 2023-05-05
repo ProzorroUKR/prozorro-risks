@@ -53,6 +53,7 @@ async def process_tender(tender):
                 "procuringEntity": tender.get("procuringEntity"),
                 "procuringEntityRegion": tender.get("procuringEntity", {}).get("address", {}).get("region", ""),
                 "procuringEntityEDRPOU": tender.get("procuringEntity", {}).get("identifier", {}).get("id", ""),
+                "tenderID": tender.get("tenderID"),
             },
         )
 
