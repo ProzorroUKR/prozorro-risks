@@ -102,6 +102,7 @@ function createTableContent(data) {
         `<thead>
                   <tr>
                       <th scope="col">ID</th>
+                      <th scope="col" width="23%">Tender ID</th>
                       <th scope="col" width="20%">Замовник</th>
                       <th scope="col">Регіон</th>
                       <th scope="col">ЄДРПОУ</th>
@@ -117,6 +118,7 @@ function createTableContent(data) {
     for (let item of data.items) {
         body += `<tr> 
                 <td>${item._id} </td>
+                <td>${getValue(item.tenderID)} </td>
                 <td>${getValue(item.procuringEntity?.name)}</td>
                 <td>${getValue(item.procuringEntity?.address?.region)}</td> 
                 <td>${getValue(item.procuringEntity?.identifier?.id)}</td>  

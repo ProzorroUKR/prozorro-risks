@@ -110,6 +110,7 @@ async def download_risks_report(request):
 
     field_names = [
         "_id",
+        "tenderID",
         "dateAssessed",
         "dateModified",
         "procuringEntityRegion",

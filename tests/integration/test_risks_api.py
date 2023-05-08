@@ -196,11 +196,12 @@ async def test_get_tender_risks_report(api, db):
     assert response.headers[CONTENT_TYPE] == "text/csv"
     csv_rows = result.split("\n")
     assert (
-        csv_rows[0] == "_id,dateAssessed,dateModified,procuringEntityRegion,procuringEntityEDRPOU,"
+        csv_rows[0] == "_id,tenderID,dateAssessed,dateModified,procuringEntityRegion,procuringEntityEDRPOU,"
         "procuringEntityName,valueAmount,valueCurrency,worked_risks\r"
     )
-    assert csv_rows[1].split(",")[:3] == [
+    assert csv_rows[1].split(",")[:4] == [
         str(tender_with_3_1_risk_found["_id"]),
+        tender_with_3_1_risk_found["tenderID"],
         tender_with_3_1_risk_found["dateAssessed"],
         tender_with_3_1_risk_found["dateModified"],
     ]
