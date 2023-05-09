@@ -1,7 +1,7 @@
 import pytest
 from copy import deepcopy
 
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.sas_3_6 import RiskRule
 from tests.integration.conftest import get_fixture_json
 
@@ -46,8 +46,8 @@ async def test_tender_without_lots_with_big_difference_in_amounts():
     tender["value"]["amount"] = 1000
     award["value"]["amount"] = 700
     tender["awards"] = [award]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskFound()
 
 
 async def test_tender_without_lots_with_difference_in_amounts_less_than_30_percents():
@@ -56,27 +56,27 @@ async def test_tender_without_lots_with_difference_in_amounts_less_than_30_perce
     tender["value"]["amount"] = 1000
     award["value"]["amount"] = 900
     tender["awards"] = [award]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 @pytest.mark.parametrize(
-    "lot_status,risk_indicator",
+    "lot_status,risk_result",
     [
-        ("active", RiskIndicatorEnum.risk_found),
-        ("cancelled", RiskIndicatorEnum.risk_not_found),
-        ("unsuccessful", RiskIndicatorEnum.risk_not_found),
+        ("active", RiskFound()),
+        ("cancelled", RiskNotFound()),
+        ("unsuccessful", RiskNotFound()),
     ],
 )
-async def test_tender_with_big_difference_in_lot_and_award_amounts(lot_status, risk_indicator):
+async def test_tender_with_big_difference_in_lot_and_award_amounts(lot_status, risk_result):
     tender = deepcopy(tender_data)
     tender["lots"][0]["status"] = lot_status
     tender["lots"][0]["value"]["amount"] = 1000
     award["lotID"] = tender["lots"][0]["id"]
     award["value"]["amount"] = 700
     tender["awards"] = [award]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == risk_indicator
+    result = await risk_rule.process_tender(tender)
+    assert result == risk_result
 
 
 async def test_tender_with_difference_in_lot_and_award_amounts_less_than_30_percents():
@@ -85,14 +85,14 @@ async def test_tender_with_difference_in_lot_and_award_amounts_less_than_30_perc
     award["lotID"] = tender["lots"][0]
     award["value"]["amount"] = 900
     tender["awards"] = [award]
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_lots_not_matched_awards():
     tender_data["awards"] = [award]
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_tender_status():
@@ -101,8 +101,8 @@ async def test_tender_with_not_risky_tender_status():
             "status": "cancelled",
         }
     )
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_type():
@@ -111,18 +111,18 @@ async def test_tender_with_not_risky_procurement_type():
             "procurementMethodType": "reporting",
         }
     )
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender_data["procuringEntity"]["kind"] = "other"
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_complete_status():
     tender_data["status"] = "complete"
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.use_previous_result
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskFromPreviousResult()

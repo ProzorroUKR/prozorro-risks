@@ -1,4 +1,4 @@
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import count_percentage_between_two_values
 
@@ -33,7 +33,7 @@ class RiskRule(BaseTenderRiskRule):
 
                             # Якщо різниця менша на 30% і більше індикатор приймає значення 1, розрахунок завершується.
                             if count_percentage_between_two_values(lot_value, award_value) >= PERCENTAGE_LIMIT:
-                                return RiskIndicatorEnum.risk_found
+                                return RiskFound()
             else:
                 # Якщо процедура не має лотів, то перевіряємо різницю між data.awards.value.amount та data.value.amount.
                 tender_value = tender.get("value", {}).get("amount", 0)
@@ -42,7 +42,7 @@ class RiskRule(BaseTenderRiskRule):
 
                     # Якщо різниця менша на 30% і більше індикатор приймає значення 1, розрахунок завершується.
                     if count_percentage_between_two_values(tender_value, award_value) >= PERCENTAGE_LIMIT:
-                        return RiskIndicatorEnum.risk_found
+                        return RiskFound()
         elif tender.get("status") == self.stop_assessment_status:
-            return RiskIndicatorEnum.use_previous_result
-        return RiskIndicatorEnum.risk_not_found
+            return RiskFromPreviousResult()
+        return RiskNotFound()

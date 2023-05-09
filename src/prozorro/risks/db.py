@@ -210,18 +210,27 @@ async def find_tenders(skip=0, limit=20, **kwargs):
 def join_old_risks_with_new_ones(risks, tender):
     tender_risks = tender.get("risks", {})
     tender_worked_risks = set(tender.get("worked_risks", []))
-    for risk_id, risk_data in risks.items():
-        if risk_data["indicator"] == RiskIndicatorEnum.risk_found:
-            tender_worked_risks.add(risk_id)
-        elif risk_data["indicator"] == RiskIndicatorEnum.use_previous_result:
-            continue
-        elif risk_id in tender_worked_risks:
-            tender_worked_risks.remove(risk_id)
-        log = {"date": risk_data["date"], "indicator": risk_data["indicator"]}
-        history = tender_risks.get(risk_id, {}).get("history", [])
-        history.append(log)
-        risk_data["history"] = history
-        tender_risks[risk_id] = risk_data
+    for risk_id, risk_items in risks.items():
+        current_risk_items = {}
+        for previous_risk_item in tender_risks.get(risk_id, []):
+            item_key = "tender" if "item" not in previous_risk_item else previous_risk_item["item"]["id"]
+            current_risk_items[item_key] = previous_risk_item
+        for risk_data in risk_items:
+            if risk_data["indicator"] == RiskIndicatorEnum.use_previous_result:
+                continue
+            log = {"date": risk_data["date"], "indicator": risk_data["indicator"]}
+            item_key = "tender" if "item" not in risk_data else risk_data["item"]["id"]
+            history = current_risk_items.get(item_key, {}).get("history", [])
+            history.append(log)
+            risk_data["history"] = history
+            current_risk_items[item_key] = risk_data
+        if risk_results := list(current_risk_items.values()):
+            tender_risks[risk_id] = risk_results
+            worked_items = [item for item in risk_results if item["indicator"] == RiskIndicatorEnum.risk_found]
+            if worked_items:
+                tender_worked_risks.add(risk_id)
+            elif risk_id in tender_worked_risks:
+                tender_worked_risks.remove(risk_id)
     return tender_risks, list(tender_worked_risks)
 
 

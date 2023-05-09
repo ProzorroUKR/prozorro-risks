@@ -1,7 +1,7 @@
 import pytest
 from copy import deepcopy
 
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.sas_3_5 import RiskRule
 from tests.integration.conftest import get_fixture_json
 
@@ -42,8 +42,8 @@ async def test_tender_without_disqualified_award():
     tender_data["awards"][0]["lotID"] = tender_data["lots"][0]["id"]
     tender_data["awards"][0]["status"] = "active"
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_1_disqualified_award_without_lots():
@@ -51,8 +51,8 @@ async def test_tender_with_1_disqualified_award_without_lots():
     tender.pop("lots", None)
     tender_data["awards"] = [disqualified_award]
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_2_disqualified_award_without_lots():
@@ -60,8 +60,8 @@ async def test_tender_with_2_disqualified_award_without_lots():
     tender.pop("lots", None)
     tender_data["awards"] = [disqualified_award, disqualified_award]
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskFound()
 
 
 async def test_tender_with_more_than_2_disqualified_award_without_lots():
@@ -69,24 +69,24 @@ async def test_tender_with_more_than_2_disqualified_award_without_lots():
     tender.pop("lots", None)
     tender_data["awards"] = [disqualified_award, disqualified_award, disqualified_award]
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskFound()
 
 
 async def test_tender_with_1_disqualified_award_with_related_lots():
     disqualified_award["lotID"] = tender_data["lots"][0]["id"]
     tender_data["awards"] = [disqualified_award]
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_2_disqualified_award_with_related_lots():
     disqualified_award["lotID"] = tender_data["lots"][0]["id"]
     tender_data["awards"] = [disqualified_award, disqualified_award]
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskFound()
 
 
 async def test_tender_with_1_disqualified_award_with_one_related_lots_and_1_for_another():
@@ -103,26 +103,26 @@ async def test_tender_with_1_disqualified_award_with_one_related_lots_and_1_for_
     disqualified_award_2["lotID"] = "c2bb6ff3e8e547bee11d8bff23e8a290"
     tender["awards"] = [disqualified_award, disqualified_award_2]
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
 
 
 @pytest.mark.parametrize(
-    "lot_status,risk_indicator",
+    "lot_status,risk_result",
     [
-        ("active", RiskIndicatorEnum.risk_found),
-        ("cancelled", RiskIndicatorEnum.risk_not_found),
-        ("unsuccessful", RiskIndicatorEnum.risk_not_found),
+        ("active", RiskFound()),
+        ("cancelled", RiskNotFound()),
+        ("unsuccessful", RiskNotFound()),
     ],
 )
-async def test_tender_with_more_than_2_disqualified_award_with_related_lots(lot_status, risk_indicator):
+async def test_tender_with_more_than_2_disqualified_award_with_related_lots(lot_status, risk_result):
     tender = deepcopy(tender_data)
     tender["lots"][0]["status"] = lot_status
     disqualified_award["lotID"] = tender["lots"][0]["id"]
     tender_data["awards"] = [disqualified_award] * 3
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender)
-    assert indicator == risk_indicator
+    result = await risk_rule.process_tender(tender)
+    assert result == risk_result
 
 
 async def test_tender_with_not_risky_tender_status():
@@ -132,8 +132,8 @@ async def test_tender_with_not_risky_tender_status():
         }
     )
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_type():
@@ -143,19 +143,19 @@ async def test_tender_with_not_risky_procurement_type():
         }
     )
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender_data["procuringEntity"]["kind"] = "other"
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_complete_status():
     tender_data["status"] = "complete"
     risk_rule = RiskRule()
-    indicator = await risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.use_previous_result
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskFromPreviousResult()

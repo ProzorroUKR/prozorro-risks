@@ -1,4 +1,4 @@
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
 
 
@@ -75,7 +75,7 @@ class RiskRule(BaseTenderRiskRule):
 
                     # Якщо для лота “Учасники” = “Переможець” + “Дискваліфікації”, індикатор приймає значення “1”.
                     if bidders_count == winner_count + disqualifications_count:
-                        return RiskIndicatorEnum.risk_found
+                        return RiskFound()
             else:
                 disqualified_awards = set()
                 winner_count = 0
@@ -96,12 +96,12 @@ class RiskRule(BaseTenderRiskRule):
                         winner_count = 1
 
                 if not disqualified_awards or not winner_count:
-                    return RiskIndicatorEnum.risk_not_found
+                    return RiskNotFound()
 
                 disqualifications_count = len(disqualified_awards)
                 # Якщо кількість таких об’єктів менше або дорівнює 2, то індикатор дорівнює “0”
                 if disqualifications_count <= 2:
-                    return RiskIndicatorEnum.risk_not_found
+                    return RiskNotFound()
 
                 # Перевіряється кількість учасників - в процедурі data.id кількість унікальних об’єктів data.bids
                 # (конкатенація data.bids.tenderers.identifier.scheme та data.bids.tenderers.identifier.id),
@@ -114,7 +114,7 @@ class RiskRule(BaseTenderRiskRule):
 
                 # Якщо “Учасники” = “Переможець” + “Дискваліфікації”, індикатор приймає значення “1”
                 if bidders_count == winner_count + disqualifications_count:
-                    return RiskIndicatorEnum.risk_found
+                    return RiskFound()
         elif tender.get("status") == self.stop_assessment_status:
-            return RiskIndicatorEnum.use_previous_result
-        return RiskIndicatorEnum.risk_not_found
+            return RiskFromPreviousResult()
+        return RiskNotFound()

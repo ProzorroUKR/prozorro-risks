@@ -1,4 +1,4 @@
-from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.sas_2_16 import RiskRule
 
 from tests.integration.conftest import get_fixture_json
@@ -15,8 +15,8 @@ async def test_tender_with_award_complaints():
     )
     tender_data["awards"][0]["complaints"] = [{"test": "test_complaint"}]
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_cancelled_award():
@@ -29,8 +29,8 @@ async def test_tender_with_cancelled_award():
     tender_data["awards"][0].pop("complaints", None)
     tender_data["awards"][0]["status"] = "cancelled"
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_found
+    result = risk_rule.process_tender(tender_data)
+    assert result == RiskFound()
 
 
 async def test_tender_with_pending_award():
@@ -43,8 +43,8 @@ async def test_tender_with_pending_award():
     tender_data["awards"][0].pop("complaints", None)
     tender_data["awards"][0]["status"] = "pending"
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_type():
@@ -54,8 +54,8 @@ async def test_tender_with_not_risky_procurement_type():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_categories():
@@ -65,5 +65,5 @@ async def test_tender_with_not_risky_procurement_categories():
         }
     )
     risk_rule = RiskRule()
-    indicator = risk_rule.process_tender(tender_data)
-    assert indicator == RiskIndicatorEnum.risk_not_found
+    result = risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
