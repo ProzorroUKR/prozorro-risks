@@ -150,17 +150,32 @@ function createTableContent(data) {
                           </thead>
                         <tbody>`;
         for (let [key, items] of Object.entries(item.risks)) {
-            for (let item of items) {
+            // TODO: Leave only array processing
+            if (Array.isArray(items)) {
+                for (let item of items) {
+                    body += `<tr>
+                        <td>${key}</td>
+                        <td>${item.name}</td>
+                        <td class="text-center">
+                        ${item.indicator === 'risk_found' ? 
+                        `<i class="bi bi-exclamation-triangle text-danger"></i>` : 
+                        `<i class="bi bi-check-circle text-success"></i>`}
+                        </td>
+                        <td>${item.date}</td>
+                        <td>${item.item ? item.item.type + ' - ' + item.item.id : 'tender'}</td>
+                     </tr>`;
+                }
+            } else {
                 body += `<tr>
                     <td>${key}</td>
-                    <td>${item.name}</td>
+                    <td>${items.name}</td>
                     <td class="text-center">
-                    ${item.indicator === 'risk_found' ? 
+                    ${items.indicator === 'risk_found' ? 
                     `<i class="bi bi-exclamation-triangle text-danger"></i>` : 
                     `<i class="bi bi-check-circle text-success"></i>`}
                     </td>
-                    <td>${item.date}</td>
-                    <td>${item.item ? item.item.type + ' - ' + item.item.id : 'tender'}</td>
+                    <td>${items.date}</td>
+                    <td>${items.item ? items.item.type + ' - ' + items.item.id : 'tender'}</td>
                  </tr>`;
             }
         }
