@@ -212,9 +212,15 @@ def join_old_risks_with_new_ones(risks, tender):
     tender_worked_risks = set(tender.get("worked_risks", []))
     for risk_id, risk_items in risks.items():
         current_risk_items = {}
-        for previous_risk_item in tender_risks.get(risk_id, []):
-            item_key = "tender" if "item" not in previous_risk_item else previous_risk_item["item"]["id"]
-            current_risk_items[item_key] = previous_risk_item
+        # TODO: leave only processing for list
+        tender_risk = tender_risks.get(risk_id, [])
+        if isinstance(tender_risk, list):
+            for previous_risk_item in tender_risks.get(risk_id, []):
+                item_key = "tender" if "item" not in previous_risk_item else previous_risk_item["item"]["id"]
+                current_risk_items[item_key] = previous_risk_item
+        else:
+            item_key = "tender" if "item" not in tender_risk else tender_risk["item"]["id"]
+            current_risk_items[item_key] = tender_risk
         for risk_data in risk_items:
             if risk_data["indicator"] == RiskIndicatorEnum.use_previous_result:
                 continue
