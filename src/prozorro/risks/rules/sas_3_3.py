@@ -45,6 +45,7 @@ class RiskRule(BaseTenderRiskRule):
                         entity_identifier=tender["procuringEntityIdentifier"],
                         supplier_identifier=supplier_identifier,
                         procurement_methods=self.procurement_methods,
+                        procurement_categories=self.procurement_categories,
                     )
 
                     # За ідентифікатором замовника та ідентифікатором перможця рахуємо коди CPV.
