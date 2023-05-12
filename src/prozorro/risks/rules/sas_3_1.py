@@ -48,6 +48,7 @@ class RiskRule(BaseTenderRiskRule):
     @staticmethod
     def check_decision_delta(complaints):
         for complaint in complaints:
+            # Якщо від complaints.dateDesision до поточної дати пройшло більше 30 днів, індикатор дорівнює 1.
             if count_days_between_two_dates(get_now(), complaint["dateDecision"]) > DECISION_LIMIT:
                 return RiskFound()
         return RiskNotFound()
@@ -67,6 +68,10 @@ class RiskRule(BaseTenderRiskRule):
                     for qualification in tender.get("qualifications", [])
                 ]
             )
+
+            # Якщо в процедурі присутні блоки data.complaints, data.awards.complaints, data.qualification:complaints
+            # або data.cancellations:complaints. що мають complaints.type='complaint' та complaints.status = 'satisfied'
+            # то для кожного такого блоку порівнюємо complaints.dateDesision з поточною датой.
             if qualifications_complaints:
                 return self.check_decision_delta(qualifications_complaints)
 

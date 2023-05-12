@@ -19,7 +19,7 @@ class RiskRule(BaseTenderRiskRule):
     @staticmethod
     def tender_has_active_awards_with_same_bid(awards, current_award):
         # перевіряємо чи є ще інші data.awards в статусі data.awards.status= "active"
-        # із таким же data.awards.bid_id
+        # із таким же data.awards.bid_id та lotID
         active_awards = [
             award
             for award in awards
@@ -28,6 +28,7 @@ class RiskRule(BaseTenderRiskRule):
                     award["id"] != current_award["id"],
                     award["status"] == "active",
                     award["bid_id"] == current_award["bid_id"],
+                    award["lotID"] == current_award["lotID"] if current_award["lotID"] else True,
                 ]
             )
         ]
@@ -37,13 +38,12 @@ class RiskRule(BaseTenderRiskRule):
         if self.tender_matches_requirements(tender, category=False):
             for award in tender.get("awards", []):
                 # Шукаємо в процедурі блоки data.awards.complaints, що мають complaints.type='complaint'
-                # та complaints.status = 'satisfied'
-                satisfied_complaints = get_complaints(award, status="satisfied")
-                if not satisfied_complaints:
+                complaints = get_complaints(award)
+                if not complaints:
                     continue
 
                 # Якщо процедура має лоти, то розрахунок проводимо лише для лотів data.lots.id,
-                # у яких є awards.satisfied_complaints, на які посилається data.awards.lotID
+                # у яких є awards.complaints, на які посилається data.awards.lotID
                 if len(tender.get("lots", [])):
                     for lot in tender["lots"]:
                         if lot["status"] not in ("cancelled", "unsuccessful") and lot["id"] == award["lotID"]:

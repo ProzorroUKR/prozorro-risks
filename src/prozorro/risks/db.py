@@ -70,6 +70,9 @@ def get_tenders_collection():
 
 
 async def init_risks_indexes():
+    """
+    Create plain and compound indexes for risks collection
+    """
     region_compound_index = IndexModel(
         [
             ("procuringEntityRegion", ASCENDING),
@@ -132,6 +135,9 @@ async def init_risks_indexes():
 
 
 async def init_tender_indexes():
+    """
+    Create indexes for tenders collection
+    """
     compound_procuring_entity_index = IndexModel(
         [
             ("procuringEntityIdentifier", ASCENDING),
@@ -146,6 +152,13 @@ async def init_tender_indexes():
 
 
 async def get_risks(tender_id):
+    """
+    Get risks for provided tender id
+    :param tender_id: str Id of tender
+    :return: dict Tender with assessed risks result
+    :raise: HTTPInternalServerError during mongo error
+    :raise: HTTPNotFound if there is no tender in database with provided tender_id
+    """
     collection = get_risks_collection()
     try:
         result = await collection.find_one(
@@ -166,6 +179,10 @@ async def get_risks(tender_id):
 
 
 def build_tender_filters(**kwargs):
+    """
+    Build filters for tenders query
+    :return: dict Dict of ready filters
+    """
     filters = {}
     worked_risks_filter = []
     if tender_id := kwargs.get("tender_id"):
@@ -186,6 +203,12 @@ def build_tender_filters(**kwargs):
 
 
 async def find_tenders(skip=0, limit=20, **kwargs):
+    """
+    Get list of tenders, filtered by request params
+    :param skip: int Number of documents to skip (needed for pagination)
+    :param limit: int Number of documents per page (needed for pagination)
+    :return: dict with filtered items and total count
+    """
     collection = get_risks_collection()
     limit = min(limit, MAX_LIST_LIMIT)
     filters = build_tender_filters(**kwargs)
@@ -208,6 +231,12 @@ async def find_tenders(skip=0, limit=20, **kwargs):
 
 
 def join_old_risks_with_new_ones(risks, tender):
+    """
+    Join previous results of tender risks assessment, create log and add it to risk's history.
+    :param risks: dict New assessed risks result {"sas-3-1": [...], "sas-3-2": [...]}
+    :param tender: dict Tender object from risks database with previously assessed risks indicators
+    :return: tuple Concatenated object of old and new risks for tender and array of total worked risk's identifiers
+    """
     tender_risks = tender.get("risks", {})
     tender_worked_risks = set(tender.get("worked_risks", []))
     for risk_id, risk_items in risks.items():

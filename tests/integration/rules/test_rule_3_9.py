@@ -41,7 +41,7 @@ async def test_tender_with_active_awards_and_complaint_same_bid_id_without_lots(
     active_award["bid_id"] = award_with_complaints["bid_id"]
     tender = deepcopy(tender_data)
     tender["awards"] = [award_with_complaints, active_award]
-    tender["awards"][0]["complaints"][0]["status"] = "satisfied"
+    tender["awards"][0]["complaints"][0]["status"] = "resolved"
     result = await risk_rule.process_tender(tender)
     assert result == RiskFound()
 
@@ -82,6 +82,7 @@ async def test_tender_with_active_awards_and_complaint_same_bid_id_with_lots(lot
             "id": "c2bb6ff3e8e547bee11d8bff23e8a295",
         }
     ]
+    active_award["lotID"] = award_with_complaints["lotID"] = tender["lots"][0]["id"]
     result = await risk_rule.process_tender(tender)
     assert result == risk_result
 
@@ -102,6 +103,34 @@ async def test_tender_with_active_awards_and_complaint_different_bid_id_with_lot
             "id": "c2bb6ff3e8e547bee11d8bff23e8a295",
         }
     ]
+    active_award["lotID"] = award_with_complaints["lotID"] = tender["lots"][0]["id"]
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
+
+
+async def test_tender_with_active_awards_and_complaint_different_lot_id_with_lots():
+    active_award = deepcopy(disqualified_award)
+    active_award["status"] = "active"
+    active_award["id"] = "f2588db5ac4b4fe0a3628fcb1b5fda75"
+    active_award["bid_id"] = "e1cb6a5520984996a0d99c83aa93cd10"  # another bidder
+    award_with_complaints["lotID"] = "c2bb6ff3e8e547bee11d8bff23e8a295"
+    tender = deepcopy(tender_data)
+    tender["awards"] = [award_with_complaints, active_award]
+    tender["awards"][0]["complaints"][0]["status"] = "resolved"
+    tender["lots"] = [
+        {
+            "title": "Бетон та розчин будівельний",
+            "status": "active",
+            "id": "c2bb6ff3e8e547bee11d8bff23e8a295",
+        },
+        {
+            "title": "Бетон та розчин будівельний",
+            "status": "active",
+            "id": "c2bb6ff3e8e547bee11d8bff23e8a200",
+        },
+    ]
+    award_with_complaints["lotID"] = tender["lots"][0]["id"]
+    active_award["lotID"] = tender["lots"][1]["id"]
     result = await risk_rule.process_tender(tender)
     assert result == RiskNotFound()
 
