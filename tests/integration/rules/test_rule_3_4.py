@@ -45,25 +45,11 @@ async def test_tender_without_changes_in_contract(mock_tender):
 
 
 @patch("prozorro.risks.rules.sas_3_4.fetch_tender", return_value=tender_data)
-async def test_tender_with_more_than_90_days_between_date_signed_changes(mock_tender):
-    contract = deepcopy(contract_data)
-    contract["changes"][0]["dateSigned"] = "2019-01-01T16:39:01.640632+02:00"
-    contract["changes"][1]["dateSigned"] = "2019-05-01T16:39:01.640632+02:00"
-    contract["changes"][2]["dateSigned"] = "2019-10-01T16:39:01.640632+02:00"
+async def test_tender_with_active_changes(mock_tender):
+    # contract_data has 3 changes which have status active and contain itemPriceVariation in rationaleTypes array
     risk_rule = RiskRule()
-    result = await risk_rule.process_contract(contract)
-    assert result == RiskNotFound(type="contract", id=contract["id"])
-
-
-@patch("prozorro.risks.rules.sas_3_4.fetch_tender", return_value=tender_data)
-async def test_tender_with_less_than_90_days_between_date_signed_changes(mock_tender):
-    contract = deepcopy(contract_data)
-    contract["changes"][0]["dateSigned"] = "2019-01-01T16:39:01.640632+02:00"
-    contract["changes"][1]["dateSigned"] = "2019-02-01T16:39:01.640632+02:00"
-    contract["changes"][2]["dateSigned"] = "2019-03-01T16:39:01.640632+02:00"
-    risk_rule = RiskRule()
-    result = await risk_rule.process_contract(contract)
-    assert result == RiskFound(type="contract", id=contract["id"])
+    result = await risk_rule.process_contract(contract_data)
+    assert result == RiskFound(type="contract", id=contract_data["id"])
 
 
 async def test_tender_with_not_risky_contract_status():

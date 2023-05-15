@@ -3,11 +3,8 @@ from datetime import datetime
 from prozorro.risks.exceptions import SkipException
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseContractRiskRule
-from prozorro.risks.rules.utils import count_days_between_two_dates
 from prozorro.risks.settings import CRAWLER_START_DATE
 from prozorro.risks.utils import fetch_tender
-
-SIGNING_DAYS_LIMIT = 90
 
 
 class RiskRule(BaseContractRiskRule):
@@ -41,21 +38,11 @@ class RiskRule(BaseContractRiskRule):
                     for change in contract.get("changes", [])
                     if change["status"] == "active" and "itemPriceVariation" in change["rationaleTypes"]
                 ]
-                # Якщо в договорі немає змін у яких data.changes.status='active' та
+                # Якщо в договорі є зміни у яких data.changes.status='active' та
                 # в масив причин data.changes.rationaleTypes містить елемент itemPriceVariation,
-                # індикатор приймає значення 0, розрахунок завершується
-                if not active_changes:
-                    return RiskNotFound(type="contract", id=contract["id"])
-
-                #  Вибираємо всі дати підписання з таких елементів, впорядковуємо дати за зростанням
-                dates = sorted([change.get("dateSigned") for change in active_changes])
-
-                # Попарно перевіряємо відстань у днях між елементами списку
-                for idx, date in enumerate(dates[:-1]):
-                    # Якщо хоч одна відстань між елементам менша за 90 днів, індикатор приймає значення 1,
-                    # розрахунок завершується
-                    if count_days_between_two_dates(dates[idx + 1], date) < SIGNING_DAYS_LIMIT:
-                        return RiskFound(type="contract", id=contract["id"])
+                # індикатор приймає значення 1, розрахунок завершується
+                if active_changes:
+                    return RiskFound(type="contract", id=contract["id"])
         elif contract["status"] == self.stop_assessment_status:
             return RiskFromPreviousResult(type="contract", id=contract["id"])
         return RiskNotFound(type="contract", id=contract["id"])
