@@ -28,7 +28,7 @@ class RiskRule(BaseTenderRiskRule):
                     award["id"] != current_award["id"],
                     award["status"] == "active",
                     award["bid_id"] == current_award["bid_id"],
-                    award["lotID"] == current_award["lotID"] if current_award["lotID"] else True,
+                    award["lotID"] == current_award["lotID"] if current_award.get("lotID") else True,
                 ]
             )
         ]
