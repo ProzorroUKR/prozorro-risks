@@ -321,7 +321,7 @@ async def paginated_result(collection, filters, skip, limit, sort=None, projecti
 
 
 async def get_distinct_values(field):
-    return await get_risks_collection().distinct(field, {field: {"$nin": ["", None]}})
+    return await get_risks_collection().distinct(field, {"has_risks": True, field: {"$nin": ["", None]}})
 
 
 async def aggregate_tenders(pipeline):
