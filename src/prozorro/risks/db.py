@@ -309,11 +309,13 @@ async def save_tender(uid, tender_data):
 
 async def paginated_result(collection, filters, skip, limit, sort=None, projection=None):
     try:
-        count = await collection.count_documents(filters, maxTimeMS=MAX_TIME_QUERY)
         cursor = collection.find(filters, projection=projection, max_time_ms=MAX_TIME_QUERY).skip(skip).limit(limit)
         if sort:
             cursor = cursor.sort(sort)
         items = await cursor.to_list(length=None)
+        # should be added additional field for using index during counting documents
+        filters.update({"dateAssessed": {"$gte": "2023-01-01T00:00:00+02:00"}})
+        count = await collection.count_documents(filters, maxTimeMS=MAX_TIME_QUERY)
     except ExecutionTimeout as exc:
         logger.error(f"Filter tenders {type(exc)}: {exc}, filters: {filters}", extra={"MESSAGE_ID": "MONGODB_EXC"})
         raise web.HTTPRequestTimeout(text="Please change filters combination to optimize query (e.g. edrpou + risks)")
