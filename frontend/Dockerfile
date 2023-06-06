@@ -1,2 +1,2 @@
-FROM nginxinc/nginx-unprivileged
+FROM nginx
 ADD ./frontend/src /usr/share/nginx/html/
