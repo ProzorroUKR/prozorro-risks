@@ -51,8 +51,8 @@ async def test_list_tenders_skip_and_limit(api, db):
 
 
 async def test_list_tenders_sort_by_date_assessed(api, db):
-    tender_with_3_2_risk_found["dateAssessed"] = "2019-02-14T21:37:16.832566+02:00"
-    tender_with_3_1_risk_found["dateAssessed"] = "2019-03-14T21:37:16.832566+02:00"
+    tender_with_3_2_risk_found["dateAssessed"] = "2023-02-14T21:37:16.832566+02:00"
+    tender_with_3_1_risk_found["dateAssessed"] = "2023-03-14T21:37:16.832566+02:00"
     await db.risks.insert_many([tender_with_3_2_risk_found, tender_with_3_1_risk_found])
     response = await api.get("/api/risks?order=asc")
     assert response.status == 200
