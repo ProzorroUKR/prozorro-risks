@@ -43,7 +43,7 @@ async def request_object(session, obj_id, resource, method_name="get"):
         if resp.status in (200, 201):
             try:
                 response = await resp.json()
-            except (aiohttp.ClientPayloadError, JSONDecodeError) as e:
+            except (aiohttp.ClientPayloadError, JSONDecodeError, asyncio.TimeoutError) as e:
                 logger.warning(e, extra={"MESSAGE_ID": "HTTP_EXCEPTION", **context})
             else:
                 # ERROR:root:Error while closing connector:
