@@ -26,7 +26,7 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         merge_record_extra(record, log_record, reserved=self._skip_fields)
 
         if self.timestamp:
-            key = self.timestamp if type(self.timestamp) == str else "timestamp"
+            key = self.timestamp if type(self.timestamp) is str else "timestamp"
             log_record[key] = datetime.fromtimestamp(record.created, tz=timezone.utc)
 
         log_record["levelname"] = record.levelname

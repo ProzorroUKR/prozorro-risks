@@ -52,7 +52,7 @@ async def list_tenders(request):
         result = await find_tenders(
             skip=skip,
             limit=limit,
-            **requests_params(request, "sort", "order", "edrpou", "tender_id"),
+            **requests_params(request, "sort", "order", "edrpou", "tender_id", "risks_all"),
             **requests_sequence_params(request, "risks", "region", "owner", separator=";"),
         )
     except web.HTTPRequestTimeout as exc:
@@ -88,7 +88,7 @@ async def get_filter_values(request):
 @swagger_path("/swagger/download_risks_report.yaml")
 async def download_risks_report(request):
     filters = build_tender_filters(
-        **requests_params(request, "edrpou", "tender_id"),
+        **requests_params(request, "edrpou", "tender_id", "risks_all"),
         **requests_sequence_params(request, "risks", "region", separator=";"),
     )
     cursor = await get_tender_risks_report(

@@ -82,6 +82,7 @@ function clearFilters() {
     document.getElementById('edrpou').value = '';
     document.getElementById('tender_id').value = '';
     document.getElementById('sorting').selectedIndex = 0;
+    document.getElementById('risksAll').checked = false;
     filterRisks();
 }
 
@@ -192,6 +193,7 @@ function getFilterValues() {
     let regionOptions = document.getElementById('regions').selectedOptions;
     let regionValues = Array.from(regionOptions).map(({ value }) => value);
     let risksOptions = document.getElementById('risks').selectedOptions;
+    let risksAll = document.getElementById('risksAll').checked;
     let risksValues = Array.from(risksOptions).map(({ value }) => value);
     let edrpou = document.getElementById('edrpou').value;
     let tender_id = document.getElementById('tender_id').value;
@@ -201,6 +203,7 @@ function getFilterValues() {
         edrpou,
         region: regionValues.join(';'),
         risks: risksValues.join(';'),
+        risks_all: risksAll,
         sort: sorting[0],
         order: sorting[1],
     };

@@ -115,6 +115,45 @@ async def test_list_tenders_filter_by_risks_worked(api, db):
     assert resp_json["count"] == 0
 
 
+async def test_list_tenders_filter_by_risks_worked_with_all_option(api, db):
+    tender_with_3_1_and_3_2_risk_found = deepcopy(tender)
+    tender_with_3_1_and_3_2_risk_found["risks"] = {
+        "sas-3-1": {"indicator": "risk_found", "date": "2023-03-13T14:37:12.491341+02:00"},
+        "sas-3-2": {"indicator": "risk_found", "date": "2023-03-13T14:37:12.491341+02:00"},
+    }
+    tender_with_3_1_and_3_2_risk_found["worked_risks"] = ["sas-3-1", "sas-3-2"]
+    tender_with_3_1_and_3_2_risk_found["has_risks"] = True
+    await db.risks.insert_many(
+        [
+            tender_with_no_risks_found,
+            tender_with_3_1_risk_found,
+            tender_with_3_2_risk_found,
+            tender_with_3_1_and_3_2_risk_found,
+        ]
+    )
+    response = await api.get("/api/risks?risks=sas-3-1;sas-3-2")
+    assert response.status == 200
+    resp_json = await response.json()
+    assert resp_json["count"] == 3
+
+    response = await api.get("/api/risks?risks=sas-3-1;sas-3-2&risks_all=false")
+    assert response.status == 200
+    resp_json = await response.json()
+    assert resp_json["count"] == 3
+
+    response = await api.get("/api/risks?risks=sas-3-1;sas-3-2&risks_all=true")
+    assert response.status == 200
+    resp_json = await response.json()
+    assert resp_json["count"] == 1
+    assert resp_json["items"][0]["risks"]["sas-3-1"]["indicator"] == "risk_found"
+    assert resp_json["items"][0]["risks"]["sas-3-2"]["indicator"] == "risk_found"
+
+    response = await api.get("/api/risks?risks=sas-3-1;sas-3-2&risks_all=1")
+    assert response.status == 200
+    resp_json = await response.json()
+    assert resp_json["count"] == 1
+
+
 async def test_list_tenders_filter_by_region(api, db):
     tender_with_3_1_risk_found["procuringEntityRegion"] = "Харківська область"
     tender_with_3_1_risk_found["procuringEntity"]["address"]["region"] = "Харківська область"
