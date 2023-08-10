@@ -2,6 +2,8 @@ import asyncio
 import logging
 import re
 from contextvars import ContextVar
+from distutils.util import strtobool
+
 from motor.motor_asyncio import AsyncIOMotorClient
 from prozorro.risks.settings import (
     MONGODB_URL,
@@ -185,6 +187,7 @@ def build_tender_filters(**kwargs):
     """
     filters = {}
     worked_risks_filter = []
+    contains_all_risks = False
     if tender_id := kwargs.get("tender_id"):
         filters["_id"] = tender_id
     filters["has_risks"] = True
@@ -197,8 +200,13 @@ def build_tender_filters(**kwargs):
     # if there are filters by owner and by risks, then we are looking only at risks filter
     if risks_list := kwargs.get("risks"):
         worked_risks_filter = risks_list
+    if risks_all := kwargs.get("risks_all"):
+        try:
+            contains_all_risks = bool(strtobool(risks_all))
+        except ValueError:
+            contains_all_risks = False
     if worked_risks_filter:
-        filters["worked_risks"] = {"$in": worked_risks_filter}
+        filters["worked_risks"] = {"$all": worked_risks_filter} if contains_all_risks else {"$in": worked_risks_filter}
     return filters
 
 
@@ -241,15 +249,9 @@ def join_old_risks_with_new_ones(risks, tender):
     tender_worked_risks = set(tender.get("worked_risks", []))
     for risk_id, risk_items in risks.items():
         current_risk_items = {}
-        # TODO: leave only processing for list
-        tender_risk = tender_risks.get(risk_id, [])
-        if isinstance(tender_risk, list):
-            for previous_risk_item in tender_risks.get(risk_id, []):
-                item_key = "tender" if "item" not in previous_risk_item else previous_risk_item["item"]["id"]
-                current_risk_items[item_key] = previous_risk_item
-        else:
-            item_key = "tender" if "item" not in tender_risk else tender_risk["item"]["id"]
-            current_risk_items[item_key] = tender_risk
+        for previous_risk_item in tender_risks.get(risk_id, []):
+            item_key = "tender" if "item" not in previous_risk_item else previous_risk_item["item"]["id"]
+            current_risk_items[item_key] = previous_risk_item
         for risk_data in risk_items:
             if risk_data["indicator"] == RiskIndicatorEnum.use_previous_result:
                 continue

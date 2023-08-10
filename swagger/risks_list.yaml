@@ -21,6 +21,11 @@ parameters:
     type: string
   description: Filter by risks.id. Can be one value or sequence of values separated by ;
 - in: query
+  name: risks_all
+  schema:
+    type:  boolean
+  description: Flag whether filter tenders with all selected worked risks or partially worked risks
+- in: query
   name: region
   schema:
     type: string
