@@ -294,7 +294,10 @@ async def update_tender_risks(uid, risks, additional_fields):
                 session=session_var.get(),
             )
         except PyMongoError as e:
-            logger.warning(f"Update risks error {type(e)}: {e}", extra={"MESSAGE_ID": "MONGODB_EXC"})
+            logger.warning(
+                f"Update risks warning {type(e)}: {e}. Update will be repeated",
+                extra={"MESSAGE_ID": "MONGODB_EXC"}
+            )
             await asyncio.sleep(MONGODB_ERROR_INTERVAL)
         else:
             return result
