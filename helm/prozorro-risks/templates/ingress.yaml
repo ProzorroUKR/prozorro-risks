@@ -18,7 +18,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}-ingress
   labels:
-     {{ include "prozorro.risks.labels" . | indent 4 }}
+{{ include "prozorro.risks.labels" . | indent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
