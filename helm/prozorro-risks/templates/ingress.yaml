@@ -52,7 +52,7 @@ spec:
               service:
                 name: {{ $fullName }}-{{ .service }}
                 port:
-                  number: http
+                  name: http
               {{- else }}
               serviceName: {{ $fullName }}-{{ .service }}
               servicePort: http
