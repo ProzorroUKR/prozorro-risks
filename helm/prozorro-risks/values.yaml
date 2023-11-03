@@ -46,8 +46,10 @@ ingress:
     - host: risks.latest.k8s.prozorro.gov.ua
       paths:
         - path: /
+          pathType: ImplementationSpecific
           service: frontend
         - path: /api
+          pathType: ImplementationSpecific
           service: api
   tls: []
 
