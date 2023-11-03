@@ -116,7 +116,7 @@ review:
         --set prozorro-risks.api.image.tag=$TAG
         --set prozorro-risks.tenders-crawler.image.tag=$TAG
         --set prozorro-risks.contracts-crawler.image.tag=$TAG
-        --set "ingress.hosts[0].host=risks.${RELEASE}.k8s.prozorro.gov.ua,ingress.hosts[0].paths[0].path=/api,ingress.hosts[0].paths[0].service=api,ingress.hosts[0].paths[1].path=/,ingress.hosts[0].paths[1].service=frontend"
+        --set "ingress.hosts[0].host=risks.${RELEASE}.k8s.prozorro.gov.ua,ingress.hosts[0].paths[0].path=/api,ingress.hosts[0].paths[0].service=api,ingress.hosts[0].paths[1].path=/,ingress.hosts[0].paths[1].service=frontend,ingress.hosts[0].paths[0].pathType=ImplementationSpecific,ingress.hosts[0].paths[1].pathType=ImplementationSpecific"
   when: manual
   only:
     - branches
