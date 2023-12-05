@@ -2,9 +2,11 @@ import aiohttp
 import logging
 from datetime import datetime
 
+import pytz
 from aiohttp import web
 from aiohttp.web_exceptions import HTTPBadRequest
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
+from ciso8601 import parse_datetime
 
 from prozorro.risks.requests import get_object_data
 from prozorro.risks.settings import ALLOW_ALL_ORIGINS, TIMEZONE
@@ -89,3 +91,26 @@ def build_headers_for_fixing_cors(request, response):
         req_headers = request.headers.get("Access-Control-Request-Headers")
         if req_headers:
             response.headers["Access-Control-Allow-Headers"] = req_headers.upper()
+
+
+def get_page(request, params):
+    base_url = f"{request.scheme}://{request.host}"
+    next_path = f"{request.path}?{urlencode(params)}"
+    return {
+        "offset": params.get("offset", ""),
+        "path": next_path,
+        "uri": f"{base_url}{next_path}",
+    }
+
+
+def parse_offset(offset: str):
+    try:
+        # Use offset in timestamp format
+        offset_timestamp = float(offset)
+        date = datetime.fromtimestamp(offset_timestamp)
+    except ValueError:
+        # Use offset in iso format
+        date = parse_datetime(offset)
+    if not date.tzinfo:
+        date = pytz.utc.localize(date)
+    return date.isoformat()
