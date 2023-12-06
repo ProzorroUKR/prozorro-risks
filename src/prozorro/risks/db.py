@@ -238,6 +238,21 @@ async def find_tenders(skip=0, limit=20, **kwargs):
     return result
 
 
+async def get_tenders_risks_feed(fields, offset_value=None, descending=False, limit=20):
+    collection = get_risks_collection()
+    filters = {"has_risks": True}
+    if offset_value:
+        filters["dateAssessed"] = {"$lt" if descending else "$gt": offset_value}
+    cursor = collection.find(
+        filter=filters,
+        projection={field_name: 1 for field_name in fields},
+        limit=limit,
+        sort=(("dateAssessed", DESCENDING if descending else ASCENDING),),
+    )
+    items = await cursor.to_list(length=None)
+    return items
+
+
 def join_old_risks_with_new_ones(risks, tender):
     """
     Join previous results of tender risks assessment, create log and add it to risk's history.

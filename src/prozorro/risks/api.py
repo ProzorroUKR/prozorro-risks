@@ -16,6 +16,7 @@ from prozorro.risks.handlers import (
     get_version,
     list_tenders,
     ping_handler,
+    get_tenders_feed,
 )
 from prozorro.risks.settings import CLIENT_MAX_SIZE, SENTRY_DSN, SWAGGER_DOC_AVAILABLE
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
@@ -41,6 +42,7 @@ def create_application(on_cleanup=None):
     app.router.add_get("/api/risks", list_tenders, allow_head=False)
     app.router.add_get("/api/filter-values", get_filter_values, allow_head=False)
     app.router.add_get("/api/risks-report", download_risks_report, allow_head=False)
+    app.router.add_get("/api/risks-feed", get_tenders_feed, allow_head=False)
 
     app.on_startup.append(init_mongodb)
     if on_cleanup:

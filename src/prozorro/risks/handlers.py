@@ -14,14 +14,18 @@ from prozorro.risks.db import (
     get_risks,
     get_tender_risks_report,
     find_tenders,
+    get_tenders_risks_feed,
 )
 from prozorro.risks.serialization import json_response
+from prozorro.risks.settings import MAX_LIST_LIMIT
 from prozorro.risks.utils import (
     build_content_disposition_name,
     get_now,
     pagination_params,
     requests_sequence_params,
     requests_params,
+    get_page,
+    parse_offset,
 )
 from prozorro.risks.rules import *  # noqa
 
@@ -58,6 +62,69 @@ async def list_tenders(request):
     except web.HTTPRequestTimeout as exc:
         return web.Response(text=exc.text, status=exc.status)
     return result
+
+
+@swagger_path("/swagger/risks_feed.yaml")
+async def get_tenders_feed(request):
+    params = {}
+
+    # offset param
+    offset = None
+    offset_param = request.query.get("offset")
+    if offset_param:
+        try:
+            offset = parse_offset(offset_param)
+        except ValueError:
+            return web.HTTPNotFound(text=f"Invalid offset provided: {offset_param}")
+        params["offset"] = offset
+
+    # limit param
+    limit_param = request.query.get("limit")
+    if limit_param:
+        try:
+            limit = int(limit_param)
+        except ValueError as e:
+            return web.HTTPBadRequest(text=e.args[0])
+        else:
+            params["limit"] = min(limit, MAX_LIST_LIMIT)
+
+    # descending param
+    if request.query.get("descending"):
+        params["descending"] = 1
+
+    # opt_fields param
+    if opt_fields := request.query.get("opt_fields"):
+        opt_fields = set(opt_fields.split(","))
+    else:
+        opt_fields = set()
+
+    # prev_page
+    prev_params = dict(**params)
+    if params.get("descending"):
+        del prev_params["descending"]
+    else:
+        prev_params["descending"] = 1
+
+    data_fields = opt_fields | {"dateAssessed"}
+    results = await get_tenders_risks_feed(
+        offset_value=offset,
+        fields=data_fields,
+        descending=params.get("descending"),
+        limit=params.get("limit", 20),
+    )
+
+    # prepare response
+    if results:
+        params["offset"] = results[-1]["dateAssessed"]
+        prev_params["offset"] = results[0]["dateAssessed"]
+    data = {
+        "data": results,
+        "next_page": get_page(request, params)
+    }
+    if request.query.get("descending") or request.query.get("offset"):
+        data["prev_page"] = get_page(request, prev_params)
+
+    return data
 
 
 @swagger_path("/swagger/filter_values.yaml")

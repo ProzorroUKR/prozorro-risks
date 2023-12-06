@@ -1,5 +1,7 @@
 from aiohttp.hdrs import CONTENT_DISPOSITION, CONTENT_TYPE
 from copy import deepcopy
+from ciso8601 import parse_datetime
+from datetime import timedelta
 from bson.objectid import ObjectId
 from tests.integration.conftest import get_fixture_json
 
@@ -286,3 +288,62 @@ async def test_list_tenders_filter_by_owner(api, db):
     assert response.status == 200
     resp_json = await response.json()
     assert resp_json["count"] == 1
+
+
+async def test_feed_tenders(api, db):
+    tender_with_no_risks_found["dateAssessed"] = "2023-01-01T10:30:00+02:00"
+    tender_with_3_2_risk_found["dateAssessed"] = "2023-02-14T10:30:00+02:00"
+    tender_with_3_1_risk_found["dateAssessed"] = "2023-03-14T10:30:00+02:00"
+    tender_with_3_2_risk_found_2 = deepcopy(tender_with_3_2_risk_found)
+    tender_with_3_2_risk_found_2["dateAssessed"] = "2023-01-14T10:30:00+02:00"
+    tender_with_3_2_risk_found_2["_id"] = ObjectId()
+    await db.risks.insert_many(
+        [
+            tender_with_no_risks_found,
+            tender_with_3_1_risk_found,
+            tender_with_3_2_risk_found,
+            tender_with_3_2_risk_found_2,
+        ]
+    )
+    resp = await api.get("/api/risks-feed")
+    assert resp.status == 200
+    resp_json = await resp.json()
+    assert len(resp_json['data']) == 3  # only tenders with has_risks: true
+    first_obj = resp_json['data'][0]
+    assert tender_with_3_2_risk_found_2["dateAssessed"] == first_obj['dateAssessed']
+    for item in resp_json['data'][1:]:
+        assert first_obj['dateAssessed'] < item['dateAssessed']
+
+    resp = await api.get("/api/risks-feed?descending=1")
+    assert resp.status == 200
+    resp_json = await resp.json()
+    assert len(resp_json['data']) == 3
+    assert tender_with_3_1_risk_found["dateAssessed"] == resp_json['data'][0]['dateAssessed']
+
+    resp = await api.get('/api/risks-feed?offset=2023-02-01')
+    assert resp.status == 200
+    resp_json = await resp.json()
+    assert len(resp_json['data']) == 2
+
+    resp = await api.get('/api/risks-feed?limit=1&offset=2023-02-01')
+    assert resp.status == 200
+    resp_json = await resp.json()
+    assert len(resp_json['data']) == 1
+    assert 'next_page' in resp_json
+    assert 'offset' in resp_json['next_page']
+    assert resp_json['data'][0]['dateAssessed'] == tender_with_3_2_risk_found['dateAssessed']
+
+    resp = await api.get('/api/risks-feed?limit=1&offset=2023-02-15')
+    assert resp.status == 200
+    resp_json = await resp.json()
+    assert len(resp_json['data']) == 1
+    assert 'next_page' in resp_json
+    assert 'offset' in resp_json['next_page']
+    assert resp_json['data'][0]['dateAssessed'] == tender_with_3_1_risk_found['dateAssessed']
+    last_offset = parse_datetime(tender_with_3_1_risk_found['dateAssessed']) + timedelta(days=1)
+    last_offset_timestamp = last_offset.timestamp()
+
+    resp = await api.get(f'/api/risks-feed?offset={last_offset_timestamp}')
+    assert resp.status == 200
+    resp_json = await resp.json()
+    assert len(resp_json['data']) == 0
