@@ -240,7 +240,7 @@ async def find_tenders(skip=0, limit=20, **kwargs):
 
 async def get_tenders_risks_feed(fields, offset_value=None, descending=False, limit=20):
     collection = get_risks_collection()
-    filters = {"has_risks": True}
+    filters = dict()
     if offset_value:
         filters["dateAssessed"] = {"$lt" if descending else "$gt": offset_value}
     cursor = collection.find(
