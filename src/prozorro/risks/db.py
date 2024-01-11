@@ -97,7 +97,7 @@ async def init_risks_indexes():
             "has_risks": True,
         },
     )
-    date_assessed_index = IndexModel(
+    date_assessed_risked_index = IndexModel(
         [("dateAssessed", ASCENDING)],
         background=True,
         partialFilterExpression={
@@ -121,15 +121,21 @@ async def init_risks_indexes():
             "has_risks": True,
         },
     )
+    # for risks feed
+    date_assessed_feed_index = IndexModel(
+        [("dateAssessed", DESCENDING)],
+        background=True,
+    )
 
     try:
         await get_risks_collection().create_indexes(
             [
                 region_compound_index,
                 edrpou_compound_with_date_index,
-                date_assessed_index,
+                date_assessed_risked_index,
                 value_amount_index,
                 risks_worked_index,
+                date_assessed_feed_index,
             ]
         )
     except PyMongoError as e:
