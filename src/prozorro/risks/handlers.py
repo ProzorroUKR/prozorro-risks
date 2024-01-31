@@ -94,6 +94,7 @@ async def get_tenders_feed(request):
 
     # opt_fields param
     if opt_fields := request.query.get("opt_fields"):
+        params["opt_fields"] = opt_fields
         opt_fields = set(opt_fields.split(","))
     else:
         opt_fields = set()
