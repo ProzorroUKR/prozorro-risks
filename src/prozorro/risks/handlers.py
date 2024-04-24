@@ -56,7 +56,7 @@ async def list_tenders(request):
         result = await find_tenders(
             skip=skip,
             limit=limit,
-            **requests_params(request, "sort", "order", "edrpou", "tender_id", "risks_all"),
+            **requests_params(request, "sort", "order", "edrpou", "tender_id", "risks_all", "terminated"),
             **requests_sequence_params(request, "risks", "region", "owner", separator=";"),
         )
     except web.HTTPRequestTimeout as exc:

@@ -42,19 +42,24 @@ async def process_tender(tender):
     await save_tender(uid, tender)
 
     risks = await process_risks(tender, TENDER_RISKS)
-    if risks:
+    if risks or tender.get("status") == "complete":
+        tender_data = {
+            "dateCreated": tender.get("dateCreated"),
+            "dateModified": tender.get("dateModified"),
+            "value": tender.get("value"),
+            "procuringEntity": tender.get("procuringEntity"),
+            "procuringEntityRegion": tender.get("procuringEntity", {}).get("address", {}).get("region", ""),
+            "procuringEntityEDRPOU": tender.get("procuringEntity", {}).get("identifier", {}).get("id", ""),
+            "tenderID": tender.get("tenderID"),
+            "status": tender.get("status"),
+        }
+        if risks:
+            tender_data["dateAssessed"] = get_now().isoformat()
         await update_tender_risks(
             uid,
             risks,
-            {
-                "dateModified": tender.get("dateModified"),
-                "dateAssessed": get_now().isoformat(),
-                "value": tender.get("value"),
-                "procuringEntity": tender.get("procuringEntity"),
-                "procuringEntityRegion": tender.get("procuringEntity", {}).get("address", {}).get("region", ""),
-                "procuringEntityEDRPOU": tender.get("procuringEntity", {}).get("identifier", {}).get("id", ""),
-                "tenderID": tender.get("tenderID"),
-            },
+            tender_data,
+            contracts=tender["contracts"] if tender.get("status") == "complete" and tender.get("contracts") else None,
         )
 
 
