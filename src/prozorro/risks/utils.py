@@ -114,3 +114,10 @@ def parse_offset(offset: str):
     if not date.tzinfo:
         date = pytz.utc.localize(date)
     return date.isoformat()
+
+
+def tender_created_after_release(tender, release_date, date_format="%Y-%m-%d"):
+    return (
+        tender.get("dateCreated")
+        and datetime.fromisoformat(tender["dateCreated"]).date() >= datetime.strptime(release_date, date_format).date()
+    )

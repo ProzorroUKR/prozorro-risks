@@ -34,11 +34,12 @@ async def process_contract(contract):
     """
     uid = contract.get("tender_id")
     risks = await process_risks(contract, CONTRACT_RISKS, resource=API_RESOURCE)
-    if risks:
+    if risks or contract.get("status") == "terminated":
         await update_tender_risks(
             uid,
             risks,
-            {"dateAssessed": get_now().isoformat()},
+            {"dateAssessed": get_now().isoformat()} if risks else {},
+            contracts=[contract] if contract.get("status") == "terminated" else None,
         )
 
 

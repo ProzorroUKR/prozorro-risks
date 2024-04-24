@@ -15,8 +15,10 @@ from prozorro.risks.settings import (
     MAX_LIST_LIMIT,
     MAX_TIME_QUERY,
     MONGODB_ERROR_INTERVAL,
+    SAS_24_RULES_FROM,
 )
 from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.utils import tender_created_after_release
 from pymongo import ASCENDING, DESCENDING, IndexModel
 from pymongo.errors import ExecutionTimeout, PyMongoError
 from aiohttp import web
@@ -121,6 +123,13 @@ async def init_risks_indexes():
             "has_risks": True,
         },
     )
+    terminated_index = IndexModel(
+        [("terminated", ASCENDING)],
+        background=True,
+        partialFilterExpression={
+            "has_risks": True,
+        },
+    )
     # for risks feed
     date_assessed_feed_index = IndexModel(
         [("dateAssessed", DESCENDING)],
@@ -135,6 +144,7 @@ async def init_risks_indexes():
                 date_assessed_risked_index,
                 value_amount_index,
                 risks_worked_index,
+                terminated_index,
                 date_assessed_feed_index,
             ]
         )
@@ -175,6 +185,7 @@ async def get_risks(tender_id):
                 "procuringEntityRegion": False,
                 "procuringEntityEDRPOU": False,
                 "worked_risks": False,
+                "contracts": False,
             },
         )
     except PyMongoError as e:
@@ -213,6 +224,11 @@ def build_tender_filters(**kwargs):
             contains_all_risks = False
     if worked_risks_filter:
         filters["worked_risks"] = {"$all": worked_risks_filter} if contains_all_risks else {"$in": worked_risks_filter}
+    if terminated := kwargs.get("terminated"):
+        try:
+            filters["terminated"] = bool(strtobool(terminated))
+        except ValueError:
+            pass
     return filters
 
 
@@ -239,6 +255,7 @@ async def find_tenders(skip=0, limit=20, **kwargs):
             "procuringEntityRegion": False,
             "procuringEntityEDRPOU": False,
             "worked_risks": False,
+            "contracts": False,
         },
     )
     return result
@@ -292,25 +309,50 @@ def join_old_risks_with_new_ones(risks, tender):
     return tender_risks, list(tender_worked_risks)
 
 
-async def update_tender_risks(uid, risks, additional_fields):
+def update_contracts_statuses(contracts, tender):
+    tender_contracts = tender.get("contracts", {})
+    for contract in contracts:
+        tender_contracts[contract["id"]] = contract.get("status")
+    return tender_contracts
+
+
+def tender_is_terminated(tender):
+    contract_statuses = set(tender.get("contracts", {}).values())
+    return (
+        tender.get("status") in ("unsuccessful", "cancelled")
+        or (
+            tender.get("status") == "complete"
+            and len(contract_statuses) > 0
+            and not contract_statuses.intersection({"active", "pending"})
+        )
+    )
+
+
+async def update_tender_risks(uid, risks, additional_fields, contracts=None):
     filters = {"_id": uid}
     while True:
         try:
             tender = await get_risks_collection().find_one({"_id": uid})
-            risks, worked_risks = join_old_risks_with_new_ones(risks, tender if tender else {})
+            contracts = update_contracts_statuses(contracts, tender if tender else {}) if contracts else {}
+            set_data = {
+                "_id": uid,
+                "contracts": contracts,
+                **additional_fields,
+            }
+            if risks:
+                risks, worked_risks = join_old_risks_with_new_ones(risks, tender if tender else {})
+                set_data.update({
+                    "risks": risks,
+                    "worked_risks": worked_risks,
+                    "has_risks": len(worked_risks) > 0,
+                })
+            if tender_created_after_release(tender if tender else additional_fields, SAS_24_RULES_FROM):
+                set_data["terminated"] = tender_is_terminated(tender if tender else additional_fields)
             if tender:
                 filters["dateAssessed"] = tender.get("dateAssessed")
             result = await get_risks_collection().find_one_and_update(
                 filters,
-                {
-                    "$set": {
-                        "_id": uid,
-                        "risks": risks,
-                        "worked_risks": worked_risks,
-                        "has_risks": len(worked_risks) > 0,
-                        **additional_fields,
-                    },
-                },
+                {"$set": set_data},
                 upsert=True,
                 session=session_var.get(),
             )

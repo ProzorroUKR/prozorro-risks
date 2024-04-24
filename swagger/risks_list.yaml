@@ -46,6 +46,11 @@ parameters:
     type: string
   description: Filter by risk owner. Can be one value or sequence of values separated by ;
 - in: query
+  name: terminated
+  schema:
+    type: boolean
+  description: Filter terminated tender (unsuccessful, cancelled or complete tender with all terminated contracts)
+- in: query
   name: sort
   schema:
     type: string
@@ -83,19 +88,9 @@ responses:
                     type: string
                     format: date-time
                     description: Date of tender modifying
-                  tenderID:
-                    type: string
-                    desscription: Tender code
-                  value:
-                    type: object
-                    properties:
-                      amount:
-                        type: number
-                        format: double
-                      currency:
-                        type: string
-                      valueAddedTaxIncluded:
-                        type: boolean
+                  has_risks:
+                    type: boolean
+                    description: Flag that indicates whether tender has any risk
                   procuringEntity:
                     type: object
                     properties:
@@ -180,6 +175,25 @@ responses:
                                     type: string
                                     description: Risk indicator
                                     example: risk_found
+                  status:
+                    type: string
+                    description: Tender status
+                  tenderID:
+                    type: string
+                    desscription: Tender code
+                  terminated:
+                    type: boolean
+                    description: Flag that indicates whether tender is terminated
+                  value:
+                    type: object
+                    properties:
+                      amount:
+                        type: number
+                        format: double
+                      currency:
+                        type: string
+                      valueAddedTaxIncluded:
+                        type: boolean
   "408":
     description: Request timeout
     content:
