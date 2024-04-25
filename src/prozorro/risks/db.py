@@ -316,12 +316,13 @@ def update_contracts_statuses(contracts, tender):
     return tender_contracts
 
 
-def tender_is_terminated(tender):
+def tender_is_terminated(tender, new_status):
     contract_statuses = set(tender.get("contracts", {}).values())
+    status = new_status or tender.get("status")
     return (
-        tender.get("status") in ("unsuccessful", "cancelled")
+        status in ("unsuccessful", "cancelled")
         or (
-            tender.get("status") == "complete"
+            status == "complete"
             and len(contract_statuses) > 0
             and not contract_statuses.intersection({"active", "pending"})
         )
@@ -347,7 +348,10 @@ async def update_tender_risks(uid, risks, additional_fields, contracts=None):
                     "has_risks": len(worked_risks) > 0,
                 })
             if tender_created_after_release(tender if tender else additional_fields, SAS_24_RULES_FROM):
-                set_data["terminated"] = tender_is_terminated(tender if tender else additional_fields)
+                set_data["terminated"] = tender_is_terminated(
+                    tender if tender else {},
+                    new_status=additional_fields.get("status")
+                )
             if tender:
                 filters["dateAssessed"] = tender.get("dateAssessed")
             result = await get_risks_collection().find_one_and_update(
