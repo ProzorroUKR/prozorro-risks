@@ -132,11 +132,11 @@ async def test_contract_with_terminated_status():
     [
         (1500001, "works", RiskFound(type="contract", id=contract_data["id"])),
         (1600000, "works", RiskFound(type="contract", id=contract_data["id"])),
-        (1500000, "works", RiskNotFound(type="contract", id=contract_data["id"])),
+        (1499999, "works", RiskNotFound(type="contract", id=contract_data["id"])),
         (500000, "works", RiskNotFound(type="contract", id=contract_data["id"])),
         (400001, "services", RiskFound(type="contract", id=contract_data["id"])),
         (1600000, "goods", RiskFound(type="contract", id=contract_data["id"])),
-        (400000, "works", RiskNotFound(type="contract", id=contract_data["id"])),
+        (399999, "works", RiskNotFound(type="contract", id=contract_data["id"])),
         (20000, "goods", RiskNotFound(type="contract", id=contract_data["id"])),
     ],
 )

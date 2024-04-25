@@ -25,10 +25,10 @@ class BaseRiskRule(ABC):
         value_matches = (
             (
                 tender.get("mainProcurementCategory") in ("goods", "services")
-                and tender.get("value", {}).get("amount", 0) > self.value_for_services
+                and tender.get("value", {}).get("amount", 0) >= self.value_for_services
             ) or (
                 tender.get("mainProcurementCategory") == "works"
-                and tender.get("value", {}).get("amount", 0) > self.value_for_works
+                and tender.get("value", {}).get("amount", 0) >= self.value_for_works
             )
         ) if value else True
         return (

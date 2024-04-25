@@ -94,9 +94,9 @@ async def test_contract_with_old_tender(mock_tender):
 @pytest.mark.parametrize(
     "amount,risk_result",
     [
-        (1500001, RiskFound(type="contract", id=contract_data["id"])),
+        (1500000, RiskFound(type="contract", id=contract_data["id"])),
         (1600000, RiskFound(type="contract", id=contract_data["id"])),
-        (1500000, RiskNotFound(type="contract", id=contract_data["id"])),
+        (1499999, RiskNotFound(type="contract", id=contract_data["id"])),
         (500000, RiskNotFound(type="contract", id=contract_data["id"])),
     ],
 )
