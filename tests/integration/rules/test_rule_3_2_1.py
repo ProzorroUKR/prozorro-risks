@@ -1,11 +1,18 @@
 from copy import deepcopy
+from datetime import timedelta
+
+import pytest
 
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.sas_3_2_1 import RiskRule
+from prozorro.risks.rules.sas24_3_2_1 import RiskRule as Sas24RiskRule
+from prozorro.risks.utils import get_now
 from tests.integration.conftest import get_fixture_json
 
 tender_data = get_fixture_json("base_tender")
 tender_data["procuringEntity"]["kind"] = "general"
+tender_data["mainProcurementCategory"] = "works"
+tender_data["value"]["amount"] = 1600000
 tender_data.update(
     {
         "procurementMethodType": "aboveThresholdUA",
@@ -32,6 +39,7 @@ tender_data.update(
         ],
     }
 )
+tender_data["awards"][0]["date"] = (get_now() - timedelta(days=6)).isoformat()
 
 disqualified_award = get_fixture_json("disqualified_award")
 bid = get_fixture_json("bid")
@@ -41,9 +49,10 @@ async def test_tender_without_winner():
     tender_data["awards"][0]["lotID"] = tender_data["lots"][0]["id"]
     tender_data["awards"][0]["status"] = "pending"
     tender_data["awards"].append(disqualified_award)
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_without_disqualified_award():
@@ -55,7 +64,21 @@ async def test_tender_without_disqualified_award():
     assert result == RiskNotFound()
 
 
-async def test_tender_with_violations():
+@pytest.mark.parametrize(
+    "lot_status,risk_rule_class,winner_date,risk_result",
+    [
+        ("active", RiskRule, (get_now() - timedelta(days=2)).isoformat(), RiskFound()),
+        ("cancelled", RiskRule, (get_now() - timedelta(days=6)).isoformat(), RiskNotFound()),
+        ("unsuccessful", RiskRule, (get_now() - timedelta(days=6)).isoformat(), RiskNotFound()),
+        ("active", Sas24RiskRule, (get_now() - timedelta(days=6)).isoformat(), RiskFound()),
+        ("active", Sas24RiskRule, (get_now() - timedelta(days=2)).isoformat(), RiskNotFound()),
+        ("cancelled", Sas24RiskRule, (get_now() - timedelta(days=6)).isoformat(), RiskNotFound()),
+        ("unsuccessful", Sas24RiskRule, (get_now() - timedelta(days=6)).isoformat(), RiskNotFound()),
+    ],
+)
+async def test_tender_with_violations(lot_status, risk_rule_class, winner_date, risk_result):
+    tender = deepcopy(tender_data)
+    tender["lots"][0]["status"] = lot_status
     # 4 bidders
     bid["lotValues"][0]["relatedLot"] = tender_data["lots"][0]["id"]
     bid["status"] = "active"
@@ -76,8 +99,9 @@ async def test_tender_with_violations():
     disqualified_award_3["suppliers"][0]["identifier"]["id"] = "33333333"
     winner = deepcopy(disqualified_award)
     winner["status"] = "active"
+    winner["date"] = winner_date
 
-    tender_data.update(
+    tender.update(
         {
             "bids": [bid, bid_2, bid_3, bid_4],
             "awards": [
@@ -88,12 +112,19 @@ async def test_tender_with_violations():
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskFound()
+    risk_rule = risk_rule_class()
+    result = await risk_rule.process_tender(tender)
+    assert result == risk_result
 
 
-async def test_tender_with_less_than_2_disqualified_awards():
+@pytest.mark.parametrize(
+    "risk_rule_class,risk_result",
+    [
+        (RiskRule, RiskNotFound()),
+        (Sas24RiskRule, RiskFound()),
+    ],
+)
+async def test_tender_with_less_than_2_disqualified_awards(risk_rule_class, risk_result):
     # 2 bidders
     bid["lotValues"][0]["relatedLot"] = tender_data["lots"][0]["id"]
     bid["status"] = "active"
@@ -108,9 +139,9 @@ async def test_tender_with_less_than_2_disqualified_awards():
     winner["status"] = "active"
 
     tender_data.update({"bids": [bid, bid_2], "awards": [disqualified_award_1, winner]})
-    risk_rule = RiskRule()
+    risk_rule = risk_rule_class()
     result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    assert result == risk_result
 
 
 async def test_tender_without_violations():
@@ -147,9 +178,10 @@ async def test_tender_without_violations():
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_not_unique_bidders():
@@ -187,9 +219,61 @@ async def test_tender_with_not_unique_bidders():
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskFound()
+
+
+@pytest.mark.parametrize(
+    "amount,risk_rule_class,risk_result",
+    [
+        (1500000, RiskRule, RiskFound()),
+        (1500000, Sas24RiskRule, RiskFound()),
+        (20000, RiskRule, RiskFound()),
+        (20000, Sas24RiskRule, RiskNotFound()),
+    ],
+)
+async def test_tender_value(amount, risk_rule_class, risk_result):
+    tender = deepcopy(tender_data)
+    tender["value"]["amount"] = amount
+    # 5 bidders
+    bid["lotValues"][0]["relatedLot"] = tender_data["lots"][0]["id"]
+    bid["status"] = "active"
+    bid_2 = deepcopy(bid)
+    bid_2["tenderers"][0]["identifier"]["id"] = "11111111"
+    bid_3 = deepcopy(bid)
+    bid_3["tenderers"][0]["identifier"]["id"] = "22222222"
+    bid_4 = deepcopy(bid)
+    bid_4["tenderers"][0]["identifier"]["id"] = "33333333"
+    # not unique bidder must not be counted
+    bid_5 = deepcopy(bid_4)
+
+    # 3 disqualified award and 1 winner
+    disqualified_award["lotID"] = tender_data["lots"][0]["id"]
+    disqualified_award_1 = deepcopy(disqualified_award)
+    disqualified_award_1["suppliers"][0]["identifier"]["id"] = "11111111"
+    disqualified_award_2 = deepcopy(disqualified_award)
+    disqualified_award_2["suppliers"][0]["identifier"]["id"] = "22222222"
+    disqualified_award_3 = deepcopy(disqualified_award)
+    disqualified_award_3["suppliers"][0]["identifier"]["id"] = "33333333"
+    winner = deepcopy(disqualified_award)
+    winner["status"] = "active"
+
+    tender.update(
+        {
+            "bids": [bid, bid_2, bid_3, bid_4, bid_5],
+            "awards": [
+                disqualified_award_1,
+                disqualified_award_2,
+                disqualified_award_3,
+                winner,
+            ],
+        }
+    )
+    risk_rule = risk_rule_class()
+    result = await risk_rule.process_tender(tender)
+    assert result == risk_result
 
 
 async def test_tender_with_not_unique_awards():
@@ -228,9 +312,10 @@ async def test_tender_with_not_unique_awards():
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskFound()
 
 
 async def test_tender_with_violations_without_lots():
@@ -268,12 +353,20 @@ async def test_tender_with_violations_without_lots():
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskFound()
 
 
-async def test_tender_with_less_than_2_disqualified_awards_without_lots():
+@pytest.mark.parametrize(
+    "risk_rule_class,risk_result",
+    [
+        (RiskRule, RiskNotFound()),
+        (Sas24RiskRule, RiskFound()),
+    ],
+)
+async def test_tender_with_less_than_2_disqualified_awards_without_lots(risk_rule_class, risk_result):
     tender = deepcopy(tender_data)
     tender.pop("lots", None)
     # 2 bidders
@@ -290,9 +383,9 @@ async def test_tender_with_less_than_2_disqualified_awards_without_lots():
     winner["status"] = "active"
 
     tender.update({"bids": [bid, bid_2], "awards": [disqualified_award_1, winner]})
-    risk_rule = RiskRule()
+    risk_rule = risk_rule_class()
     result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    assert result == risk_result
 
 
 async def test_tender_without_violations_without_lots():
@@ -331,9 +424,10 @@ async def test_tender_without_violations_without_lots():
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_not_unique_bidders_without_lots():
@@ -373,9 +467,10 @@ async def test_tender_with_not_unique_bidders_without_lots():
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskFound()
 
 
 async def test_tender_with_not_unique_awards_without_lots():
@@ -416,9 +511,10 @@ async def test_tender_with_not_unique_awards_without_lots():
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskFound()
 
 
 async def test_tender_with_not_risky_tender_status():
@@ -427,9 +523,10 @@ async def test_tender_with_not_risky_tender_status():
             "status": "cancelled",
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_type():
@@ -438,16 +535,18 @@ async def test_tender_with_not_risky_procurement_type():
             "procurementMethodType": "reporting",
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender_data["procuringEntity"]["kind"] = "other"
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_category():
@@ -456,9 +555,10 @@ async def test_tender_with_not_risky_procurement_category():
             "mainProcurementCategory": "services",
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_complete_status():
