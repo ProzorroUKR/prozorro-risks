@@ -16,7 +16,9 @@ class RiskRule(BaseContractRiskRule):
         "Зміна суми договру частіше ніж один раз на 90 днів є порушенням пп. 2, п. 5 статті 41 Закону "
         "про публічні закупівлі"
     )
-    development_basis = "Автоматичний контроль терміном внесення змін до договору відсутній в системі."
+    development_basis = (
+        "Автоматичний контроль терміном внесення змін до договору відсутній в системі."
+    )
     contract_statuses = ("active",)
     stop_assessment_status = "terminated"
     procurement_methods = (
@@ -46,12 +48,20 @@ class RiskRule(BaseContractRiskRule):
             tender = await fetch_tender(contract["tender_id"])
             if datetime.fromisoformat(tender["dateCreated"]) < CRAWLER_START_DATE:
                 raise SkipException()
-            if self.tender_matches_requirements(tender, status=False, category=False, value=True):
-                rationales = {"itemPriceVariation", "durationExtension", "fiscalYearExtension"}
+            if self.tender_matches_requirements(
+                tender, status=False, category=False, value=True
+            ):
+                rationales = {
+                    "itemPriceVariation",
+                    "durationExtension",
+                    "fiscalYearExtension",
+                }
                 active_changes = [
                     change
                     for change in contract.get("changes", [])
-                    if change["status"] == "active" and len(rationales.intersection(set(change["rationaleTypes"]))) >= 2
+                    if change["status"] == "active"
+                    and "itemPriceVariation" in rationales
+                    and len(rationales.intersection(set(change["rationaleTypes"]))) >= 2
                 ]
                 # Якщо в договорі є зміни у яких data.changes.status='active' та
                 # в масив причин data.changes.rationaleTypes містить елементи itemPriceVariation та durationExtension,
