@@ -23,7 +23,7 @@ class RiskRule(BaseTenderRiskRule):
     )
     procurement_categories = ("goods", "services")
 
-    async def process_tender(self, tender):
+    async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender):
             if len(tender.get("lots", [])):
                 for lot in tender.get("lots", []):

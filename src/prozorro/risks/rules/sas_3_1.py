@@ -53,7 +53,7 @@ class RiskRule(BaseTenderRiskRule):
                 return RiskFound()
         return RiskNotFound()
 
-    async def process_tender(self, tender):
+    async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False):
             complaints = get_complaints(tender, status="satisfied")
             award_complaints = flatten(

@@ -19,7 +19,7 @@ class RiskRule(BaseTenderRiskRule):
         "special",
     )
 
-    async def process_tender(self, tender):
+    async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False):
             if len(tender.get("lots", [])):
                 # Якщо процедура має лоти, то розрахунок проводимо в розрізі кожного лота
