@@ -28,7 +28,7 @@ class RiskRule(BaseTenderRiskRule):
     value_for_services = 400000
     start_date = SAS_24_RULES_FROM
 
-    async def process_tender(self, tender):
+    async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, value=True) and is_winner_awarded(tender):
             if len(tender.get("lots", [])):
                 for lot in tender.get("lots", []):

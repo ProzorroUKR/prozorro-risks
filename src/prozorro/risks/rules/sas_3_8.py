@@ -32,7 +32,7 @@ class RiskRule(BaseTenderRiskRule):
                         return True
         return False
 
-    async def process_tender(self, tender):
+    async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False):
             # Шукаємо в процедурі блоки data.awards.complaints, що мають complaints.type='complaint',
             # а також data.award.milestones.code="24h"

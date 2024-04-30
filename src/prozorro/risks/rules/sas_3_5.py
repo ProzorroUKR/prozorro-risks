@@ -20,7 +20,7 @@ class RiskRule(BaseTenderRiskRule):
         "special",
     )
 
-    async def process_tender(self, tender):
+    async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False):
             # Визначаємо кількість дискваліфікацій
             unsuccessful_awards = [award for award in tender["awards"] if award["status"] == "unsuccessful"]

@@ -30,7 +30,7 @@ def get_risk_info(item, risk_rule):
     return risk
 
 
-async def process_risks(obj, rules, resource="tenders"):
+async def process_risks(obj, rules, resource="tenders", parent_object=None):
     """
     Loop for all risk modules in known module path and process provided object
 
@@ -53,7 +53,7 @@ async def process_risks(obj, rules, resource="tenders"):
             continue
         process_method = getattr(risk_rule, RISKS_METHODS_MAPPING[resource])
         try:
-            risk_result = await process_method(obj)
+            risk_result = await process_method(obj, parent_object=parent_object)
         except SkipException:
             continue
         else:

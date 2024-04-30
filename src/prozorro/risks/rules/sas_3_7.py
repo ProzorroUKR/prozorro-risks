@@ -6,7 +6,6 @@ from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseContractRiskRule
 from prozorro.risks.settings import CRAWLER_START_DATE
 from prozorro.risks.rules.utils import count_days_between_two_dates
-from prozorro.risks.utils import fetch_tender
 
 
 CONTRACT_MODIFYING_DAYS_LIMIT = 60
@@ -30,14 +29,12 @@ class RiskRule(BaseContractRiskRule):
     )
     procurement_categories = ("works",)
 
-    async def process_contract(self, contract):
+    async def process_contract(self, contract, parent_object=None):
         if contract["status"] in self.contract_statuses:
-            # В контракті по полю data.tender_id знаходимо відповідний тендер
-            tender = await fetch_tender(contract["tender_id"])
-            if datetime.fromisoformat(tender["dateCreated"]) < CRAWLER_START_DATE:
+            if datetime.fromisoformat(parent_object["dateCreated"]) < CRAWLER_START_DATE:
                 raise SkipException()
-            if self.tender_matches_requirements(tender, status=False):
-                for tender_contract in tender.get("contracts", []):
+            if self.tender_matches_requirements(parent_object, status=False):
+                for tender_contract in parent_object.get("contracts", []):
                     # Якщо дата в контракті data.dateModified відрізняється менше ніж на 60 днів
                     # від дати в тендері data.contracts.date, індикатор приймає значення 1, розрахунок завершується
                     if (

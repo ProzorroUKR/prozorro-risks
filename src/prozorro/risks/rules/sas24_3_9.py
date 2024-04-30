@@ -44,7 +44,7 @@ class RiskRule(BaseTenderRiskRule):
         ]
         return len(active_awards) > 0
 
-    async def process_tender(self, tender):
+    async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False, value=True) and is_winner_awarded(tender):
             for award in tender.get("awards", []):
                 # Шукаємо в процедурі блоки data.awards.complaints, що мають complaints.type='complaint'

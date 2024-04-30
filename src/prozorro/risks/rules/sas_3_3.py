@@ -27,7 +27,7 @@ class RiskRule(BaseTenderRiskRule):
     )
     procurement_categories = ("goods", "services")
 
-    async def process_tender(self, tender):
+    async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender):
             active_awards = [award for award in tender.get("awards", []) if award["status"] == "active"]
             # Якщо в процедурі немає жодного об’єкту data.awards, що має статус data.awards.status='active',

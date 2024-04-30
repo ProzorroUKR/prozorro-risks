@@ -4,7 +4,6 @@ from prozorro.risks.exceptions import SkipException
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseContractRiskRule
 from prozorro.risks.settings import CRAWLER_START_DATE
-from prozorro.risks.utils import fetch_tender
 
 
 class RiskRule(BaseContractRiskRule):
@@ -26,13 +25,11 @@ class RiskRule(BaseContractRiskRule):
         "special",
     )
 
-    async def process_contract(self, contract):
+    async def process_contract(self, contract, parent_object=None):
         if contract["status"] in self.contract_statuses:
-            # В контракті по полю data.tender_id знаходимо відповідний тендер
-            tender = await fetch_tender(contract["tender_id"])
-            if datetime.fromisoformat(tender["dateCreated"]) < CRAWLER_START_DATE:
+            if datetime.fromisoformat(parent_object["dateCreated"]) < CRAWLER_START_DATE:
                 raise SkipException()
-            if tender.get("procuringEntity", {}).get("kind") in self.procuring_entity_kinds:
+            if parent_object.get("procuringEntity", {}).get("kind") in self.procuring_entity_kinds:
                 active_changes = [
                     change
                     for change in contract.get("changes", [])

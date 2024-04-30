@@ -43,12 +43,12 @@ class BaseRiskRule(ABC):
 class BaseTenderRiskRule(BaseRiskRule):
     @classmethod
     @abstractmethod
-    def process_tender(cls, tender):
+    def process_tender(cls, tender, parent_object=None):
         ...
 
 
 class BaseContractRiskRule(BaseRiskRule):
     @classmethod
     @abstractmethod
-    def process_contract(cls, contract):
+    def process_contract(cls, contract, parent_object=None):
         ...
