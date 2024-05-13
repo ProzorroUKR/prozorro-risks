@@ -59,7 +59,7 @@ async def process_tender(tender):
             uid,
             risks,
             tender_data,
-            contracts=tender["contracts"] if tender.get("status") == "complete" and tender.get("contracts") else None,
+            contracts=tender["contracts"] if tender.get("contracts") else None,
         )
 
 

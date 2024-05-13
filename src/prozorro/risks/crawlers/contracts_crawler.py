@@ -43,7 +43,7 @@ async def process_contract(contract):
             uid,
             risks,
             updated_fields,
-            contracts=[contract] if contract.get("status") in ("terminated", "cancelled") else None,
+            contracts=[contract],
         )
 
 
