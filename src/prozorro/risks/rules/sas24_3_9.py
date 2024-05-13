@@ -49,7 +49,7 @@ class RiskRule(BaseTenderRiskRule):
             for award in tender.get("awards", []):
                 # Шукаємо в процедурі блоки data.awards.complaints, що мають complaints.type='complaint'
                 # та complaints.status = 'satisfied',
-                complaints = get_complaints(award, status="satisfied")
+                complaints = get_complaints(award, statuses=["satisfied", "resolved"])
                 if not complaints:
                     continue
 

@@ -42,10 +42,23 @@ async def test_tender_without_complaints():
 
 
 async def test_tender_with_complaints_not_matching_status():
+    active_award = deepcopy(active_award_data)
+    active_award["bid_id"] = award_with_complaints["bid_id"]
     tender = deepcopy(tender_data)
-    tender["awards"][0]["complaints"][0]["status"] = "resolved"
-    result = await risk_rule.process_tender(tender_data)
+    tender["awards"] = [award_with_complaints, active_award]
+    tender["awards"][0]["complaints"][0]["status"] = "declined"
+    result = await risk_rule.process_tender(tender)
     assert result == RiskNotFound()
+
+
+async def test_tender_with_active_awards_and_complaint_same_bid_id_in_resolved_status():
+    active_award = deepcopy(active_award_data)
+    active_award["bid_id"] = award_with_complaints["bid_id"]
+    tender = deepcopy(tender_data)
+    tender["awards"] = [award_with_complaints, active_award]
+    tender["awards"][0]["complaints"][0]["status"] = "resolved"
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskFound()
 
 
 async def test_tender_with_active_awards_and_complaint_same_bid_id_without_lots():
