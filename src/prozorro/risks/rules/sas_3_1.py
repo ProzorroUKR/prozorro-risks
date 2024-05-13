@@ -1,6 +1,10 @@
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
-from prozorro.risks.rules.utils import count_days_between_two_dates, get_complaints, flatten
+from prozorro.risks.rules.utils import (
+    count_days_between_two_dates,
+    get_complaints,
+    flatten,
+)
 from prozorro.risks.utils import get_now
 
 DECISION_LIMIT = 30
@@ -49,22 +53,31 @@ class RiskRule(BaseTenderRiskRule):
     def check_decision_delta(complaints):
         for complaint in complaints:
             # Якщо від complaints.dateDesision до поточної дати пройшло більше 30 днів, індикатор дорівнює 1.
-            if count_days_between_two_dates(get_now(), complaint["dateDecision"]) > DECISION_LIMIT:
+            if (
+                count_days_between_two_dates(get_now(), complaint["dateDecision"])
+                > DECISION_LIMIT
+            ):
                 return RiskFound()
         return RiskNotFound()
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False):
-            complaints = get_complaints(tender, status="satisfied")
+            complaints = get_complaints(tender, statuses=["satisfied"])
             award_complaints = flatten(
-                [get_complaints(award, status="satisfied") for award in tender.get("awards", [])]
+                [
+                    get_complaints(award, statuses=["satisfied"])
+                    for award in tender.get("awards", [])
+                ]
             )
             cancellation_complaints = flatten(
-                [get_complaints(cancellation, status="satisfied") for cancellation in tender.get("cancellations", [])]
+                [
+                    get_complaints(cancellation, statuses=["satisfied"])
+                    for cancellation in tender.get("cancellations", [])
+                ]
             )
             qualifications_complaints = flatten(
                 [
-                    get_complaints(qualification, status="satisfied")
+                    get_complaints(qualification, statuses=["satisfied"])
                     for qualification in tender.get("qualifications", [])
                 ]
             )
