@@ -35,7 +35,7 @@ async def process_contract(contract):
     uid = contract.get("tender_id")
     tender = await fetch_tender(uid)
     risks = await process_risks(contract, CONTRACT_RISKS, resource=API_RESOURCE, parent_object=tender)
-    if risks or contract.get("status") == "terminated":
+    if risks or contract.get("status") in ("terminated", "cancelled"):
         updated_fields = {"status": tender.get("status")}
         if risks:
             updated_fields["dateAssessed"] = get_now().isoformat()
