@@ -334,10 +334,10 @@ async def update_tender_risks(uid, risks, additional_fields, contracts=None):
     while True:
         try:
             tender = await get_risks_collection().find_one({"_id": uid})
-            contracts = update_contracts_statuses(contracts, tender if tender else {}) if contracts else {}
+            updated_contracts = update_contracts_statuses(contracts, tender if tender else {}) if contracts else {}
             set_data = {
                 "_id": uid,
-                "contracts": contracts,
+                "contracts": updated_contracts,
                 **additional_fields,
             }
             if risks:
