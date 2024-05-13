@@ -316,8 +316,8 @@ def update_contracts_statuses(contracts, tender):
     return tender_contracts
 
 
-def tender_is_terminated(tender, new_status):
-    contract_statuses = set(tender.get("contracts", {}).values())
+def tender_is_terminated(tender, contracts, new_status):
+    contract_statuses = set(contracts.values())
     status = new_status or tender.get("status")
     return (
         status in ("unsuccessful", "cancelled")
@@ -350,6 +350,7 @@ async def update_tender_risks(uid, risks, additional_fields, contracts=None):
             if tender_created_after_release(tender if tender else additional_fields, SAS_24_RULES_FROM):
                 set_data["terminated"] = tender_is_terminated(
                     tender if tender else {},
+                    updated_contracts,
                     new_status=additional_fields.get("status")
                 )
             if tender:

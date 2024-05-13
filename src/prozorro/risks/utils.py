@@ -121,3 +121,21 @@ def tender_created_after_release(tender, release_date, date_format="%Y-%m-%d"):
         tender.get("dateCreated")
         and datetime.fromisoformat(tender["dateCreated"]).date() >= datetime.strptime(release_date, date_format).date()
     )
+
+
+def tender_should_be_checked_for_termination(tender):
+    """
+    As we reload crawler in past date and check once again all tenders,
+    we need to check and refresh terminated flag for already completed tenders, as they can have active contracts.
+    :param tender: dict of tender info
+    :return: flag whether tender should be checked for termination
+    """
+    return tender.get("status") == "complete" and tender.get("procurementMethodType") in (
+        "negotiation",
+        "negotiation.quick",
+        "aboveThresholdUA",
+        "aboveThresholdEU",
+        "aboveThreshold",
+        "belowThreshold",
+        "reporting",
+    )  # pmt for contract risks

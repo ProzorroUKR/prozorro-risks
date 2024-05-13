@@ -6,7 +6,7 @@ from prozorro.risks.crawlers.base import process_risks
 from prozorro.risks.db import init_mongodb, update_tender_risks
 from prozorro.risks.logging import setup_logging
 from prozorro.risks.requests import get_object_data
-from prozorro.risks.utils import get_now, fetch_tender
+from prozorro.risks.utils import get_now, fetch_tender, tender_should_be_checked_for_termination
 from prozorro.risks.rules import *  # noqa
 import asyncio
 import logging
@@ -35,8 +35,8 @@ async def process_contract(contract):
     uid = contract.get("tender_id")
     tender = await fetch_tender(uid)
     risks = await process_risks(contract, CONTRACT_RISKS, resource=API_RESOURCE, parent_object=tender)
-    if risks or contract.get("status") in ("terminated", "cancelled"):
-        updated_fields = {"status": tender.get("status")}
+    if risks or tender_should_be_checked_for_termination(tender):
+        updated_fields = {"status": tender.get("status"), "dateCreated": tender.get("dateCreated")}
         if risks:
             updated_fields["dateAssessed"] = get_now().isoformat()
         await update_tender_risks(
