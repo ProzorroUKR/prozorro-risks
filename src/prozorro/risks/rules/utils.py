@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from prozorro.risks.settings import WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS
+from prozorro.risks.settings import WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS, TEST_MODE
 from prozorro.risks.utils import get_now
 
 
@@ -49,6 +49,8 @@ def is_winner_awarded(tender, award_to_check=None):
     if tender.get("procurementMethodType") not in ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold"):
         return True
     else:
+        if TEST_MODE:  # used only for testing to ignore awarded days limit check
+            return True
         for award in active_awards:
             if (
                 award.get("date")
