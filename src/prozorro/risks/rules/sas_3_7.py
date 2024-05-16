@@ -1,12 +1,11 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from prozorro.risks.exceptions import SkipException
 from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseContractRiskRule
 from prozorro.risks.settings import CRAWLER_START_DATE
-from prozorro.risks.rules.utils import count_days_between_two_dates
-
+from prozorro.risks.rules.utils import calculate_end_date
 
 CONTRACT_MODIFYING_DAYS_LIMIT = 60
 logger = logging.getLogger(__name__)
@@ -37,10 +36,11 @@ class RiskRule(BaseContractRiskRule):
                 for tender_contract in parent_object.get("contracts", []):
                     # Якщо дата в контракті data.dateModified відрізняється менше ніж на 60 днів
                     # від дати в тендері data.contracts.date, індикатор приймає значення 1, розрахунок завершується
-                    if (
-                        tender_contract["id"] == contract["id"]
-                        and count_days_between_two_dates(contract["dateModified"], tender_contract["date"])
-                        < CONTRACT_MODIFYING_DAYS_LIMIT
-                    ):
-                        return RiskFound(type="contract", id=contract["id"])
+                    if tender_contract["id"] == contract["id"]:
+                        calculated_date = calculate_end_date(
+                            tender_contract["date"],
+                            timedelta(days=CONTRACT_MODIFYING_DAYS_LIMIT),
+                        )
+                        if datetime.fromisoformat(contract["dateModified"]) < calculated_date:
+                            return RiskFound(type="contract", id=contract["id"])
         return RiskNotFound(type="contract", id=contract["id"])

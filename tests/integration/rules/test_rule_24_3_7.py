@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from copy import deepcopy
 
@@ -35,6 +37,15 @@ async def test_tender_contract_date_and_contract_terminated_date_differ_for_more
     risk_rule = RiskRule()
     result = await risk_rule.process_contract(contract_data, tender_data)
     assert result == RiskNotFound(type="contract", id=contract_data["id"])
+
+
+@patch("prozorro.risks.rules.utils.TEST_MODE", return_value=True)
+async def test_tender_contract_date_and_contract_terminated_date_differ_for_less_than_60_days_accelerator(mock_mode):
+    tender_data["contracts"][0]["date"] = "2019-01-01T16:39:01.640632+02:00"
+    contract_data["period"]["endDate"] = "2019-01-01T16:46:01.640632+02:00"
+    risk_rule = RiskRule()
+    result = await risk_rule.process_contract(contract_data, tender_data)
+    assert result == RiskFound(type="contract", id=contract_data["id"])
 
 
 async def test_tender_with_not_risky_contract_status():
