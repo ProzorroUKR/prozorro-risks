@@ -1,7 +1,9 @@
+from datetime import timedelta
+
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import (
-    count_days_between_two_dates,
+    calculate_end_date,
     get_complaints,
     flatten,
 )
@@ -52,11 +54,9 @@ class RiskRule(BaseTenderRiskRule):
     @staticmethod
     def check_decision_delta(complaints):
         for complaint in complaints:
-            # Якщо від complaints.dateDesision до поточної дати пройшло більше 30 днів, індикатор дорівнює 1.
-            if (
-                count_days_between_two_dates(get_now(), complaint["dateDecision"])
-                > DECISION_LIMIT
-            ):
+            # Якщо від complaints.dateDecision до поточної дати пройшло більше 30 днів, індикатор дорівнює 1.
+            calculated_date = calculate_end_date(complaint["dateDecision"], timedelta(days=DECISION_LIMIT))
+            if get_now() > calculated_date:
                 return RiskFound()
         return RiskNotFound()
 

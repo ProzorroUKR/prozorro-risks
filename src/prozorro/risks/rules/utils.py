@@ -1,13 +1,31 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateorro import calc_datetime, calc_normalized_datetime, calc_working_datetime
 
-from prozorro.risks.settings import WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS, TEST_MODE
+from prozorro.risks.settings import WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS, TEST_MODE, TIMEZONE, WORKING_DAYS
 from prozorro.risks.utils import get_now
 
 
-def count_days_between_two_dates(date_1, date_2):
-    date_1 = date_1 if isinstance(date_1, datetime) else datetime.fromisoformat(date_1)
-    date_2 = date_2 if isinstance(date_2, datetime) else datetime.fromisoformat(date_2)
-    return (date_1.date() - date_2.date()).days
+def calculate_end_date(date_obj, timedelta_obj, normalized=True, ceil=True, working_days=False):
+    """
+    Calculate end datetime for given date obj depends on timedelta obj.
+    For TEST_MODE it will calculate datetime with accelerator 1000 without normalizing.
+    Parameters `normalized` and `ceil` are required for calculating datetime from the next day of the week.
+    :param date_obj: datetime Datetime object.
+    :param timedelta_obj: datetime.timedelta Timedelta object.
+    :param normalized: bool Flag for calculating normalized date.
+    :param ceil: bool Flag for calculating date from the next day of the week.
+    :param working_days: bool Flag for calculating working days, excluding weekends.
+    :return: result datetime object
+    """
+    date_obj = date_obj if isinstance(date_obj, datetime) else datetime.fromisoformat(date_obj)
+    if normalized and TEST_MODE is not True:
+        date_obj = calc_normalized_datetime(date_obj, ceil=ceil)
+    if working_days:
+        result_date_obj = calc_working_datetime(date_obj, timedelta_obj, calendar=WORKING_DAYS)
+    else:
+        result_date_obj = calc_datetime(date_obj, timedelta_obj, accelerator=1000 if TEST_MODE is True else None)
+    result_date_obj = TIMEZONE.localize(result_date_obj.replace(tzinfo=None))
+    return result_date_obj
 
 
 def count_percentage_between_two_values(initial_value, delta_value):
@@ -49,14 +67,11 @@ def is_winner_awarded(tender, award_to_check=None):
     if tender.get("procurementMethodType") not in ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold"):
         return True
     else:
-        if TEST_MODE:  # used only for testing to ignore awarded days limit check
-            return True
         for award in active_awards:
-            if (
-                award.get("date")
-                and count_days_between_two_dates(get_now(), award["date"]) > WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS
-            ):
-                return True
+            if award.get("date"):
+                end_date = calculate_end_date(award["date"], timedelta(days=WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS))
+                if get_now() > end_date:
+                    return True
 
 
 def bidder_applies_on_lot(bid, lot):
