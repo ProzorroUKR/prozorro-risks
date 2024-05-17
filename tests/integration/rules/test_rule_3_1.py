@@ -4,11 +4,14 @@ from datetime import timedelta
 import pytest
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.sas_3_1 import RiskRule
+from prozorro.risks.rules.sas24_3_1 import RiskRule as Sas24RiskRule
 from prozorro.risks.utils import get_now
 from tests.integration.conftest import get_fixture_json
 
 tender_data = get_fixture_json("base_tender")
 complaints = get_fixture_json("complaints")
+tender_data["mainProcurementCategory"] = "services"
+tender_data["value"]["amount"] = 500000
 
 
 async def test_tender_with_satisfied_complaints_more_than_decision_limit():
@@ -21,9 +24,10 @@ async def test_tender_with_satisfied_complaints_more_than_decision_limit():
             "complaints": complaints,
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskFound()
 
 
 async def test_tender_with_satisfied_complaints_less_than_decision_limit():
@@ -36,9 +40,10 @@ async def test_tender_with_satisfied_complaints_less_than_decision_limit():
             "complaints": complaints,
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_satisfied_award_complaints_more_than_decision_limit():
@@ -52,9 +57,10 @@ async def test_tender_with_satisfied_award_complaints_more_than_decision_limit()
         }
     )
     tender_data["awards"][0]["complaints"] = complaints
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskFound()
 
 
 async def test_tender_with_satisfied_award_complaints_less_than_decision_limit():
@@ -68,9 +74,10 @@ async def test_tender_with_satisfied_award_complaints_less_than_decision_limit()
         }
     )
     tender_data["awards"][0]["complaints"] = complaints
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_without_satisfied_complaints():
@@ -82,9 +89,10 @@ async def test_tender_without_satisfied_complaints():
             "status": "active.tendering",
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_tender_status():
@@ -93,9 +101,10 @@ async def test_tender_with_not_risky_tender_status():
             "status": "cancelled",
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_type():
@@ -104,23 +113,44 @@ async def test_tender_with_not_risky_procurement_type():
             "procurementMethodType": "reporting",
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_entity_kind():
-    tender_data["procuringEntity"]["kind"] = "other"
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    tender = deepcopy(tender_data)
+    tender["procuringEntity"]["kind"] = "other"
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()
 
 
-async def test_tender_with_complete_status():
-    tender_data["status"] = "complete"
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskFromPreviousResult()
+@pytest.mark.parametrize(
+    "risk_rule_class,risk_result",
+    [
+        (RiskRule, RiskFromPreviousResult()),
+        (Sas24RiskRule, RiskFound()),
+    ],
+)
+async def test_tender_with_complete_status(risk_rule_class, risk_result):
+    complaints[0]["dateDecision"] = (get_now() - timedelta(days=31)).isoformat()
+    complaints[0]["status"] = "satisfied"
+    tender = deepcopy(tender_data)
+    tender["procuringEntity"]["kind"] = "defense"
+    tender.update(
+        {
+            "procurementMethodType": "aboveThresholdEU",
+            "status": "active.tendering",
+            "complaints": complaints,
+        }
+    )
+    tender["status"] = "complete"
+    risk_rule = risk_rule_class()
+    result = await risk_rule.process_tender(tender)
+    assert result == risk_result
 
 
 @pytest.mark.parametrize(
@@ -167,7 +197,39 @@ async def test_tender_on_pre_qualification_with_complaint(tender_status, date_de
             ],
         }
     )
-    risk_rule = RiskRule()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == risk_result
+
+
+@pytest.mark.parametrize(
+    "amount,category,risk_rule_class,risk_result",
+    [
+        (400000, "services", RiskRule, RiskFound()),
+        (400000, "services", Sas24RiskRule, RiskFound()),
+        (1600000, "works", RiskRule, RiskFound()),
+        (1600000, "works", Sas24RiskRule, RiskFound()),
+        (20000, "goods", RiskRule, RiskFound()),
+        (20000, "goods", Sas24RiskRule, RiskNotFound()),
+        (600000, "works", RiskRule, RiskFound()),
+        (600000, "works", Sas24RiskRule, RiskNotFound()),
+    ],
+)
+async def test_tender_value(amount, category, risk_rule_class, risk_result):
+    tender = deepcopy(tender_data)
+    complaints[0]["dateDecision"] = (get_now() - timedelta(days=31)).isoformat()
+    complaints[0]["status"] = "satisfied"
+    tender.update(
+        {
+            "procurementMethodType": "aboveThresholdEU",
+            "status": "active.tendering",
+            "complaints": complaints,
+            "mainProcurementCategory": category,
+        }
+    )
+    tender["value"]["amount"] = amount
+    risk_rule = risk_rule_class()
     result = await risk_rule.process_tender(tender)
     assert result == risk_result
 
@@ -188,9 +250,10 @@ async def test_tender_on_pre_qualification_without_complaint():
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()
 
 
 @pytest.mark.parametrize(
@@ -237,9 +300,10 @@ async def test_tender_on_cancellation_with_complaint(tender_status, date_decisio
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == risk_result
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == risk_result
 
 
 async def test_tender_on_cancellation_without_complaint():
@@ -258,6 +322,7 @@ async def test_tender_on_cancellation_without_complaint():
             ],
         }
     )
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()
