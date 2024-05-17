@@ -31,7 +31,7 @@ MAX_LIST_LIMIT = int(os.environ.get("MAX_LIST_LIMIT", 100))
 MAX_TIME_QUERY = int(os.environ.get("MAX_TIME_QUERY", 10000))  # query time limit during filtering risks in ms
 MONGODB_ERROR_INTERVAL = float(os.getenv("MONGODB_ERROR_INTERVAL", 1))
 CRAWLER_START_DATE = datetime.fromisoformat(os.getenv("CRAWLER_START_DATE", "2023-01-01T00:00:00+02:00"))
-SAS_24_RULES_FROM = os.getenv("SAS_24_RULES_FROM", "2024-01-01")
+SAS_24_RULES_FROM = os.getenv("SAS_24_RULES_FROM", "2024-05-01")
 
 # Excel cannot handle more than 1,048,576 rows
 REPORT_ITEMS_LIMIT = min(int(os.environ.get("REPORT_ITEMS_LIMIT", 100000)), 1048500)

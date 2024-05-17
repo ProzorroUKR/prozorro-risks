@@ -3,6 +3,7 @@ from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import (
     is_winner_awarded,
     count_winner_disqualifications_and_bidders,
+    has_milestone_24,
 )
 from prozorro.risks.settings import SAS_24_RULES_FROM
 
@@ -32,13 +33,6 @@ class RiskRule(BaseTenderRiskRule):
     value_for_works = 1500000
     start_date = SAS_24_RULES_FROM
 
-    @staticmethod
-    def has_milestone_24(obj):
-        for milestone in obj.get("milestones", []):
-            if milestone["code"] == "24h":
-                return True
-        return False
-
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(
             tender, category=False, value=True
@@ -48,13 +42,13 @@ class RiskRule(BaseTenderRiskRule):
             unsuccessful_awards = [
                 aw
                 for aw in tender.get("awards", [])
-                if aw["status"] == "unsuccessful" and not self.has_milestone_24(aw)
+                if aw["status"] == "unsuccessful" and not has_milestone_24(aw)
             ]
 
             unsuccessful_qualifications = [
                 qual
                 for qual in tender.get("qualifications", [])
-                if qual["status"] == "unsuccessful" and not self.has_milestone_24(qual)
+                if qual["status"] == "unsuccessful" and not has_milestone_24(qual)
             ]
 
             if open_eu_tender:

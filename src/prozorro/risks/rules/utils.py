@@ -118,3 +118,15 @@ def count_winner_disqualifications_and_bidders(tender, lot=None, check_winner=Fa
                 bidders.add(f'{tenderer["identifier"]["scheme"]}-{tenderer["identifier"]["id"]}')
     bidders_count = len(bidders)
     return disqualifications_count, winner_count, bidders_count
+
+
+def has_milestone_24(obj):
+    """
+    Check if obj has milestone with code 24 hours.
+    :param obj: dict Object
+    :return: Flag whether object has milestone with code 24h.
+    """
+    for milestone in obj.get("milestones", []):
+        if milestone["code"] == "24h":
+            return True
+    return False
