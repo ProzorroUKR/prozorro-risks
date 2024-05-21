@@ -39,22 +39,19 @@ class RiskRule(BaseTenderRiskRule):
         ) and is_winner_awarded(tender):
             open_eu_tender = tender["procurementMethodType"] == "aboveThresholdEU"
             # Визначаємо кількість дискваліфікацій
-            unsuccessful_awards = [
-                aw
-                for aw in tender.get("awards", [])
-                if aw["status"] == "unsuccessful" and not has_milestone_24(aw)
-            ]
-
-            unsuccessful_qualifications = [
-                qual
-                for qual in tender.get("qualifications", [])
-                if qual["status"] == "unsuccessful" and not has_milestone_24(qual)
-            ]
-
             if open_eu_tender:
-                if not unsuccessful_qualifications:
-                    return RiskNotFound()
-            elif not unsuccessful_awards:
+                unsuccessful_qualifications = [
+                    qual
+                    for qual in tender.get("qualifications", [])
+                    if qual["status"] == "unsuccessful" and not has_milestone_24(qual)
+                ]
+            else:
+                unsuccessful_qualifications = [
+                    aw
+                    for aw in tender.get("awards", [])
+                    if aw["status"] == "unsuccessful" and not has_milestone_24(aw)
+                ]
+            if not unsuccessful_qualifications:
                 return RiskNotFound()
 
             if len(tender.get("lots", [])):
@@ -70,10 +67,17 @@ class RiskRule(BaseTenderRiskRule):
                                 disqualified_bidders_in_qualif.add(
                                     qualification["bidID"]
                                 )
+                    else:
+                        for award in unsuccessful_qualifications:
+                            if award.get("lotID") == lot["id"]:
+                                for supplier in award.get("suppliers", []):
+                                    disqualified_bidders_in_qualif.add(
+                                        f'{supplier["identifier"]["scheme"]}-{supplier["identifier"]["id"]}'
+                                    )
 
                     # Визначаємо кількість дискваліфікацій - кількість об’єктів data.awards, що посилаються
                     # на лот data.awards.lotID=data.lots.id та мають data.awards.status='unsuccessful'
-                    disqualified_lots_count_in_qualif, winner_count, _ = (
+                    _, winner_count, _ = (
                         count_winner_disqualifications_and_bidders(
                             tender,
                             lot,
@@ -82,23 +86,29 @@ class RiskRule(BaseTenderRiskRule):
                     )
 
                     # Якщо кількість дискваліфікацій дорівнює 2 або більше, індикатор приймає значення 1
-                    if winner_count and (
-                        disqualified_lots_count_in_qualif >= 2
-                        or len(disqualified_bidders_in_qualif) >= 2
-                    ):
+                    if winner_count and len(disqualified_bidders_in_qualif) >= 2:
                         return RiskFound()
             else:
                 # Якщо процедура не має лотів i кількість дискваліфікацій дорівнює 2 або більше,
                 # індикатор приймає значення 1
-                disqualifications_count, winner_count, _ = (
+                disqualified_bidders_in_qualif = set()
+
+                # Визначаємо кількість дискваліфікацій для aboveThresholdEU - qualifications.status = 'unsuccessful'
+                if open_eu_tender:
+                    for qualification in unsuccessful_qualifications:
+                        disqualified_bidders_in_qualif.add(qualification["bidID"])
+                else:
+                    for award in unsuccessful_qualifications:
+                        for supplier in award.get("suppliers", []):
+                            disqualified_bidders_in_qualif.add(
+                                f'{supplier["identifier"]["scheme"]}-{supplier["identifier"]["id"]}'
+                            )
+                _, winner_count, _ = (
                     count_winner_disqualifications_and_bidders(
                         tender,
                         check_winner=True,
                     )
                 )
-                if winner_count and (
-                    (open_eu_tender and len(unsuccessful_qualifications) >= 2)
-                    or disqualifications_count >= 2
-                ):
+                if winner_count and len(disqualified_bidders_in_qualif) >= 2:
                     return RiskFound()
         return RiskNotFound()

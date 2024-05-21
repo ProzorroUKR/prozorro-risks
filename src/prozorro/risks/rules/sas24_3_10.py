@@ -1,7 +1,12 @@
+from datetime import datetime, timedelta
+
 from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseTenderRiskRule
-from prozorro.risks.rules.utils import is_winner_awarded
-from prozorro.risks.settings import SAS_24_RULES_FROM
+from prozorro.risks.rules.utils import is_winner_awarded, calculate_end_date
+from prozorro.risks.settings import (
+    SAS_24_RULES_FROM,
+    WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS,
+)
 
 
 class RiskRule(BaseTenderRiskRule):
@@ -52,12 +57,27 @@ class RiskRule(BaseTenderRiskRule):
                 and (not lot or lot["id"] == award["lotID"])
                 and is_winner_awarded(tender, award_to_check=award)
             ):
+                end_date = calculate_end_date(
+                    award["date"],
+                    timedelta(days=WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS),
+                )
                 for bid in tender.get("bids", []):
                     if bid["id"] == award["bid_id"]:
-                        fields = ("documents", "financialDocuments", "eligibilityDocuments", "qualificationDocuments")
+                        fields = (
+                            "documents",
+                            "financialDocuments",
+                            "eligibilityDocuments",
+                            "qualificationDocuments",
+                        )
                         for docs_field in fields:
                             for doc in bid.get(docs_field, []):
-                                if doc.get("documentType") == "eligibilityDocuments":
+                                if (
+                                    doc.get("documentType") == "eligibilityDocuments"
+                                    and doc.get("datePublished")
+                                    and datetime.fromisoformat(award["date"])
+                                    < datetime.fromisoformat(doc["datePublished"])
+                                    < end_date
+                                ):
                                     return RiskNotFound()
                         return RiskFound()
         return RiskNotFound()

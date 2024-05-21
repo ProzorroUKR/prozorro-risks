@@ -39,7 +39,7 @@ tender_data.update(
     }
 )
 tender_data["awards"][0].update({
-    "date": (get_now() - timedelta(days=31)).isoformat(),
+    "date": (get_now() - timedelta(days=6)).isoformat(),
     "status": "active",
     "bidID": tender_data["bids"][0]["id"],
     "lotID": tender_data["lots"][0]["id"],
@@ -93,22 +93,40 @@ async def test_tender_bidder_has_no_eligibility_docs():
     assert result == RiskFound()
 
 
-async def test_tender_bidder_has_eligibility_docs():
+@pytest.mark.parametrize(
+    "doc_date_published,risk_result",
+    [
+        ((get_now() - timedelta(days=1)).isoformat(), RiskNotFound()),
+        (get_now().isoformat(), RiskFound()),
+        ((get_now() - timedelta(days=7)).isoformat(), RiskFound()),
+    ],
+)
+async def test_tender_bidder_has_eligibility_docs(doc_date_published, risk_result):
     tender = deepcopy(tender_data)
     tender["bids"][0]["documents"][0]["documentType"] = "eligibilityDocuments"
+    tender["bids"][0]["documents"][0]["datePublished"] = doc_date_published
     risk_rule = RiskRule()
     result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    assert result == risk_result
 
 
-async def test_tender_bidder_has_eligibility_docs_in_another_envelopes():
+@pytest.mark.parametrize(
+    "doc_date_published,risk_result",
+    [
+        ((get_now() - timedelta(days=1)).isoformat(), RiskNotFound()),
+        (get_now().isoformat(), RiskFound()),
+        ((get_now() - timedelta(days=7)).isoformat(), RiskFound()),
+    ],
+)
+async def test_tender_bidder_has_eligibility_docs_in_another_envelopes(doc_date_published, risk_result):
     tender = deepcopy(tender_data)
     tender["bids"][0]["eligibilityDocuments"] = [tender["bids"][0]["documents"][0]]
     tender["bids"][0].pop("documents")
     tender["bids"][0]["eligibilityDocuments"][0]["documentType"] = "eligibilityDocuments"
+    tender["bids"][0]["eligibilityDocuments"][0]["datePublished"] = doc_date_published
     risk_rule = RiskRule()
     result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    assert result == risk_result
 
 
 async def test_tender_with_cancelled_award_lot():
