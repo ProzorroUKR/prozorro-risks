@@ -34,12 +34,8 @@ async def process_tender(tender):
 
     :param tender: dict Tender data
     """
-    uid = tender.pop("id" if "id" in tender else "_id")
     identifier = tender.get("procuringEntity", {}).get("identifier", {})
     tender["procuringEntityIdentifier"] = f'{identifier.get("scheme", "")}-{identifier.get("id", "")}'
-
-    # for some risk rules it is required to have saved tenders in database for processing statistics
-    await save_tender(uid, tender)
 
     risks = await process_risks(tender, TENDER_RISKS)
     if risks or tender_should_be_checked_for_termination(tender):
@@ -56,11 +52,14 @@ async def process_tender(tender):
         if risks:
             tender_data["dateAssessed"] = get_now().isoformat()
         await update_tender_risks(
-            uid,
+            tender["id"],
             risks,
             tender_data,
             contracts=tender["contracts"] if tender.get("contracts") else None,
         )
+
+    # for some risk rules it is required to have saved tenders in database for processing statistics
+    await save_tender(tender)
 
 
 async def fetch_and_process_tender(session, tender_id):

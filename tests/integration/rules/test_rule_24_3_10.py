@@ -61,17 +61,17 @@ async def test_tender_without_lots_has_risk():
 
 
 @pytest.mark.parametrize(
-    "amount,category,risk_rule_class,risk_result",
+    "amount,category,risk_result",
     [
-        (40000, "services", RiskRule, RiskNotFound()),
-        (400000, "services", RiskRule, RiskFound()),
-        (1600000, "works", RiskRule, RiskFound()),
-        (100000, "works", RiskRule, RiskNotFound()),
-        (500000, "goods", RiskRule, RiskFound()),
-        (20000, "goods", RiskRule, RiskNotFound()),
+        (40000, "services", RiskNotFound()),
+        (400000, "services", RiskFound()),
+        (1600000, "works", RiskFound()),
+        (100000, "works", RiskNotFound()),
+        (500000, "goods", RiskFound()),
+        (20000, "goods", RiskNotFound()),
     ],
 )
-async def test_tender_value(amount, category, risk_rule_class, risk_result):
+async def test_tender_value(amount, category, risk_result):
     tender = deepcopy(tender_data)
     tender.update(
         {
@@ -80,7 +80,7 @@ async def test_tender_value(amount, category, risk_rule_class, risk_result):
         }
     )
     tender["value"]["amount"] = amount
-    risk_rule = risk_rule_class()
+    risk_rule = RiskRule()
     result = await risk_rule.process_tender(tender)
     assert result == risk_result
 

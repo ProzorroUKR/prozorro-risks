@@ -9,7 +9,7 @@ from urllib.parse import quote, urlencode
 from ciso8601 import parse_datetime
 
 from prozorro.risks.requests import get_object_data
-from prozorro.risks.settings import ALLOW_ALL_ORIGINS, TIMEZONE
+from prozorro.risks.settings import ALLOW_ALL_ORIGINS, TIMEZONE, PROXY_ADDRESS
 
 logger = logging.getLogger(__name__)
 
@@ -139,3 +139,57 @@ def tender_should_be_checked_for_termination(tender):
         "belowThreshold",
         "reporting",
     )  # pmt for contract risks
+
+
+def get_subject_of_procurement(tender_obj):
+    """
+    Get subject of procurement for tender.
+    Find parent code for tender, see logic here:
+    https://dasu-indicators-docs.readthedocs.io/en/latest/tv_subjectOfProcurement.html#tv-subjectofprocurement
+    :param tender_obj: dict of tender info
+    :return: string subject of procurement
+    """
+    items_cpvs = [item["classification"]["id"][:-2].rstrip("0") for item in tender_obj["items"]]
+    uniq_cpvs = set(items_cpvs)
+    cpvs = sorted(uniq_cpvs, key=len)
+    parent_cpv_found = False
+    prefix_length = len(cpvs[0])
+    while parent_cpv_found is False:
+        for cpv in cpvs:
+            if cpv[:prefix_length] != cpvs[0][:prefix_length]:
+                prefix_length -= 1
+                break
+        else:
+            parent_cpv_found = True
+    code = cpvs[0][:prefix_length]
+    if code.startswith("45"):
+        if len(code) > 5:
+            code = code[:5]
+    elif code.startswith(("3361", "3362", "3363", "3364", "3365", "3366", "3367", "33691", "33692")):
+        if len(code) > 3:
+            code = code[:3]
+    elif len(code) > 4:
+        code = code[:4]
+    return code
+
+
+async def get_exchanged_value(obj, date):
+    if obj.get("value", {}).get("amount") and obj["value"].get("currency") and obj["value"]["currency"] != "UAH":
+        headers = {
+            'Connection': 'keep-alive',
+        }
+        async with aiohttp.ClientSession(headers=headers, cookie_jar=aiohttp.DummyCookieJar()) as session:
+            kwargs = {}
+            if PROXY_ADDRESS:
+                kwargs.update(proxies={"http": PROXY_ADDRESS, "https": PROXY_ADDRESS})
+            rates = await get_object_data(
+                session,
+                obj["id"],
+                resource="NBU",
+                date=datetime.fromisoformat(date).strftime('%Y%m%d'),
+                **kwargs,
+            )
+        for rate in rates:
+            if rate["cc"] == obj["value"]["currency"]:
+                return obj["value"]["amount"] * rate["rate"]
+    return obj.get("value", {}).get("amount", 0)

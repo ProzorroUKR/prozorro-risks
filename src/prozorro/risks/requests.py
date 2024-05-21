@@ -10,11 +10,13 @@ import asyncio
 import aiohttp
 
 
-async def get_object_data(session, obj_id, resource="tenders", retries=20):
+async def get_object_data(session, obj_id, resource="tenders", retries=20, date=None, **kwargs):
     retried = 0
     while True:
         try:
-            result = await request_object(session=session, obj_id=obj_id, resource=resource, method_name="get")
+            result = await request_object(
+                session=session, obj_id=obj_id, resource=resource, method_name="get", date=date, **kwargs
+            )
         except RequestRetryException as e:
             if retried > retries:
                 logger.critical(
@@ -27,12 +29,17 @@ async def get_object_data(session, obj_id, resource="tenders", retries=20):
             return result
 
 
-async def request_object(session, obj_id, resource, method_name="get"):
+async def request_object(session, obj_id, resource, method_name="get", date=None, **kwargs):
+    if resource == "NBU":
+        url = f"https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date={date}&json"
+    else:
+        url = f"{BASE_URL}/{resource}/{obj_id}"
     context = {"METHOD": method_name, "OBJ_ID": obj_id, "RESOURCE": resource}
     method = getattr(session, method_name)
-    kwargs = {}
     try:
-        resp = await method(f"{BASE_URL}/{resource}/{obj_id}", **kwargs)
+        resp = await method(url, **kwargs)
+        if resource == "NBU":
+            logger.info(resp.request_info.headers)
     except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         logger.warning(
             f"Error for {obj_id} {type(e)}: {e}",
@@ -59,7 +66,7 @@ async def request_object(session, obj_id, resource, method_name="get"):
                         },
                     )
                 else:
-                    return response["data"]
+                    return response if resource == "NBU" else response["data"]
         elif resp.status == 412:
             logger.warning(
                 "Precondition Failed while requesting object",

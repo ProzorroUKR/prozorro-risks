@@ -38,7 +38,7 @@ async def test_process_contracts(mock_process_risks, mock_fetch_tender, db, api)
 @patch("prozorro.risks.crawlers.tenders_crawler.process_risks", return_value={})
 async def test_process_complete_tenders(mock_save_tender, mock_process_risks, db, api):
     tender_data = {
-        "_id": "94d7d8f4aaf647c8bbe99ce71f8ebefe",
+        "id": "94d7d8f4aaf647c8bbe99ce71f8ebefe",
         "status": "complete",
         "procurementMethodType": "priceQuotation",
         "dateCreated": "2024-05-08T19:52:31.887284+03:00",
@@ -56,7 +56,7 @@ async def test_process_complete_tenders(mock_save_tender, mock_process_risks, db
     await process_tender(tender_data)
     result = await db.risks.find_one({"_id": "94d7d8f4aaf647c8bbe99ce71f8ebefe"})
     assert result is None
-    tender_data.update({"_id": "94d7d8f4aaf647c8bbe99ce71f8ebefe", "procurementMethodType": "aboveThresholdEU"})
+    tender_data.update({"id": "94d7d8f4aaf647c8bbe99ce71f8ebefe", "procurementMethodType": "aboveThresholdEU"})
     await process_tender(tender_data)
     result = await db.risks.find_one({"_id": "94d7d8f4aaf647c8bbe99ce71f8ebefe"})
     assert result["terminated"] is False
