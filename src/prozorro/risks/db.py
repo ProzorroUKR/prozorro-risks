@@ -371,7 +371,8 @@ async def update_tender_risks(uid, risks, additional_fields, contracts=None):
             return result
 
 
-async def save_tender(uid, tender_data):
+async def save_tender(tender_data):
+    uid = tender_data.pop("id" if "id" in tender_data else "_id")
     await get_tenders_collection().find_one_and_update(
         {"_id": uid},
         {"$set": tender_data},
@@ -419,6 +420,19 @@ async def get_tender(tender_id):
             await asyncio.sleep(MONGODB_ERROR_INTERVAL)
         else:
             return result
+
+
+async def get_tenders_from_historical_data(filters):
+    collection = get_tenders_collection()
+    while True:
+        try:
+            cursor = collection.find(filters)
+        except PyMongoError as e:
+            logger.error(f"Get tenders {type(e)}: {e}", extra={"MESSAGE_ID": "MONGODB_EXC"})
+            await asyncio.sleep(MONGODB_ERROR_INTERVAL)
+        else:
+            items = await cursor.to_list(length=None)
+            return items
 
 
 async def get_tender_risks_report(filters, **kwargs):
