@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
 from copy import deepcopy
@@ -6,6 +7,7 @@ from datetime import timedelta
 
 from prozorro.risks.models import RiskNotFound, RiskFound
 from prozorro.risks.rules.sas24_3_11_1 import RiskRule
+from prozorro.risks.rules.sas24_3_11_2 import RiskRule as RiskRule2
 from prozorro.risks.utils import get_now
 from tests.integration.conftest import get_fixture_json
 
@@ -17,6 +19,7 @@ tender_data.update(
     {
         "procurementMethodType": "reporting",
         "status": "complete",
+        "dateCreated": (get_now() - timedelta(days=5)).isoformat(),
     }
 )
 
@@ -25,43 +28,73 @@ open_tender_data.update({
     "procurementMethodType": "aboveThreshold",
     "status": "cancelled",
 })
+open_tender_data["tenderPeriod"]["startDate"] = get_now().isoformat()
+open_tender_data["complaints"] = get_fixture_json("complaints")
+open_tender_data["complaints"][0]["status"] = "satisfied"
 
 
 async def test_tender_with_not_risky_tender_status():
     tender = deepcopy(tender_data)
     tender["status"] = "cancelled"
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_type():
     tender = deepcopy(tender_data)
     tender["procurementMethodType"] = "priceQuotation"
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()
 
 
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender = deepcopy(tender_data)
     tender["procuringEntity"]["kind"] = "other"
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()
 
 
 async def test_tender_has_risks(db, api):
     await db.tenders.insert_one(open_tender_data)
-    risk_rule = RiskRule()
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskFound()
+
+
+@pytest.mark.parametrize(
+    "status,risk_rule,risk_result",
+    [
+        ("active.tendering", RiskRule, RiskNotFound()),
+        ("active.tendering", RiskRule2, RiskFound()),
+        ("active.qualification", RiskRule, RiskNotFound()),
+        ("active.qualification", RiskRule2, RiskFound()),
+        ("active.awarded", RiskRule, RiskNotFound()),
+        ("active.awarded", RiskRule2, RiskFound()),
+        ("cancelled", RiskRule, RiskFound()),
+        ("cancelled", RiskRule2, RiskFound()),
+    ],
+)
+async def test_open_tender_status(db, api, status, risk_rule, risk_result):
+    open_data = deepcopy(open_tender_data)
+    open_data["status"] = status
+    await db.tenders.insert_one(open_data)
+    risk_rule = risk_rule()
     result = await risk_rule.process_tender(tender_data)
-    assert result == RiskFound()
+    assert result == risk_result
 
 
 async def test_tender_has_no_cancelled_open_tenders(db):
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 @pytest.mark.parametrize(
@@ -76,28 +109,49 @@ async def test_tender_has_open_tenders_with_another_fields(db, api, not_matched_
     open_data = deepcopy(open_tender_data)
     open_data.update(not_matched_data)
     await db.tenders.insert_one(open_data)
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender_data)
-    assert result == RiskNotFound()
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
 
 
 async def test_tender_reporting_has_another_fields(db, api):
     await db.tenders.insert_one(open_tender_data)
     tender = deepcopy(tender_data)
     tender["procuringEntityIdentifier"] = "UA-EDR-22518134"
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()
 
-    tender["procuringEntityIdentifier"] = "UA-EDR-39604270"
-    tender["dateCreated"] = (get_now() + timedelta(days=100)).isoformat()
-    result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+        tender["procuringEntityIdentifier"] = "UA-EDR-39604270"
+        tender["dateCreated"] = (get_now() + timedelta(days=100)).isoformat()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()
 
-    tender["dateCreated"] = open_tender_data["tenderPeriod"]["startDate"]
-    tender["items"][0]["classification"]["id"] = "14524000-1"
+        tender["dateCreated"] = open_tender_data["tenderPeriod"]["startDate"]
+        tender["items"][0]["classification"]["id"] = "14524000-1"
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()
+
+
+@pytest.mark.parametrize(
+    "tender_date_created,risk_rule,risk_result",
+    [
+        ((get_now() - timedelta(days=181)).isoformat(), RiskRule, RiskFound()),
+        ((get_now() - timedelta(days=180)).isoformat(), RiskRule2, RiskFound()),
+        ((get_now() - timedelta(days=181)).isoformat(), RiskRule2, RiskNotFound()),
+        ((get_now() - timedelta(days=365)).isoformat(), RiskRule, RiskFound()),
+        ((get_now() - timedelta(days=366)).isoformat(), RiskRule, RiskNotFound()),
+    ],
+)
+async def test_tender_reporting_date_ranges(db, api, tender_date_created, risk_rule, risk_result):
+    await db.tenders.insert_one(open_tender_data)
+    tender = deepcopy(tender_data)
+    tender["dateCreated"] = tender_date_created
+    risk_rule = risk_rule()
     result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    assert result == risk_result
 
 
 @pytest.mark.parametrize(
@@ -170,9 +224,10 @@ async def test_cpv_parent_codes(db, api, open_items, tender_items, risk_result):
 
     tender = deepcopy(tender_data)
     tender["items"] = tender_items
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == risk_result
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == risk_result
 
 
 @pytest.mark.parametrize(
@@ -193,9 +248,10 @@ async def test_tender_value(db, api, amount, category, risk_result):
     open_data = deepcopy(open_tender_data)
     open_data["value"]["amount"] = amount
     await db.tenders.insert_one(open_data)
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == risk_result
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == risk_result
 
 
 @patch(
@@ -224,6 +280,24 @@ async def test_nbu_exchange(mock_rates, db, api, amount, currency, risk_result):
 
     tender = deepcopy(tender_data)
     tender["dateCreated"] = "2024-05-01T00:00:00+03:00"
-    risk_rule = RiskRule()
-    result = await risk_rule.process_tender(tender)
-    assert result == risk_result
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == risk_result
+
+
+async def test_complaints(db, api):
+    open_data = deepcopy(open_tender_data)
+    del open_data["complaints"]
+    await db.tenders.insert_one(open_data)
+    risk_rule = RiskRule2()
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
+
+    complaints = deepcopy(get_fixture_json("complaints"))
+    complaints[0]["status"] = "satisfied"
+    open_data["_id"] = uuid4().hex
+    open_data["awards"][0]["complaints"] = complaints
+    await db.tenders.insert_one(open_data)
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskFound()
