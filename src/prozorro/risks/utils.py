@@ -175,13 +175,14 @@ def get_subject_of_procurement(tender_obj):
 
 async def get_exchanged_value(obj, date):
     if obj.get("value", {}).get("amount") and obj["value"].get("currency") and obj["value"]["currency"] != "UAH":
+        uid = obj.get("id" if "id" in obj else "_id")
         async with aiohttp.ClientSession() as session:
             kwargs = {}
             if PROXY_ADDRESS:
                 kwargs.update(proxies={"http": PROXY_ADDRESS, "https": PROXY_ADDRESS})
             rates = await get_object_data(
                 session,
-                obj["id"],
+                uid,
                 resource="NBU",
                 date=datetime.fromisoformat(date).strftime('%Y%m%d'),
                 **kwargs,
