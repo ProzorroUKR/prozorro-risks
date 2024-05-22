@@ -38,8 +38,6 @@ async def request_object(session, obj_id, resource, method_name="get", date=None
     method = getattr(session, method_name)
     try:
         resp = await method(url, **kwargs)
-        if resource == "NBU":
-            logger.info(resp.request_info.headers)
     except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         logger.warning(
             f"Error for {obj_id} {type(e)}: {e}",

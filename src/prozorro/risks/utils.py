@@ -175,10 +175,7 @@ def get_subject_of_procurement(tender_obj):
 
 async def get_exchanged_value(obj, date):
     if obj.get("value", {}).get("amount") and obj["value"].get("currency") and obj["value"]["currency"] != "UAH":
-        headers = {
-            'Connection': 'keep-alive',
-        }
-        async with aiohttp.ClientSession(headers=headers, cookie_jar=aiohttp.DummyCookieJar()) as session:
+        async with aiohttp.ClientSession() as session:
             kwargs = {}
             if PROXY_ADDRESS:
                 kwargs.update(proxies={"http": PROXY_ADDRESS, "https": PROXY_ADDRESS})

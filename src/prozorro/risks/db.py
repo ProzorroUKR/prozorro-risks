@@ -312,6 +312,8 @@ def join_old_risks_with_new_ones(risks, tender):
 def update_contracts_statuses(contracts, tender):
     tender_contracts = tender.get("contracts", {})
     for contract in contracts:
+        if tender_contracts.get(contract["id"]) and tender_contracts[contract["id"]] == "terminated":
+            continue
         tender_contracts[contract["id"]] = contract.get("status")
     return tender_contracts
 
@@ -324,7 +326,7 @@ def tender_is_terminated(tender, contracts, new_status):
         or (
             status == "complete"
             and len(contract_statuses) > 0
-            and not contract_statuses.intersection({"active", "pending"})
+            and not contract_statuses.intersection({"active", "pending", "pending.winner-signing"})
         )
     )
 
