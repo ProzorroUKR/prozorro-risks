@@ -50,13 +50,14 @@ class RiskRule(BaseTenderRiskRule):
     start_date = SAS_24_RULES_FROM
 
     @staticmethod
-    def check_eligibility_documents_for_bidder(tender, lot=None):
+    def bidder_does_not_have_eligibility_documents(tender, lot=None):
         for award in tender.get("awards", []):
             if (
                 award["status"] == "active"
                 and (not lot or lot["id"] == award["lotID"])
                 and is_winner_awarded(tender, award_to_check=award)
             ):
+                eligibility_documents_found = False
                 end_date = calculate_end_date(
                     award["date"],
                     timedelta(days=WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS),
@@ -78,9 +79,9 @@ class RiskRule(BaseTenderRiskRule):
                                     < datetime.fromisoformat(doc["datePublished"])
                                     < end_date
                                 ):
-                                    return RiskNotFound()
-                        return RiskFound()
-        return RiskNotFound()
+                                    eligibility_documents_found = True
+                        if not eligibility_documents_found:
+                            return True
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False, value=True) and is_winner_awarded(tender):
@@ -88,7 +89,9 @@ class RiskRule(BaseTenderRiskRule):
                 for lot in tender["lots"]:
                     if lot["status"] in ("cancelled", "unsuccessful"):
                         continue
-                    return self.check_eligibility_documents_for_bidder(tender, lot=lot)
+                    if self.bidder_does_not_have_eligibility_documents(tender, lot=lot):
+                        return RiskFound()
             else:
-                return self.check_eligibility_documents_for_bidder(tender)
+                if self.bidder_does_not_have_eligibility_documents(tender):
+                    return RiskFound()
         return RiskNotFound()

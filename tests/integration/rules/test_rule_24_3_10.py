@@ -1,4 +1,5 @@
 from datetime import timedelta
+from uuid import uuid4
 
 import pytest
 from copy import deepcopy
@@ -34,6 +35,23 @@ tender_data.update(
                     "valueAddedTaxIncluded": True,
                 },
                 "guarantee": {"amount": 0.0, "currency": "UAH"},
+            },
+            {
+                "title": "Бетон та розчин будівельний",
+                "status": "active",
+                "id": "c2bb6ff3e8e547bee11d8bff23e8a296",
+                "date": "2023-02-21T17:36:11.836903+02:00",
+                "value": {
+                    "amount": 168233.0,
+                    "currency": "UAH",
+                    "valueAddedTaxIncluded": True,
+                },
+                "minimalStep": {
+                    "amount": 1682.0,
+                    "currency": "UAH",
+                    "valueAddedTaxIncluded": True,
+                },
+                "guarantee": {"amount": 0.0, "currency": "UAH"},
             }
         ],
     }
@@ -41,7 +59,7 @@ tender_data.update(
 tender_data["awards"][0].update({
     "date": (get_now() - timedelta(days=6)).isoformat(),
     "status": "active",
-    "bidID": tender_data["bids"][0]["id"],
+    "bid_id": tender_data["bids"][0]["id"],
     "lotID": tender_data["lots"][0]["id"],
 })
 
@@ -174,3 +192,22 @@ async def test_tender_with_not_risky_procurement_entity_kind():
     risk_rule = RiskRule()
     result = await risk_rule.process_tender(tender)
     assert result == RiskNotFound()
+
+
+async def test_tender_few_bidders_multi_lots():
+    tender = deepcopy(tender_data)
+    tender["bids"][0]["documents"][0]["documentType"] = "eligibilityDocuments"
+    tender["bids"][0]["documents"][0]["datePublished"] = (get_now() - timedelta(days=1)).isoformat()
+    bid_2 = deepcopy(tender["bids"][0])
+    bid_2["id"] = uuid4().hex
+    bid_2.pop("documents")  # second bidder does not have documents
+    tender["bids"].append(bid_2)
+    tender["awards"].append({
+        "date": (get_now() - timedelta(days=6)).isoformat(),
+        "status": "active",
+        "bid_id": tender["bids"][1]["id"],
+        "lotID": tender["lots"][1]["id"],
+    })
+    risk_rule = RiskRule()
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskFound()
