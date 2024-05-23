@@ -43,11 +43,10 @@ class RiskRule(BaseTenderRiskRule):
     start_date = SAS_24_RULES_FROM
 
     @staticmethod
-    def check_milestone_24_code(tender, lot=None):
+    def awards_have_milestone_24_code(tender, lot=None):
         for award in tender.get("awards", []):
             if (not lot or lot["id"] == award["lotID"]) and has_milestone_24(award):
-                return RiskFound()
-        return RiskNotFound()
+                return True
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False, value=True):
@@ -55,7 +54,9 @@ class RiskRule(BaseTenderRiskRule):
                 for lot in tender["lots"]:
                     if lot["status"] in ("cancelled", "unsuccessful"):
                         continue
-                    return self.check_milestone_24_code(tender, lot=lot)
+                    if self.awards_have_milestone_24_code(tender, lot=lot):
+                        return RiskFound()
             else:
-                return self.check_milestone_24_code(tender)
+                if self.awards_have_milestone_24_code(tender):
+                    return RiskFound()
         return RiskNotFound()
