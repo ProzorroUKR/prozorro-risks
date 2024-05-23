@@ -1,4 +1,4 @@
-aiohttp
+aiohttp==3.9.5
 motor==2.5.0
 aiohttp-swagger>=1.0.14, <2
 python-json-logger>=2.0.2, <3

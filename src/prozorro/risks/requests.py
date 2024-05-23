@@ -54,7 +54,9 @@ async def request_object(session, obj_id, resource, method_name="get", date=None
                 # ERROR:root:Error while closing connector:
                 #    SSLError(1, '[SSL: KRB5_S_INIT] application data after close notify (_ssl.c:2676)')
                 # return response["data"] | TypeError: 'NoneType' object is not subscriptable
-                if not isinstance(response, dict) or "data" not in response:
+                if resource == "NBU":
+                    return response
+                elif not isinstance(response, dict) or "data" not in response:
                     logger.warning(
                         "Unexpected response contents",
                         extra={
@@ -64,7 +66,7 @@ async def request_object(session, obj_id, resource, method_name="get", date=None
                         },
                     )
                 else:
-                    return response if resource == "NBU" else response["data"]
+                    return response["data"]
         elif resp.status == 412:
             logger.warning(
                 "Precondition Failed while requesting object",

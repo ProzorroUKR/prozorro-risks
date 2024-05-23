@@ -15,7 +15,7 @@ variables:
   CI_REGISTRY_FRONTEND_IMAGE_NAME: 'prozorro-risks-frontend'
 
 code-style-check:
-  image: python:3.9-alpine3.14
+  image: python:3.10-alpine3.19
   stage: lint
   tags:
     - kube-dev
