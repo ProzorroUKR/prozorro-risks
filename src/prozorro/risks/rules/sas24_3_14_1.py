@@ -62,20 +62,19 @@ class RiskRule(BaseTenderRiskRule):
             for hist_tender in historical_tenders:
                 if get_subject_of_procurement(hist_tender) == get_subject_of_procurement(tender):
                     year_value += await get_exchanged_value(hist_tender, hist_tender["dateCreated"])
-            if year_value:
-                for contract in tender.get("contracts", []):
-                    if contract["status"] == "active":
-                        contract_value = await get_exchanged_value(
-                            contract, date=contract["date"]
-                        )
-                        # Додаємо суму з аналітичної таблиці до нашої очікуваної вартості.
-                        # Якщо сума data.contracts.value виходить більша або дорівнює сумі робіт/послуг за поточний рік,
-                        # то індикатор приймає значення 1.
-                        value_mapping = {
-                            "works": self.value_for_works,
-                            "services": self.value_for_services,
-                            "goods": self.value_for_services,
-                        }
-                        if (contract_value + year_value) >= value_mapping[tender["mainProcurementCategory"]]:
-                            return RiskFound()
+            for contract in tender.get("contracts", []):
+                if contract["status"] == "active":
+                    contract_value = await get_exchanged_value(
+                        contract, date=contract["date"]
+                    )
+                    # Додаємо суму з аналітичної таблиці до нашої очікуваної вартості.
+                    # Якщо сума data.contracts.value виходить більша або дорівнює сумі робіт/послуг за поточний рік,
+                    # то індикатор приймає значення 1.
+                    value_mapping = {
+                        "works": self.value_for_works,
+                        "services": self.value_for_services,
+                        "goods": self.value_for_services,
+                    }
+                    if (contract_value + year_value) >= value_mapping[tender["mainProcurementCategory"]]:
+                        return RiskFound()
         return RiskNotFound()
