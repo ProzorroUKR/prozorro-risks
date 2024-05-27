@@ -38,7 +38,7 @@ REPORT_ITEMS_LIMIT = min(int(os.environ.get("REPORT_ITEMS_LIMIT", 100000)), 1048
 ALLOW_ALL_ORIGINS = bool(os.environ.get("ALLOW_ALL_ORIGINS", True))
 WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS = 5
 TEST_MODE = bool(os.environ.get("TEST_MODE", False))
-PROXY_ADDRESS = os.environ.get("PROXY_ADDRESS", "")
+HTTPS_PROXY = os.environ.get("HTTPS_PROXY", "")
 
 WORKING_DAYS = {}
 HOLIDAYS = standards.load("calendars/workdays_off.json")

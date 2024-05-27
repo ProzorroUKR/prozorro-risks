@@ -9,7 +9,7 @@ from urllib.parse import quote, urlencode
 from ciso8601 import parse_datetime
 
 from prozorro.risks.requests import get_object_data
-from prozorro.risks.settings import ALLOW_ALL_ORIGINS, TIMEZONE, PROXY_ADDRESS
+from prozorro.risks.settings import ALLOW_ALL_ORIGINS, TIMEZONE, HTTPS_PROXY
 
 logger = logging.getLogger(__name__)
 
@@ -178,8 +178,8 @@ async def get_exchanged_value(obj, date):
         uid = obj.get("id" if "id" in obj else "_id")
         async with aiohttp.ClientSession() as session:
             kwargs = {}
-            if PROXY_ADDRESS:
-                kwargs.update(proxies={"http": PROXY_ADDRESS, "https": PROXY_ADDRESS})
+            if HTTPS_PROXY:
+                kwargs.update(proxy=HTTPS_PROXY)
             rates = await get_object_data(
                 session,
                 uid,

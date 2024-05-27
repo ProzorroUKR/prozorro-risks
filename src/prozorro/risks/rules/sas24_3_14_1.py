@@ -46,25 +46,21 @@ class RiskRule(BaseTenderRiskRule):
             year = datetime.fromisoformat(tender["dateCreated"]).year
             filters = {
                 "procuringEntityIdentifier": tender.get("procuringEntityIdentifier"),  # first field from compound index
-                "procurementMethodType": {"$in": ("belowThreshold", "reporting")},
+                "procurementMethodType": "reporting",
                 "status": "complete",
                 # до уваги беремо процедури, що оголошені лише в поточному році
                 "dateCreated": {
                     "$gte": datetime(year, 1, 1, tzinfo=TIMEZONE).isoformat(),
                     "$lt": datetime(year + 1, 1, 1, tzinfo=TIMEZONE).isoformat(),
                 },
+                "date": {
+                    "$lt": calculate_end_date(get_now(), -timedelta(days=3)).isoformat(),
+                },
             }
             historical_tenders = await get_tenders_from_historical_data(filters)
             year_value = 0
             for hist_tender in historical_tenders:
                 if get_subject_of_procurement(hist_tender) == get_subject_of_procurement(tender):
-                    if (
-                        hist_tender["procurementMethodType"] in self.procurement_methods
-                        and datetime.fromisoformat(hist_tender["date"]) > calculate_end_date(
-                            get_now(), -timedelta(days=3)
-                        )
-                    ):
-                        continue
                     year_value += await get_exchanged_value(hist_tender, hist_tender["dateCreated"])
             if year_value:
                 for contract in tender.get("contracts", []):
