@@ -163,8 +163,20 @@ async def init_tender_indexes():
         ],
         background=True,
     )
+    compound_subject_of_procurement_index = IndexModel(
+        [
+            ("procuringEntityIdentifier", ASCENDING),
+            ("subjectOfProcurement", DESCENDING),
+        ],
+        background=True,
+    )
     try:
-        await get_tenders_collection().create_indexes([compound_procuring_entity_index])
+        await get_tenders_collection().create_indexes(
+            [
+                compound_procuring_entity_index,
+                compound_subject_of_procurement_index,
+            ]
+        )
     except PyMongoError as e:
         logger.exception(e)
 

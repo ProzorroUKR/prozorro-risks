@@ -7,7 +7,7 @@ from prozorro.risks.db import init_mongodb, save_tender, update_tender_risks
 from prozorro.risks.logging import setup_logging
 from prozorro.risks.requests import get_object_data
 from prozorro.risks.settings import CRAWLER_START_DATE
-from prozorro.risks.utils import get_now, tender_should_be_checked_for_termination
+from prozorro.risks.utils import get_now, tender_should_be_checked_for_termination, get_subject_of_procurement
 from prozorro.risks.rules import *  # noqa
 import asyncio
 import logging
@@ -36,6 +36,7 @@ async def process_tender(tender):
     """
     identifier = tender.get("procuringEntity", {}).get("identifier", {})
     tender["procuringEntityIdentifier"] = f'{identifier.get("scheme", "")}-{identifier.get("id", "")}'
+    tender["subjectOfProcurement"] = get_subject_of_procurement(tender)
 
     risks = await process_risks(tender, TENDER_RISKS)
     if risks or tender_should_be_checked_for_termination(tender):

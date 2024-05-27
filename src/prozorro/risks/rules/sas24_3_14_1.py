@@ -6,7 +6,6 @@ from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import calculate_end_date
 from prozorro.risks.settings import SAS_24_RULES_FROM, TIMEZONE
 from prozorro.risks.utils import (
-    get_subject_of_procurement,
     get_exchanged_value,
     get_now,
 )
@@ -46,6 +45,8 @@ class RiskRule(BaseTenderRiskRule):
             year = datetime.fromisoformat(tender["dateCreated"]).year
             filters = {
                 "procuringEntityIdentifier": tender.get("procuringEntityIdentifier"),  # first field from compound index
+                # якщо відкриті торги і звіт мають один tv_subjectOfProcurement
+                "subjectOfProcurement": tender.get("subjectOfProcurement"),  # second field from compound index
                 "procurementMethodType": "reporting",
                 "status": "complete",
                 # до уваги беремо процедури, що оголошені лише в поточному році
@@ -60,8 +61,7 @@ class RiskRule(BaseTenderRiskRule):
             historical_tenders = await get_tenders_from_historical_data(filters)
             year_value = 0
             for hist_tender in historical_tenders:
-                if get_subject_of_procurement(hist_tender) == get_subject_of_procurement(tender):
-                    year_value += await get_exchanged_value(hist_tender, hist_tender["dateCreated"])
+                year_value += await get_exchanged_value(hist_tender, hist_tender["dateCreated"])
             for contract in tender.get("contracts", []):
                 if contract["status"] == "active":
                     contract_value = await get_exchanged_value(

@@ -51,7 +51,16 @@ async def test_process_complete_tenders(mock_save_tender, mock_process_risks, db
                 "id": "1227359ed3614fef9a63f2e91fdafc6d",
                 "status": "active"
             }
-        ]
+        ],
+        "items": [{
+            "id": "8f5e2d33af404434952ad2ec1b92e850",
+              "description": "Послуги поточного ремонту з відновлення працездатності ліфта на об’єкті",
+              "classification": {
+                "description": "Електромонтажні роботи",
+                "scheme": "ДК021",
+                "id": "45310000-3"
+              },
+        }]
     }
     await process_tender(tender_data)
     result = await db.risks.find_one({"_id": "94d7d8f4aaf647c8bbe99ce71f8ebefe"})
@@ -100,7 +109,16 @@ async def test_process_simultaneously_contracts_and_tenders(
                 "id": "1227359ed3614fef9a63f2e91fdafc6d",
                 "status": "active"
             }
-        ]
+        ],
+        "items": [{
+            "id": "8f5e2d33af404434952ad2ec1b92e850",
+            "description": "Послуги поточного ремонту з відновлення працездатності ліфта на об’єкті",
+            "classification": {
+                "description": "Електромонтажні роботи",
+                "scheme": "ДК021",
+                "id": "45310000-3"
+            },
+        }]
     }
     await process_tender(tender_data)
     result = await db.risks.find_one({"_id": "94d7d8f4aaf647c8bbe99ce71f8ebefe"})

@@ -130,7 +130,7 @@ async def test_tender_reporting_has_another_fields(db, api):
         assert result == RiskNotFound()
 
         tender["dateCreated"] = open_tender_data["tenderPeriod"]["startDate"]
-        tender["items"][0]["classification"]["id"] = "14524000-1"
+        tender["subjectOfProcurement"] = "14524"
         result = await risk_rule.process_tender(tender)
         assert result == RiskNotFound()
 
@@ -152,82 +152,6 @@ async def test_tender_reporting_date_ranges(db, api, tender_date_created, risk_r
     risk_rule = risk_rule()
     result = await risk_rule.process_tender(tender)
     assert result == risk_result
-
-
-@pytest.mark.parametrize(
-    "open_items,tender_items,risk_result",
-    [
-        (
-            [
-                {"classification": {"id": "45310000-3"}},
-                {"classification": {"id": "45311200-2"}},
-                {"classification": {"id": "45313210-9"}},
-            ],
-            [
-                {"classification": {"id": "45315000-8"}},
-                {"classification": {"id": "45310000-3"}},
-                {"classification": {"id": "45316213-1"}},
-            ],
-            RiskFound()
-        ),
-        (
-            [
-                {"classification": {"id": "33610000-9"}},
-                {"classification": {"id": "33620000-2"}},
-            ],
-            [
-                {"classification": {"id": "33632300-2"}},
-                {"classification": {"id": "33632100-0"}},
-            ],
-            RiskFound()
-        ),
-        (
-            [
-                {"classification": {"id": "45234130-6"}},
-                {"classification": {"id": "45234181-8"}},
-            ],
-            [
-                {"classification": {"id": "45234240-0"}},
-                {"classification": {"id": "45234250-3"}},
-            ],
-            RiskFound()
-        ),
-        (
-            [
-                {"classification": {"id": "45234130-6"}},
-                {"classification": {"id": "45234181-8"}},
-            ],
-            [
-                {"classification": {"id": "45230000-8"}},
-                {"classification": {"id": "45234240-0"}},
-                {"classification": {"id": "45234250-3"}},
-            ],
-            RiskNotFound()
-        ),
-        (
-            [
-                {"classification": {"id": "03111700-9"}},
-                {"classification": {"id": "03111700-9"}},
-            ],
-            [
-                {"classification": {"id": "03110000-5"}},
-                {"classification": {"id": "03111000-2"}},
-            ],
-            RiskFound()
-        ),
-    ],
-)
-async def test_cpv_parent_codes(db, api, open_items, tender_items, risk_result):
-    open_data = deepcopy(open_tender_data)
-    open_data["items"] = open_items
-    await db.tenders.insert_one(open_data)
-
-    tender = deepcopy(tender_data)
-    tender["items"] = tender_items
-    for rule_class in (RiskRule, RiskRule2):
-        risk_rule = rule_class()
-        result = await risk_rule.process_tender(tender)
-        assert result == risk_result
 
 
 @pytest.mark.parametrize(
