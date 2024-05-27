@@ -54,12 +54,12 @@ async def test_process_complete_tenders(mock_save_tender, mock_process_risks, db
         ],
         "items": [{
             "id": "8f5e2d33af404434952ad2ec1b92e850",
-              "description": "Послуги поточного ремонту з відновлення працездатності ліфта на об’єкті",
-              "classification": {
+            "description": "Послуги поточного ремонту з відновлення працездатності ліфта на об’єкті",
+            "classification": {
                 "description": "Електромонтажні роботи",
                 "scheme": "ДК021",
                 "id": "45310000-3"
-              },
+            },
         }]
     }
     await process_tender(tender_data)

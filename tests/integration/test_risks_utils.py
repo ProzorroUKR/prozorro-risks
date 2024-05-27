@@ -6,6 +6,7 @@ from tests.integration.conftest import get_fixture_json
 
 tender_data = get_fixture_json("base_tender")
 
+
 @pytest.mark.parametrize(
     "tender_items_1,tender_items_2,result",
     [
