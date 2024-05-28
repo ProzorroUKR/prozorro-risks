@@ -38,7 +38,7 @@ TENDER_DATA_MAPPING = {
 
 history_tender_data = deepcopy(tender_data)
 history_tender_data.update({
-    "date": (get_now() - timedelta(days=3)).isoformat(),
+    "date": (get_now() - timedelta(days=4)).isoformat(),
 })
 history_tender_data["value"]["amount"] = 300000
 

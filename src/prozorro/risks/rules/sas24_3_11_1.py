@@ -61,8 +61,8 @@ class RiskRule(BaseTenderRiskRule):
                 "status": "cancelled",
                 # data.tender.dateCreated звітування молодша та є в межах 365 днів від data.tenderPeriod.startDate
                 "tenderPeriod.startDate": {
-                    "$gte": tender["dateCreated"],
-                    "$lt": calculate_end_date(tender["dateCreated"], timedelta(days=365)).isoformat(),
+                    "$gte": calculate_end_date(tender["dateCreated"], -timedelta(days=365), ceil=False).isoformat(),
+                    "$lt": tender["dateCreated"],
                 },
             }
             open_tenders = await get_tenders_from_historical_data(filters)

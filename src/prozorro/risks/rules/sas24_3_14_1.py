@@ -55,7 +55,7 @@ class RiskRule(BaseTenderRiskRule):
                     "$lt": datetime(year + 1, 1, 1, tzinfo=TIMEZONE).isoformat(),
                 },
                 "date": {
-                    "$lt": calculate_end_date(get_now(), -timedelta(days=3)).isoformat(),
+                    "$lt": calculate_end_date(get_now(), -timedelta(days=3), ceil=False).isoformat(),
                 },
             }
             historical_tenders = await get_tenders_from_historical_data(filters)

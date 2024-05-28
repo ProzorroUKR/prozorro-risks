@@ -19,7 +19,7 @@ tender_data.update(
     {
         "procurementMethodType": "reporting",
         "status": "complete",
-        "dateCreated": (get_now() - timedelta(days=5)).isoformat(),
+        "dateCreated": (get_now() + timedelta(days=5)).isoformat(),
     }
 )
 
@@ -125,7 +125,7 @@ async def test_tender_reporting_has_another_fields(db, api):
         assert result == RiskNotFound()
 
         tender["procuringEntityIdentifier"] = "UA-EDR-39604270"
-        tender["dateCreated"] = (get_now() + timedelta(days=100)).isoformat()
+        tender["dateCreated"] = (get_now() - timedelta(days=100)).isoformat()
         result = await risk_rule.process_tender(tender)
         assert result == RiskNotFound()
 
@@ -138,11 +138,11 @@ async def test_tender_reporting_has_another_fields(db, api):
 @pytest.mark.parametrize(
     "tender_date_created,risk_rule,risk_result",
     [
-        ((get_now() - timedelta(days=181)).isoformat(), RiskRule, RiskFound()),
-        ((get_now() - timedelta(days=180)).isoformat(), RiskRule2, RiskFound()),
-        ((get_now() - timedelta(days=181)).isoformat(), RiskRule2, RiskNotFound()),
-        ((get_now() - timedelta(days=365)).isoformat(), RiskRule, RiskFound()),
-        ((get_now() - timedelta(days=366)).isoformat(), RiskRule, RiskNotFound()),
+        ((get_now() + timedelta(days=181)).isoformat(), RiskRule, RiskFound()),
+        ((get_now() + timedelta(days=180)).isoformat(), RiskRule2, RiskFound()),
+        ((get_now() + timedelta(days=181)).isoformat(), RiskRule2, RiskNotFound()),
+        ((get_now() + timedelta(days=365)).isoformat(), RiskRule, RiskFound()),
+        ((get_now() + timedelta(days=366)).isoformat(), RiskRule, RiskNotFound()),
     ],
 )
 async def test_tender_reporting_date_ranges(db, api, tender_date_created, risk_rule, risk_result):
@@ -203,7 +203,7 @@ async def test_nbu_exchange(mock_rates, db, api, amount, currency, risk_result):
     await db.tenders.insert_one(open_data)
 
     tender = deepcopy(tender_data)
-    tender["dateCreated"] = "2024-05-01T00:00:00+03:00"
+    tender["dateCreated"] = "2024-05-01T01:00:00+03:00"
     for rule_class in (RiskRule, RiskRule2):
         risk_rule = rule_class()
         result = await risk_rule.process_tender(tender)
