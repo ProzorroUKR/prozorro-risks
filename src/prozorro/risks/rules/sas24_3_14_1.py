@@ -68,13 +68,14 @@ class RiskRule(BaseTenderRiskRule):
                         contract, date=contract["date"]
                     )
                     # Додаємо суму з аналітичної таблиці до нашої очікуваної вартості.
-                    # Якщо сума data.contracts.value виходить більша або дорівнює сумі робіт/послуг за поточний рік,
-                    # то індикатор приймає значення 1.
-                    value_mapping = {
-                        "works": self.value_for_works,
-                        "services": self.value_for_services,
-                        "goods": self.value_for_services,
-                    }
-                    if (contract_value + year_value) >= value_mapping[tender["mainProcurementCategory"]]:
-                        return RiskFound()
+                    year_value += contract_value
+            # Якщо сума data.contracts.value виходить більша або дорівнює сумі робіт/послуг за поточний рік,
+            # то індикатор приймає значення 1.
+            value_mapping = {
+                "works": self.value_for_works,
+                "services": self.value_for_services,
+                "goods": self.value_for_services,
+            }
+            if year_value >= value_mapping[tender["mainProcurementCategory"]]:
+                return RiskFound()
         return RiskNotFound()
