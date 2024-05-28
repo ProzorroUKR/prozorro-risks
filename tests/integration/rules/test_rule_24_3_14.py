@@ -107,14 +107,14 @@ async def test_tender_has_open_tenders_with_another_fields(db, api, not_matched_
 @pytest.mark.parametrize(
     "amount,category,risk_class,risk_result",
     [
-        (40000, "services", RiskRule, RiskNotFound()),
+        (300000, "services", RiskRule, RiskFound()),
         (400000, "services", RiskRule, RiskFound()),
         (1600000, "works", RiskRule, RiskNotFound()),
         (1500000, "works", RiskRule2, RiskFound()),
-        (1499999, "works", RiskRule2, RiskNotFound()),
+        (1499999, "works", RiskRule2, RiskFound()),
         (500000, "goods", RiskRule2, RiskNotFound()),
         (500000, "goods", RiskRule, RiskFound()),
-        (20000, "goods", RiskRule, RiskNotFound()),
+        (300000, "goods", RiskRule, RiskFound()),
     ],
 )
 async def test_tender_value(db, api, amount, category, risk_class, risk_result):

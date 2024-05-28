@@ -41,7 +41,7 @@ class RiskRule(BaseTenderRiskRule):
     start_date = SAS_24_RULES_FROM
 
     async def process_tender(self, tender, parent_object=None):
-        if self.tender_matches_requirements(tender, value=True):
+        if self.tender_matches_requirements(tender):
             year = datetime.fromisoformat(tender["dateCreated"]).year
             filters = {
                 "procuringEntityIdentifier": tender.get("procuringEntityIdentifier"),  # first field from compound index
