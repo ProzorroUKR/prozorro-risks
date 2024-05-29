@@ -27,18 +27,19 @@ for module_name in RISK_MODULES:
         TENDER_RISKS.append(risk_rule)
 
 
-async def process_tender(tender):
+async def process_tender(tender, tender_risks=TENDER_RISKS):
     """
     Process tender with provided risk rules and save processed results to database.
     Also save tender to tenders mongo collection for calculating historical data.
 
     :param tender: dict Tender data
+    :param tender_risks: list of risk rules
     """
     identifier = tender.get("procuringEntity", {}).get("identifier", {})
     tender["procuringEntityIdentifier"] = f'{identifier.get("scheme", "")}-{identifier.get("id", "")}'
     tender["subjectOfProcurement"] = get_subject_of_procurement(tender)
 
-    risks = await process_risks(tender, TENDER_RISKS)
+    risks = await process_risks(tender, tender_risks)
     if risks or tender_should_be_checked_for_termination(tender):
         tender_data = {
             "dateCreated": tender.get("dateCreated"),
@@ -63,7 +64,7 @@ async def process_tender(tender):
     await save_tender(tender)
 
 
-async def fetch_and_process_tender(session, tender_id):
+async def fetch_and_process_tender(session, tender_id, tender_risks=TENDER_RISKS):
     """
     Fetch more detailed information about tender and process tender whether it has risks.
     Crawler offset is watching dateModified field that's why here is validation
@@ -71,10 +72,11 @@ async def fetch_and_process_tender(session, tender_id):
 
     :param session: ClientSession
     :param tender_id: str Id of particular tender
+    :param tender_risks: list of risk rules
     """
     tender = await get_object_data(session, tender_id)
     if datetime.fromisoformat(tender["dateCreated"]) >= CRAWLER_START_DATE:
-        await process_tender(tender)
+        await process_tender(tender, tender_risks=tender_risks)
 
 
 async def risks_data_handler(session, items):

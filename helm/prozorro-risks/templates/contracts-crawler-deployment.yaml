@@ -27,25 +27,25 @@ spec:
           command: ["python", "-m", "prozorro.risks.crawlers.contracts_crawler"]
           env:
             - name: MONGODB_URL
-              value: '{{ .Values.MONGODB_URL }}'
+              value: '{{ .Values.config.mongodb_uri }}'
             - name: PUBLIC_API_HOST
-              value: '{{ .Values.PUBLIC_API_HOST }}'
+              value: '{{ .Values.config.public_api_host }}'
             - name: MONGODB_STATE_ID
               value: 'prozorro-contracts-risks'
             - name: BACKWARD_OFFSET
-              value: '{{ .Values.BACKWARD_OFFSET }}'
+              value: '{{ .Values.config.backward_offset }}'
             - name: FORWARD_OFFSET
-              value: '{{ .Values.FORWARD_OFFSET }}'
+              value: '{{ .Values.config.forward_offset }}'
             - name: FORWARD_CHANGES_COOLDOWN_SECONDS
-              value: '{{ .Values.FORWARD_CHANGES_COOLDOWN_SECONDS }}'
+              value: '{{ .Values.config.forward_changes_cooldown_seconds }}'
             - name: API_RESOURCE
               value: 'contracts'
             - name: LOCK_PROCESS_NAME
               value: 'contracts_crawler_lock'
             - name: TEST_MODE
-              value: '{{ .Values.TEST_MODE }}'
+              value: '{{ .Values.config.test_mode }}'
             - name: SAS_24_RULES_FROM
-              value: '{{ .Values.SAS_24_RULES_FROM }}'
+              value: '{{ .Values.config.sas_24_rules_from }}'
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "prozorro.risks.fullname" . }}-tenders-crawler
+  name: {{ include "prozorro.risks.fullname" . }}-delay-crawler
   labels:
 {{ include "prozorro.risks.labels" . | indent 4 }}
 spec:
-  replicas: {{ .Values.tenders_crawler.replicaCount }}
+  replicas: {{ .Values.delay_crawler.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "prozorro.risks.name" . }}-tenders-crawler
+      app.kubernetes.io/name: {{ include "prozorro.risks.name" . }}-delay-crawler
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "prozorro.risks.name" . }}-tenders-crawler
+        app.kubernetes.io/name: {{ include "prozorro.risks.name" . }}-delay-crawler
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
     {{- with .Values.imagePullSecrets }}
@@ -21,27 +21,33 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       containers:
-        - name: {{ .Chart.Name }}-tenders-crawler
-          image: "{{ .Values.tenders_crawler.image.repository }}:{{ .Values.tenders_crawler.image.tag }}"
-          imagePullPolicy: {{ .Values.tenders_crawler.image.pullPolicy }}
-          command: ["python", "-m", "prozorro.risks.crawlers.tenders_crawler"]
+        - name: {{ .Chart.Name }}-delay-crawler
+          image: "{{ .Values.delay_crawler.image.repository }}:{{ .Values.delay_crawler.image.tag }}"
+          imagePullPolicy: {{ .Values.delay_crawler.image.pullPolicy }}
+          command: ["python", "-m", "prozorro.risks.crawlers.delay_crawler"]
           env:
             - name: MONGODB_URL
               value: '{{ .Values.config.mongodb_uri }}'
             - name: PUBLIC_API_HOST
               value: '{{ .Values.config.public_api_host }}'
             - name: MONGODB_STATE_ID
-              value: 'prozorro-tenders-risks'
+              value: 'prozorro-delay-risks'
             - name: BACKWARD_OFFSET
               value: '{{ .Values.config.backward_offset }}'
             - name: FORWARD_OFFSET
-              value: '{{ .Values.config.forward_offset }}'
+              value: '{{ .Values.config.delay_forward_offset }}'
             - name: FORWARD_CHANGES_COOLDOWN_SECONDS
-              value: '{{ .Values.config.forward_changes_cooldown_seconds }}'
+              value: '{{ .Values.config.delay_forward_changes_cooldown_seconds }}'
+            - name: LOCK_PROCESS_NAME
+              value: 'delay_crawler_lock'
             - name: TEST_MODE
               value: '{{ .Values.config.test_mode }}'
             - name: SAS_24_RULES_FROM
               value: '{{ .Values.config.sas_24_rules_from }}'
+            - name: API_LIMIT
+              value: '{{ .Values.config.api_limit }}'
+            - name: SLEEP_FORWARD_CHANGES_SECONDS
+              value: '{{ .Values.config.sleep_forward_changes_seconds }}'
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

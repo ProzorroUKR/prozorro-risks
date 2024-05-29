@@ -1,11 +1,16 @@
-MONGODB_URL: 'mongodb://root:5x0A2CfpE8HdUGF@mongodb-risks.data.svc.cluster.local:27017'
-SENTRY_DSN: 'http://c921e523b5384eb990c5cd2737d2aa79@sentry.dc.prozorro.gov.ua/55'
-PUBLIC_API_HOST: 'http://api.master.k8s.prozorro.gov.ua'
-BACKWARD_OFFSET: '1423058400.69246'
-FORWARD_OFFSET: '1672524000.0'
-FORWARD_CHANGES_COOLDOWN_SECONDS: '300'
-TEST_MODE: 'True'
-SAS_24_RULES_FROM: "2024-05-01"
+config:
+  mongodb_uri: 'mongodb://root:5x0A2CfpE8HdUGF@mongodb-risks.data.svc.cluster.local:27017'
+  sentry_dsn: 'http://c921e523b5384eb990c5cd2737d2aa79@sentry.dc.prozorro.gov.ua/55'
+  public_api_host: 'http://api.master.k8s.prozorro.gov.ua'
+  backward_offset: '1423058400.69246'
+  forward_offset: '1672524000.0'
+  delay_forward_offset: '1704060000.0'
+  forward_changes_cooldown_seconds: '0'
+  delay_forward_changes_cooldown_seconds: '2678'
+  sleep_forward_changes_seconds: '2678'
+  test_mode: 'True'
+  sas_24_rules_from: "2024-01-01"
+  api_limit: '1'
 
 api:
   replicaCount: 1
@@ -22,6 +27,13 @@ tenders_crawler:
     pullPolicy: Always
 
 contracts_crawler:
+  replicaCount: 1
+  image:
+    repository: docker-registry.prozorro.gov.ua/cdb/prozorro-risks
+    tag: latest
+    pullPolicy: Always
+
+delay_crawler:
   replicaCount: 1
   image:
     repository: docker-registry.prozorro.gov.ua/cdb/prozorro-risks
