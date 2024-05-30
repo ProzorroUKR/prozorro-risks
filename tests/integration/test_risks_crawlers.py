@@ -88,6 +88,7 @@ async def test_process_simultaneously_contracts_and_tenders(
         "status": "complete",
         "procurementMethodType": "aboveThresholdEU",
         "dateCreated": "2024-05-08T19:52:31.887284+03:00",
+        "dateModified": "2024-05-08T19:52:31.887284+03:00",
     }
     await process_contract(contract_data_1)
     result = await db.risks.find_one({"_id": "94d7d8f4aaf647c8bbe99ce71f8ebefe"})
@@ -99,6 +100,7 @@ async def test_process_simultaneously_contracts_and_tenders(
         "status": "complete",
         "procurementMethodType": "aboveThresholdEU",
         "dateCreated": "2024-05-08T19:52:31.887284+03:00",
+        "dateModified": "2024-05-08T19:52:31.887284+03:00",
         "procuringEntity": {"kind": "general"},
         "contracts": [
             {
