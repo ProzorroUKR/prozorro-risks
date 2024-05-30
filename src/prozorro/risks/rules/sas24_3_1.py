@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from prozorro.risks.exceptions import SkipException
 from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import (
@@ -68,6 +69,11 @@ class RiskRule(BaseTenderRiskRule):
         return RiskNotFound()
 
     async def process_tender(self, tender, parent_object=None):
+        from prozorro.risks.crawlers.delay_crawler import logger
+        logger.info("I AM HERE")
+        if get_now() < calculate_end_date(tender["dateModified"], -timedelta(days=DECISION_LIMIT), ceil=False):
+            logger.error(f"Tender {tender['id']} has been modified less than 30 days ago")
+            raise SkipException()
         if self.tender_matches_requirements(tender, category=False, value=True):
             complaints = get_complaints(tender, statuses=["satisfied"])
             award_complaints = flatten(

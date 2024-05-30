@@ -150,14 +150,25 @@ There are few env variables that can be configured in docker-compose.yaml for lo
 * PUBLIC_API_HOST - link for tenders' and contracts' API host
 (e.g. 'https://api.prozorro.gov.ua')
 
-* FORWARD_CHANGES_COOLDOWN_SECONDS - time for crawler sleeping. It may be needed for optimizing tender processing. Tenders may be modified too often, for instance every 5 minutes. This configuration allows crawler to wait and not process too fresh tenders that might be modified in the nearest future one more time. This configuration is in seconds. 
+* FORWARD_CHANGES_COOLDOWN_SECONDS - time in seconds when crawler should stop processing. It may be needed for optimizing tender processing. Tenders may be modified too often, for instance every 5 minutes. This configuration allows crawler to wait and not process too fresh tenders that might be modified in the nearest future one more time. This configuration is in seconds. Crawler is watching at last dateModified of object in feed and if this date is less than `get_now - FORWARD_CHANGES_COOLDOWN_SECONDS`, than crawler goes to sleep.
 
-E.g. to let crawler sleep for 10 hours and then process all tenders that had been modifying during this time:
+E.g. to let crawler stop if dateModified less than `get_now` for less than 10 hours:
 ```
 FORWARD_CHANGES_COOLDOWN_SECONDS: '36000'
 ```
 Or you can set `FORWARD_CHANGES_COOLDOWN_SECONDS: ''` for crawler not to sleep.
 
+* SLEEP_FORWARD_CHANGES_SECONDS - custom time in seconds for crawler to sleep after it stops (connects with `FORWARD_CHANGES_COOLDOWN_SECONDS`). 
+Crawler is watching at last dateModified of object in feed and if this date is less than `get_now - FORWARD_CHANGES_COOLDOWN_SECONDS`, than crawler goes to sleep. 
+By default crawler sleeps FORWARD_CHANGES_COOLDOWN_SECONDS, but if you want crawler sleeps less or more, you can configure it by variable `SLEEP_FORWARD_CHANGES_SECONDS`
+To configure crawler to sleep 1 day:
+
+
+For example, you can configure to stop crawler if dateModified greater that `get_now - 31 days` and tell crawler to sleep 1 day before continuing processing: 
+```
+FORWARD_CHANGES_COOLDOWN_SECONDS: '2678400'
+SLEEP_FORWARD_CHANGES_SECONDS: '86400'
+```
 * FORWARD_OFFSET - timestamp from what period of time crawler starts processing tenders. 
 E.g. 
 ```
