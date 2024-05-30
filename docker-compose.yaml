@@ -28,10 +28,10 @@ services:
             PYTHONUNBUFFERED: '1'
             MONGODB_STATE_ID: 'prozorro-tenders-risks'
             API_OPT_FIELDS: 'status,auctionPeriod,lots,next_check'
-            PUBLIC_API_HOST: 'https://api.master.k8s.prozorro.gov.ua'
+            PUBLIC_API_HOST: 'https://api.prozorro.gov.ua'
             FORWARD_CHANGES_COOLDOWN_SECONDS: '36000'  # 10 hours in seconds
             BACKWARD_OFFSET: '1423058400.69246'  # 2015-02-23T12:00:00.756010+02:00
-            FORWARD_OFFSET: '1704060000.0'  # 2023-01-01T00:00:00+02:00
+            FORWARD_OFFSET: '1672524000.0'  # 2023-01-01T00:00:00+02:00
         command: python -m prozorro.risks.crawlers.tenders_crawler
         volumes:
             - ./src/prozorro:/app/prozorro
@@ -44,10 +44,10 @@ services:
             PYTHONUNBUFFERED: '1'
             MONGODB_STATE_ID: 'prozorro-contracts-risks'
             API_RESOURCE: 'contracts'
-            PUBLIC_API_HOST: 'https://api.master.k8s.prozorro.gov.ua'
+            PUBLIC_API_HOST: 'https://api.prozorro.gov.ua'
             FORWARD_CHANGES_COOLDOWN_SECONDS: '36000'  # 10 hours in seconds
             BACKWARD_OFFSET: '1423058400.69246'  # 2015-02-23T12:00:00.756010+02:00
-            FORWARD_OFFSET: '1704060000.0'  # 2023-01-01T00:00:00+02:00
+            FORWARD_OFFSET: '1672524000.0'  # 2023-01-01T00:00:00+02:00
             LOCK_PROCESS_NAME: 'contracts_crawler_lock'
         command: python -m prozorro.risks.crawlers.contracts_crawler
         volumes:
@@ -60,7 +60,7 @@ services:
             MONGODB_URL: 'mongodb://root:example@mongo:27017/?replicaSet=rs0'
             PYTHONUNBUFFERED: '1'
             MONGODB_STATE_ID: 'prozorro-delay-risks'
-            PUBLIC_API_HOST: 'http://api.master.k8s.prozorro.gov.ua'
+            PUBLIC_API_HOST: 'http://api.prozorro.gov.ua'
             FORWARD_CHANGES_COOLDOWN_SECONDS: '2678'  # 31 days TEST_MODE (approximately 45 minutes in seconds)
             # SLEEP_FORWARD_CHANGES_SECONDS: '86'  # 1 day sleep before processing next chunk (in TEST_MODE is 1.3 minute)
             BACKWARD_OFFSET: '1423058400.69246'  # 2015-02-23T12:00:00.756010+02:00
