@@ -24,7 +24,7 @@ clean: remove-compose
 
 ## Runs application development on docker. Builds, creates, starts containers for a service. | Common
 run: docker-build
-	@docker-compose up $(PROJECT_NAME) frontend
+	@docker-compose up $(PROJECT_NAME) frontend mongo
 
 ## Stops application. Stops running container without removing them.
 stop:
