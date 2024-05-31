@@ -8,10 +8,11 @@ from prozorro.risks.rules.sas24_3_1 import RiskRule as Sas24RiskRule
 from prozorro.risks.utils import get_now
 from tests.integration.conftest import get_fixture_json
 
-tender_data = get_fixture_json("base_tender")
+tender_data = deepcopy(get_fixture_json("base_tender"))
 complaints = get_fixture_json("complaints")
 tender_data["mainProcurementCategory"] = "services"
 tender_data["value"]["amount"] = 500000
+tender_data["dateModified"] = (get_now() - timedelta(days=31)).isoformat()
 
 
 async def test_tender_with_satisfied_complaints_more_than_decision_limit():
