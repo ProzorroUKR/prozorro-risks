@@ -1,6 +1,4 @@
-from datetime import timedelta, datetime
-
-from prozorro.risks.exceptions import SkipException
+from datetime import timedelta
 from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import (
