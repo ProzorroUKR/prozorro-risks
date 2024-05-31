@@ -69,12 +69,6 @@ class RiskRule(BaseTenderRiskRule):
         return RiskNotFound()
 
     async def process_tender(self, tender, parent_object=None):
-        from prozorro.risks.crawlers.delay_crawler import logger
-        if datetime.fromisoformat(tender["dateModified"]) > calculate_end_date(
-            get_now(), -timedelta(days=DECISION_LIMIT), ceil=False
-        ):
-            logger.error(f"Tender {tender['id']} has been modified less than 30 days ago")
-            raise SkipException()
         if self.tender_matches_requirements(tender, category=False, value=True):
             complaints = get_complaints(tender, statuses=["satisfied"])
             award_complaints = flatten(
