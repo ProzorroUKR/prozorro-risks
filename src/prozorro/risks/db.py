@@ -456,6 +456,7 @@ async def get_tender_risks_report(filters, **kwargs):
     sort_order = ASCENDING if kwargs.get("order") == "asc" else DESCENDING
     pipeline = [
         {"$match": filters},
+        {"$project": {"contracts": 0, "dateCreated": 0, "risks": 0, "status": 0}},
         {"$sort": {sort_field: sort_order, "_id": 1}},  # including _id field guarantee sort consistency during limit
         {"$limit": REPORT_ITEMS_LIMIT},
         {
