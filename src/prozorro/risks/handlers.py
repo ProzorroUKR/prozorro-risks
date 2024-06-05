@@ -7,6 +7,9 @@ from aiohttp import web
 from aiohttp.hdrs import CONTENT_DISPOSITION, CONTENT_TYPE
 from aiohttp_swagger import swagger_path
 from datetime import datetime
+
+from pymongo.errors import ExecutionTimeout
+
 from prozorro import version as api_version
 from prozorro.risks.db import (
     build_tender_filters,
@@ -195,14 +198,21 @@ async def download_risks_report(request):
     await send_buffer()
 
     count = 0
-    async for doc in cursor:
-        writer.writerow(doc)
-        count += 1
+    try:
+        async for doc in cursor:
+            writer.writerow(doc)
+            count += 1
 
-        if count > MAX_BUFFER_LINES:
-            await send_buffer()
-            count = 0
+            if count > MAX_BUFFER_LINES:
+                await send_buffer()
+                count = 0
 
+    except ExecutionTimeout as exc:
+        logger.error(
+            f"Report downloading {type(exc)}: {exc}, filters: {filters}",
+            extra={"MESSAGE_ID": "MONGODB_EXC"},
+        )
+        writer.writerow({"_id": "...", "tenderID": "..."})
     await send_buffer()
     await response.write_eof()
     return response
