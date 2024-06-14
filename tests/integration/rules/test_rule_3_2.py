@@ -144,6 +144,22 @@ async def test_tender_with_less_than_2_disqualified_awards(risk_rule_class, risk
     assert result == risk_result
 
 
+async def test_tender_with_no_disqualified_awards_but_with_winner():
+    # 1 bidder
+    bid["lotValues"][0]["relatedLot"] = tender_data["lots"][0]["id"]
+    bid["status"] = "active"
+
+    # 1 winner
+    winner = deepcopy(disqualified_award)
+    winner["status"] = "active"
+
+    tender_data.update({"bids": [bid], "awards": [winner]})
+    for risk_rule_class in (RiskRule, Sas24RiskRule):
+        risk_rule = risk_rule_class()
+        result = await risk_rule.process_tender(tender_data)
+        assert result == RiskNotFound()
+
+
 async def test_tender_without_violations():
     # 4 bidders
     bid["lotValues"][0]["relatedLot"] = tender_data["lots"][0]["id"]

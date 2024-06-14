@@ -27,7 +27,7 @@ async def test_tender_without_active_changes_in_contract():
 async def test_tender_with_another_rational_types_in_contract():
     contract = deepcopy(contract_data)
     contract["changes"][0]["rationaleTypes"] = ["volumeCuts"]
-    contract["changes"][1]["rationaleTypes"] = ["priceReduction"]
+    contract["changes"][1]["rationaleTypes"] = ["durationExtension", "fiscalYearExtension"]  # not risky combination
     contract["changes"][2]["rationaleTypes"] = ["itemPriceVariation"]  # only one risked rationalType (we need min two)
     risk_rule = RiskRule()
     result = await risk_rule.process_contract(contract, tender_data)

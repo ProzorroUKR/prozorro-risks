@@ -39,6 +39,8 @@ class RiskRule(BaseTenderRiskRule):
                         lot,
                         check_winner=True,
                     )
+                    if not disqualifications_count:
+                        continue
 
                     # Якщо для лота “Учасники” = “Переможець” + “Дискваліфікації”, індикатор приймає значення “1”.
                     if bidders_count == winner_count + disqualifications_count:
@@ -48,6 +50,8 @@ class RiskRule(BaseTenderRiskRule):
                     tender,
                     check_winner=True,
                 )
+                if not disqualifications_count:
+                    return RiskNotFound()
 
                 # Якщо “Учасники” = “Переможець” + “Дискваліфікації”, індикатор приймає значення “1”
                 if bidders_count == winner_count + disqualifications_count:

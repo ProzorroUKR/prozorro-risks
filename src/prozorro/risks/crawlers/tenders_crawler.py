@@ -6,11 +6,12 @@ from prozorro.risks.crawlers.base import process_risks
 from prozorro.risks.db import init_mongodb, save_tender, update_tender_risks
 from prozorro.risks.logging import setup_logging
 from prozorro.risks.requests import get_object_data
-from prozorro.risks.settings import CRAWLER_START_DATE
+from prozorro.risks.settings import CRAWLER_START_DATE, SENTRY_DSN
 from prozorro.risks.utils import get_now, tender_should_be_checked_for_termination, get_subject_of_procurement
 from prozorro.risks.rules import *  # noqa
 import asyncio
 import logging
+import sentry_sdk
 
 
 logger = logging.getLogger(__name__)
@@ -89,5 +90,7 @@ async def risks_data_handler(session, items):
 
 if __name__ == "__main__":
     setup_logging()
+    if SENTRY_DSN:
+        sentry_sdk.init(dsn=SENTRY_DSN)
     logger.info("Tender crawler started")
     main(risks_data_handler, init_task=init_mongodb)

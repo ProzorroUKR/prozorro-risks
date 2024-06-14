@@ -5,9 +5,11 @@ from prozorro.risks.crawlers.tenders_crawler import fetch_and_process_tender
 from prozorro.risks.db import init_mongodb
 from prozorro.risks.logging import setup_logging
 from prozorro.risks.rules.sas24_3_1 import RiskRule as RiskRuleSas24_3_1
+from prozorro.risks.settings import SENTRY_DSN
 from prozorro.risks.utils import get_now
 import asyncio
 import logging
+import sentry_sdk
 
 
 logger = logging.getLogger(__name__)
@@ -33,5 +35,7 @@ async def risks_data_handler(session, items):
 
 if __name__ == "__main__":
     setup_logging()
+    if SENTRY_DSN:
+        sentry_sdk.init(dsn=SENTRY_DSN)
     logger.info("Delay crawler started")
     main(risks_data_handler, init_task=init_mongodb)
