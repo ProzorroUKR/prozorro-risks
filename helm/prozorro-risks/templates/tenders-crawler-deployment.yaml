@@ -28,6 +28,8 @@ spec:
           env:
             - name: MONGODB_URL
               value: '{{ .Values.config.mongodb_uri }}'
+            - name: SENTRY_DSN
+              value: '{{ .Values.config.sentry_dsn }}'
             - name: PUBLIC_API_HOST
               value: '{{ .Values.config.public_api_host }}'
             - name: MONGODB_STATE_ID

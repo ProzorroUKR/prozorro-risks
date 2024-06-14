@@ -57,7 +57,7 @@ class RiskRule(BaseContractRiskRule):
                     change
                     for change in contract.get("changes", [])
                     if change["status"] == "active"
-                    and "itemPriceVariation" in rationales
+                    and "itemPriceVariation" in change["rationaleTypes"]
                     and len(rationales.intersection(set(change["rationaleTypes"]))) >= 2
                 ]
                 # Якщо в договорі є зміни у яких data.changes.status='active' та
