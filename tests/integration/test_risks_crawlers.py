@@ -76,7 +76,7 @@ async def test_process_complete_tenders(mock_save_tender, mock_process_risks, db
 @patch("prozorro.risks.crawlers.tenders_crawler.save_tender")
 @patch("prozorro.risks.crawlers.contracts_crawler.process_risks", return_value={})
 async def test_process_simultaneously_contracts_and_tenders(
-        mock_process_risks, mock_save_tender, mock_fetch_tender, db, api
+    mock_process_risks, mock_save_tender, mock_fetch_tender, db, api
 ):
     contract_data_1 = {
         "id": "e427359ed3614fef9a63f2e91fdafc6d",

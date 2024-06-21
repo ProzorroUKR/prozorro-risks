@@ -17,7 +17,7 @@ from prozorro.risks.utils import get_now
 class RiskRule(BaseTenderRiskRule):
     identifier = "sas24-3-9"
     owner = "sas24"
-    name = "Повторне визнання переможцем учасника після винесення рішення органом оскарження по ньому"
+    name = "Замовник повторно визнає переможцем учасника після винесення рішення Органом оскарження"
     procurement_methods = ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold")
     tender_statuses = ("active.qualification", "active.awarded", "complete")
     procuring_entity_kinds = (

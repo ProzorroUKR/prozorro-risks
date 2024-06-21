@@ -9,7 +9,7 @@ from prozorro.risks.settings import CRAWLER_START_DATE, SAS_24_RULES_FROM
 class RiskRule(BaseContractRiskRule):
     identifier = "sas24-3-4"
     owner = "sas24"
-    name = "Зміна істотних умов договору (ціни за одиницю товару)"
+    name = "Замовник змінив істотні умови договору про закупівлю в частині збільшення ціни та зміни строку дії договору"
     description = "Індикатор свідчить про незаконну зміну ціни договору частіше ніж один раз у 90 днів"
     legitimateness = (
         "Зміна суми договру частіше ніж один раз на 90 днів є порушенням пп. 2, п. 5 статті 41 Закону "
