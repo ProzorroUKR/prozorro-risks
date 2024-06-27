@@ -53,18 +53,18 @@ class RiskRule(BaseContractRiskRule):
                     "durationExtension",
                     "fiscalYearExtension",
                 }
-                active_changes = [
-                    change
-                    for change in contract.get("changes", [])
-                    if change["status"] == "active"
-                    and "itemPriceVariation" in change["rationaleTypes"]
-                    and len(rationales.intersection(set(change["rationaleTypes"]))) >= 2
-                ]
+                active_changes_rationales = set()
+                for change in contract.get("changes", []):
+                    if change["status"] == "active":
+                        active_changes_rationales.update(change["rationaleTypes"])
                 # Якщо в договорі є зміни у яких data.changes.status='active' та
                 # в масив причин data.changes.rationaleTypes містить елементи itemPriceVariation та durationExtension,
                 # або itemPriceVariation та fiscalYearExtension, або itemPriceVariation та fiscalYearExtension та
                 # durationExtension, то індикатор приймає значення 1, розрахунок завершується
-                if active_changes:
+                if (
+                    "itemPriceVariation" in active_changes_rationales
+                    and len(rationales.intersection(active_changes_rationales)) >= 2
+                ):
                     return RiskFound(type="contract", id=contract["id"])
         elif contract["status"] == self.stop_assessment_status:
             return RiskFromPreviousResult(type="contract", id=contract["id"])

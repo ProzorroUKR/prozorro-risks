@@ -28,7 +28,7 @@ async def test_tender_with_another_rational_types_in_contract():
     contract = deepcopy(contract_data)
     contract["changes"][0]["rationaleTypes"] = ["volumeCuts"]
     contract["changes"][1]["rationaleTypes"] = ["durationExtension", "fiscalYearExtension"]  # not risky combination
-    contract["changes"][2]["rationaleTypes"] = ["itemPriceVariation"]  # only one risked rationalType (we need min two)
+    contract["changes"][2]["rationaleTypes"] = ["fiscalYearExtension"]
     risk_rule = RiskRule()
     result = await risk_rule.process_contract(contract, tender_data)
     assert result == RiskNotFound(type="contract", id=contract["id"])
@@ -61,6 +61,17 @@ async def test_tender_with_active_changes(rationale_types, risk_result):
     risk_rule = RiskRule()
     result = await risk_rule.process_contract(contract, tender_data)
     assert result == risk_result
+
+
+async def test_tender_with_few_active_changes():
+    # contract_data has 3 changes which have status active and contain itemPriceVariation in rationaleTypes array
+    contract = deepcopy(contract_data)
+    contract["changes"][0]["rationaleTypes"] = ["volumeCuts"]
+    contract["changes"][1]["rationaleTypes"] = ["durationExtension", "fiscalYearExtension"]
+    contract["changes"][2]["rationaleTypes"] = ["itemPriceVariation"]
+    risk_rule = RiskRule()
+    result = await risk_rule.process_contract(contract, tender_data)
+    assert result == RiskFound(type="contract", id=contract_data["id"])
 
 
 async def test_tender_with_not_risky_contract_status():
