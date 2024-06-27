@@ -61,6 +61,7 @@ tender_data["awards"][0].update({
     "status": "active",
     "bid_id": tender_data["bids"][0]["id"],
     "lotID": tender_data["lots"][0]["id"],
+    "complaintPeriod": {"endDate": (get_now() - timedelta(days=2)).isoformat()}
 })
 
 
@@ -103,7 +104,7 @@ async def test_tender_value(amount, category, risk_result):
     assert result == risk_result
 
 
-async def test_tender_bidder_has_no_eligibility_docs():
+async def test_tender_bidder_has_no_docs():
     tender = deepcopy(tender_data)
     tender["bids"][0].pop("documents")
     risk_rule = RiskRule()
@@ -114,14 +115,14 @@ async def test_tender_bidder_has_no_eligibility_docs():
 @pytest.mark.parametrize(
     "doc_date_published,risk_result",
     [
+        ((get_now() - timedelta(days=2)).isoformat(), RiskFound()),
         ((get_now() - timedelta(days=1)).isoformat(), RiskNotFound()),
-        (get_now().isoformat(), RiskFound()),
+        (get_now().isoformat(), RiskNotFound()),
         ((get_now() - timedelta(days=7)).isoformat(), RiskFound()),
     ],
 )
-async def test_tender_bidder_has_eligibility_docs(doc_date_published, risk_result):
+async def test_tender_bidder_has_delayed_docs(doc_date_published, risk_result):
     tender = deepcopy(tender_data)
-    tender["bids"][0]["documents"][0]["documentType"] = "eligibilityDocuments"
     tender["bids"][0]["documents"][0]["datePublished"] = doc_date_published
     risk_rule = RiskRule()
     result = await risk_rule.process_tender(tender)
@@ -131,16 +132,16 @@ async def test_tender_bidder_has_eligibility_docs(doc_date_published, risk_resul
 @pytest.mark.parametrize(
     "doc_date_published,risk_result",
     [
+        ((get_now() - timedelta(days=2)).isoformat(), RiskFound()),
         ((get_now() - timedelta(days=1)).isoformat(), RiskNotFound()),
-        (get_now().isoformat(), RiskFound()),
+        (get_now().isoformat(), RiskNotFound()),
         ((get_now() - timedelta(days=7)).isoformat(), RiskFound()),
     ],
 )
-async def test_tender_bidder_has_eligibility_docs_in_another_envelopes(doc_date_published, risk_result):
+async def test_tender_bidder_has_delayed_docs_in_another_envelopes(doc_date_published, risk_result):
     tender = deepcopy(tender_data)
     tender["bids"][0]["eligibilityDocuments"] = [tender["bids"][0]["documents"][0]]
     tender["bids"][0].pop("documents")
-    tender["bids"][0]["eligibilityDocuments"][0]["documentType"] = "eligibilityDocuments"
     tender["bids"][0]["eligibilityDocuments"][0]["datePublished"] = doc_date_published
     risk_rule = RiskRule()
     result = await risk_rule.process_tender(tender)
@@ -196,7 +197,6 @@ async def test_tender_with_not_risky_procurement_entity_kind():
 
 async def test_tender_few_bidders_multi_lots():
     tender = deepcopy(tender_data)
-    tender["bids"][0]["documents"][0]["documentType"] = "eligibilityDocuments"
     tender["bids"][0]["documents"][0]["datePublished"] = (get_now() - timedelta(days=1)).isoformat()
     bid_2 = deepcopy(tender["bids"][0])
     bid_2["id"] = uuid4().hex
@@ -207,6 +207,7 @@ async def test_tender_few_bidders_multi_lots():
         "status": "active",
         "bid_id": tender["bids"][1]["id"],
         "lotID": tender["lots"][1]["id"],
+        "complaintPeriod": {"endDate": (get_now() - timedelta(days=2)).isoformat()}
     })
     risk_rule = RiskRule()
     result = await risk_rule.process_tender(tender)
