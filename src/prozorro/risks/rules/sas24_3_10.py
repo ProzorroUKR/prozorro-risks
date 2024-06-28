@@ -50,7 +50,7 @@ class RiskRule(BaseTenderRiskRule):
     start_date = SAS_24_RULES_FROM
 
     @staticmethod
-    def bidder_does_not_have_documents_after_complaint_period(tender, lot=None):
+    def bidder_does_not_have_documents_during_complaint_period(tender, lot=None):
         for award in tender.get("awards", []):
             # Визначаємо наявність Переможця та завершення періоду оскарження щодо рішення про нього.
             if (
@@ -78,7 +78,9 @@ class RiskRule(BaseTenderRiskRule):
                             for doc in bid.get(docs_field, []):
                                 if (
                                     doc.get("datePublished")
-                                    and datetime.fromisoformat(doc["datePublished"]) > end_date
+                                    and datetime.fromisoformat(award["date"])
+                                    < datetime.fromisoformat(doc["datePublished"])
+                                    < end_date
                                 ):
                                     documents_found = True
                         if not documents_found:
@@ -90,9 +92,9 @@ class RiskRule(BaseTenderRiskRule):
                 for lot in tender["lots"]:
                     if lot["status"] in ("cancelled", "unsuccessful"):
                         continue
-                    if self.bidder_does_not_have_documents_after_complaint_period(tender, lot=lot):
+                    if self.bidder_does_not_have_documents_during_complaint_period(tender, lot=lot):
                         return RiskFound()
             else:
-                if self.bidder_does_not_have_documents_after_complaint_period(tender):
+                if self.bidder_does_not_have_documents_during_complaint_period(tender):
                     return RiskFound()
         return RiskNotFound()
