@@ -56,6 +56,7 @@ tender_data.update(
         ],
     }
 )
+tender_data["bids"][0]["documents"][0]["datePublished"] = get_now().isoformat()
 tender_data["awards"][0].update({
     "date": (get_now() - timedelta(days=6)).isoformat(),
     "status": "active",
@@ -115,9 +116,10 @@ async def test_tender_bidder_has_no_docs():
 @pytest.mark.parametrize(
     "doc_date_published,risk_result",
     [
-        ((get_now() - timedelta(days=2)).isoformat(), RiskFound()),
-        ((get_now() - timedelta(days=1)).isoformat(), RiskNotFound()),
-        (get_now().isoformat(), RiskNotFound()),
+        ((get_now() - timedelta(days=1)).isoformat(), RiskFound()),
+        ((get_now() - timedelta(days=2)).isoformat(), RiskNotFound()),
+        (get_now().isoformat(), RiskFound()),
+        ((get_now() - timedelta(days=4)).isoformat(), RiskNotFound()),
         ((get_now() - timedelta(days=7)).isoformat(), RiskFound()),
     ],
 )
@@ -132,9 +134,10 @@ async def test_tender_bidder_has_delayed_docs(doc_date_published, risk_result):
 @pytest.mark.parametrize(
     "doc_date_published,risk_result",
     [
-        ((get_now() - timedelta(days=2)).isoformat(), RiskFound()),
-        ((get_now() - timedelta(days=1)).isoformat(), RiskNotFound()),
-        (get_now().isoformat(), RiskNotFound()),
+        ((get_now() - timedelta(days=1)).isoformat(), RiskFound()),
+        ((get_now() - timedelta(days=2)).isoformat(), RiskNotFound()),
+        (get_now().isoformat(), RiskFound()),
+        ((get_now() - timedelta(days=4)).isoformat(), RiskNotFound()),
         ((get_now() - timedelta(days=7)).isoformat(), RiskFound()),
     ],
 )
@@ -197,7 +200,7 @@ async def test_tender_with_not_risky_procurement_entity_kind():
 
 async def test_tender_few_bidders_multi_lots():
     tender = deepcopy(tender_data)
-    tender["bids"][0]["documents"][0]["datePublished"] = (get_now() - timedelta(days=1)).isoformat()
+    tender["bids"][0]["documents"][0]["datePublished"] = (get_now() - timedelta(days=4)).isoformat()
     bid_2 = deepcopy(tender["bids"][0])
     bid_2["id"] = uuid4().hex
     bid_2.pop("documents")  # second bidder does not have documents
