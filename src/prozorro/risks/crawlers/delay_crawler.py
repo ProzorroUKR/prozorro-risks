@@ -22,7 +22,6 @@ for risk_name in RISK_RULES:
         continue
     if hasattr(risk_rule, "process_tender"):
         TENDER_RISKS.append(risk_rule)
-print(TENDER_RISKS)
 
 
 async def risks_data_handler(session, items):
