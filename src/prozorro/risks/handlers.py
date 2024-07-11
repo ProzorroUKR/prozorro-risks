@@ -3,6 +3,8 @@ import io
 import logging
 import sys
 
+from aiocache import cached
+from aiocache.serializers import JsonSerializer
 from aiohttp import web
 from aiohttp.hdrs import CONTENT_DISPOSITION, CONTENT_TYPE
 from aiohttp_swagger import swagger_path
@@ -19,8 +21,7 @@ from prozorro.risks.db import (
     find_tenders,
     get_tenders_risks_feed,
 )
-from prozorro.risks.serialization import json_response
-from prozorro.risks.settings import MAX_LIST_LIMIT
+from prozorro.risks.settings import MAX_LIST_LIMIT, CACHE_TTL
 from prozorro.risks.utils import (
     build_content_disposition_name,
     get_now,
@@ -43,13 +44,13 @@ async def ping_handler(request):
 
 @swagger_path("/swagger/version.yaml")
 async def get_version(request):
-    return json_response({"api_version": api_version})
+    return {"api_version": api_version}
 
 
 @swagger_path("/swagger/risks.yaml")
 async def get_tender_risks(request, tender_id):
     tender = await get_risks(tender_id)
-    return json_response(tender, status=200)
+    return tender
 
 
 @swagger_path("/swagger/risks_list.yaml")
@@ -132,6 +133,7 @@ async def get_tenders_feed(request):
 
 
 @swagger_path("/swagger/filter_values.yaml")
+@cached(ttl=CACHE_TTL, serializer=JsonSerializer())
 async def get_filter_values(request):
     regions = await get_distinct_values("procuringEntityRegion")
     risk_rules = []
@@ -153,7 +155,7 @@ async def get_filter_values(request):
         "regions": regions,
         "risk_rules": risk_rules,
     }
-    return json_response(result, status=200)
+    return result
 
 
 @swagger_path("/swagger/download_risks_report.yaml")

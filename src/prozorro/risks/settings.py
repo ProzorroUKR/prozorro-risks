@@ -44,3 +44,5 @@ WORKING_DAYS = {}
 HOLIDAYS = standards.load("calendars/workdays_off.json")
 for date_str in HOLIDAYS:
     WORKING_DAYS[date_str] = True
+
+CACHE_TTL = os.environ.get("CACHE_TTL", 86400)  # default 24 hours
