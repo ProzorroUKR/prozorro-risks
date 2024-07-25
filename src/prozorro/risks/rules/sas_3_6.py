@@ -31,7 +31,8 @@ class RiskRule(BaseTenderRiskRule):
                             if award.get("lotID") == lot["id"] and lot["status"] not in ("cancelled", "unsuccessful"):
                                 award_value = award.get("value", {}).get("amount", 0)
 
-                                # Якщо різниця менша на 30% і більше індикатор приймає значення 1, розрахунок завершується.
+                                # Якщо різниця менша на 30% і більше індикатор приймає значення 1,
+                                # розрахунок завершується.
                                 if count_percentage_between_two_values(lot_value, award_value) >= PERCENTAGE_LIMIT:
                                     return RiskFound()
             else:
