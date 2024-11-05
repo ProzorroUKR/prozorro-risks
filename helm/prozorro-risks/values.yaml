@@ -3,13 +3,13 @@ config:
   sentry_dsn: 'http://c921e523b5384eb990c5cd2737d2aa79@sentry.dc.prozorro.gov.ua/55'
   public_api_host: 'http://api.master.k8s.prozorro.gov.ua'
   backward_offset: '1423058400.69246'
-  forward_offset: '1672524000.0'
-  delay_forward_offset: '1704060000.0'
+  forward_offset: '1730325600.0'
+  delay_forward_offset: '1730325600.0'
   forward_changes_cooldown_seconds: '0'
   delay_forward_changes_cooldown_seconds: '2678'
   sleep_forward_changes_seconds: '2678'
   test_mode: 'True'
-  sas_24_rules_from: "2024-01-01"
+  sas_24_rules_from: "2024-10-31"
   api_limit: '1'
 
 api:

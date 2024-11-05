@@ -116,13 +116,6 @@ def parse_offset(offset: str):
     return date.isoformat()
 
 
-def tender_created_after_release(tender, release_date, date_format="%Y-%m-%d"):
-    return (
-        tender.get("dateCreated")
-        and datetime.fromisoformat(tender["dateCreated"]).date() >= datetime.strptime(release_date, date_format).date()
-    )
-
-
 def tender_should_be_checked_for_termination(tender):
     """
     As we reload crawler in past date and check once again all tenders,

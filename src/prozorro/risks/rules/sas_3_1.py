@@ -7,6 +7,7 @@ from prozorro.risks.rules.utils import (
     get_complaints,
     flatten,
 )
+from prozorro.risks.settings import OLD_SAS_RISKS_END_DATE
 from prozorro.risks.utils import get_now
 
 DECISION_LIMIT = 30
@@ -50,6 +51,7 @@ class RiskRule(BaseTenderRiskRule):
         "social",
         "special",
     )
+    end_date = OLD_SAS_RISKS_END_DATE
 
     @staticmethod
     def check_decision_delta(complaints):

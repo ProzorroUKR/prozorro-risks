@@ -1,6 +1,7 @@
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import get_complaints
+from prozorro.risks.settings import OLD_SAS_RISKS_END_DATE
 
 
 class RiskRule(BaseTenderRiskRule):
@@ -15,6 +16,7 @@ class RiskRule(BaseTenderRiskRule):
         "social",
         "special",
     )
+    end_date = OLD_SAS_RISKS_END_DATE
 
     @staticmethod
     def tender_has_active_awards_with_same_bid(awards, current_award):

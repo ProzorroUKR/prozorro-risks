@@ -3,6 +3,7 @@ from datetime import datetime
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import get_complaints
+from prozorro.risks.settings import OLD_SAS_RISKS_END_DATE
 
 
 class RiskRule(BaseTenderRiskRule):
@@ -17,6 +18,7 @@ class RiskRule(BaseTenderRiskRule):
         "social",
         "special",
     )
+    end_date = OLD_SAS_RISKS_END_DATE
 
     @staticmethod
     def tender_has_another_award_with_same_bid_and_milestone(award, awards_with_milestones):
