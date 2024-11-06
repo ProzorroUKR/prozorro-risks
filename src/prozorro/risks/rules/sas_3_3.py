@@ -3,6 +3,7 @@ from datetime import datetime
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.historical_data import get_list_of_cpvs
+from prozorro.risks.settings import OLD_SAS_RISKS_END_DATE
 
 
 class RiskRule(BaseTenderRiskRule):
@@ -26,6 +27,7 @@ class RiskRule(BaseTenderRiskRule):
         "special",
     )
     procurement_categories = ("goods", "services")
+    end_date = OLD_SAS_RISKS_END_DATE
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender):

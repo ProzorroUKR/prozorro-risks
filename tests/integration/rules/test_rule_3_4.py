@@ -64,7 +64,7 @@ async def test_tender_with_not_risky_procurement_entity_kind():
 
 async def test_contract_with_old_tender():
     tender = deepcopy(tender_data)
-    tender["dateCreated"] = "2022-12-16T14:30:13.746921+02:00"
+    tender["dateCreated"] = "2014-12-16T14:30:13.746921+02:00"
     risk_rule = RiskRule()
     with pytest.raises(SkipException):
         await risk_rule.process_contract(contract_data, tender)

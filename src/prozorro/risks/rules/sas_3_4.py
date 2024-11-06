@@ -3,7 +3,7 @@ from datetime import datetime
 from prozorro.risks.exceptions import SkipException
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseContractRiskRule
-from prozorro.risks.settings import CRAWLER_START_DATE
+from prozorro.risks.settings import CRAWLER_START_DATE, OLD_SAS_RISKS_END_DATE
 
 
 class RiskRule(BaseContractRiskRule):
@@ -24,6 +24,7 @@ class RiskRule(BaseContractRiskRule):
         "social",
         "special",
     )
+    end_date = OLD_SAS_RISKS_END_DATE
 
     async def process_contract(self, contract, parent_object=None):
         if contract["status"] in self.contract_statuses:

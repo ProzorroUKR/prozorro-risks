@@ -15,10 +15,8 @@ from prozorro.risks.settings import (
     MAX_LIST_LIMIT,
     MAX_TIME_QUERY,
     MONGODB_ERROR_INTERVAL,
-    SAS_24_RULES_FROM,
 )
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.utils import tender_created_after_release
 from pymongo import ASCENDING, DESCENDING, IndexModel
 from pymongo.errors import ExecutionTimeout, PyMongoError
 from aiohttp import web
@@ -352,6 +350,11 @@ async def update_tender_risks(uid, risks, additional_fields, contracts=None):
             set_data = {
                 "_id": uid,
                 "contracts": updated_contracts,
+                "terminated": tender_is_terminated(
+                    tender if tender else {},
+                    updated_contracts,
+                    new_status=additional_fields.get("status")
+                ),
                 **additional_fields,
             }
             if risks:
@@ -361,12 +364,6 @@ async def update_tender_risks(uid, risks, additional_fields, contracts=None):
                     "worked_risks": worked_risks,
                     "has_risks": len(worked_risks) > 0,
                 })
-            if tender_created_after_release(tender if tender else additional_fields, SAS_24_RULES_FROM):
-                set_data["terminated"] = tender_is_terminated(
-                    tender if tender else {},
-                    updated_contracts,
-                    new_status=additional_fields.get("status")
-                )
             if tender:
                 filters["dateAssessed"] = tender.get("dateAssessed")
             result = await get_risks_collection().find_one_and_update(

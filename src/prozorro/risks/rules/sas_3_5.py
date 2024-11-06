@@ -1,5 +1,6 @@
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseTenderRiskRule
+from prozorro.risks.settings import OLD_SAS_RISKS_END_DATE
 
 
 class RiskRule(BaseTenderRiskRule):
@@ -19,6 +20,7 @@ class RiskRule(BaseTenderRiskRule):
         "social",
         "special",
     )
+    end_date = OLD_SAS_RISKS_END_DATE
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False):
