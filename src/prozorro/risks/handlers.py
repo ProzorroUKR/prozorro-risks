@@ -120,8 +120,20 @@ async def get_tenders_feed(request):
 
     # prepare response
     if results:
-        params["offset"] = results[-1]["dateAssessed"]
-        prev_params["offset"] = results[0]["dateAssessed"]
+        if "dateAssessed" in results[-1]:
+            params["offset"] = results[-1]["dateAssessed"]
+        else:
+            for result in results.reverse():
+                if "dateAssessed" in result:
+                    params["offset"] = result["dateAssessed"]
+                    break
+        if "dateAssessed" in results[0]:
+            prev_params["offset"] = results[0]["dateAssessed"]
+        else:
+            for result in results:
+                if "dateAssessed" in result:
+                    prev_params["offset"] = result["dateAssessed"]
+                    break
     data = {
         "data": results,
         "next_page": get_page(request, params)
