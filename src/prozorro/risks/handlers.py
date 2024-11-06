@@ -123,7 +123,7 @@ async def get_tenders_feed(request):
         if "dateAssessed" in results[-1]:
             params["offset"] = results[-1]["dateAssessed"]
         else:
-            for result in results.reverse():
+            for result in list(reversed(results)):
                 if "dateAssessed" in result:
                     params["offset"] = result["dateAssessed"]
                     break
