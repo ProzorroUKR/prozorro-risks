@@ -38,7 +38,16 @@ async def process_contract(contract):
     tender = await fetch_tender(uid)
     risks = await process_risks(contract, CONTRACT_RISKS, resource=API_RESOURCE, parent_object=tender)
     if risks or tender_should_be_checked_for_termination(tender):
-        updated_fields = {"status": tender.get("status"), "dateCreated": tender.get("dateCreated")}
+        updated_fields = {
+            "dateCreated": tender.get("dateCreated"),
+            "dateModified": contract.get("dateModified"),  # because contract is processing
+            "value": tender.get("value"),
+            "procuringEntity": tender.get("procuringEntity"),
+            "procuringEntityRegion": tender.get("procuringEntity", {}).get("address", {}).get("region", ""),
+            "procuringEntityEDRPOU": tender.get("procuringEntity", {}).get("identifier", {}).get("id", ""),
+            "tenderID": tender.get("tenderID"),
+            "status": tender.get("status"),
+        }
         if risks:
             updated_fields["dateAssessed"] = get_now().isoformat()
         await update_tender_risks(
