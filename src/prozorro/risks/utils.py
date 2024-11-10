@@ -142,9 +142,7 @@ def get_subject_of_procurement(tender_obj):
     :param tender_obj: dict of tender info
     :return: string subject of procurement
     """
-    items_cpvs = [
-        item["classification"]["id"][:-2].rstrip("0") for item in tender_obj["items"] if "classification" in item
-    ]
+    items_cpvs = [item["classification"]["id"][:-2].rstrip("0") for item in tender_obj["items"]]
     uniq_cpvs = set(items_cpvs)
     cpvs = sorted(uniq_cpvs, key=len)
     parent_cpv_found = False
