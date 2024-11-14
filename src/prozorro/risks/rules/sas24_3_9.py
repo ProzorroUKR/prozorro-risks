@@ -27,6 +27,7 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
+
     @staticmethod
     def tender_has_active_awards_with_same_bid(awards, current_award):
         # перевіряємо чи є ще інші data.awards в статусі data.awards.status= "active"
