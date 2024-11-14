@@ -1,7 +1,6 @@
 from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import is_winner_awarded, count_winner_disqualifications_and_bidders
-from prozorro.risks.settings import SAS_24_RULES_FROM
 
 
 class RiskRule(BaseTenderRiskRule):
@@ -29,7 +28,6 @@ class RiskRule(BaseTenderRiskRule):
     )
     procurement_categories = ("goods", "services")
     value_for_services = 400000
-    start_date = SAS_24_RULES_FROM
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, value=True) and is_winner_awarded(tender):

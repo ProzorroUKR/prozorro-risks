@@ -7,10 +7,7 @@ from prozorro.risks.rules.utils import (
     get_complaints,
     is_winner_awarded,
 )
-from prozorro.risks.settings import (
-    SAS_24_RULES_FROM,
-    WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS,
-)
+from prozorro.risks.settings import WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS
 from prozorro.risks.utils import get_now
 
 
@@ -30,8 +27,6 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
-    start_date = SAS_24_RULES_FROM
-
     @staticmethod
     def tender_has_active_awards_with_same_bid(awards, current_award):
         # перевіряємо чи є ще інші data.awards в статусі data.awards.status= "active"

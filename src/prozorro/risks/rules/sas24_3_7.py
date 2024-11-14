@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from prozorro.risks.exceptions import SkipException
 from prozorro.risks.models import RiskFound, RiskNotFound, RiskFromPreviousResult
 from prozorro.risks.rules.base import BaseContractRiskRule
-from prozorro.risks.settings import CRAWLER_START_DATE, SAS_24_RULES_FROM
+from prozorro.risks.settings import CRAWLER_START_DATE
 from prozorro.risks.rules.utils import calculate_end_date
 
 CONTRACT_MODIFYING_DAYS_LIMIT = 60
@@ -39,7 +39,6 @@ class RiskRule(BaseContractRiskRule):
     )
     procurement_categories = ("works",)
     value_for_works = 1500000
-    start_date = SAS_24_RULES_FROM
 
     async def process_contract(self, contract, parent_object=None):
         if contract["status"] in self.contract_statuses:

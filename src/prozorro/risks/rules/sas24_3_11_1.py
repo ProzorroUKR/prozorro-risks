@@ -4,7 +4,6 @@ from prozorro.risks.db import get_tenders_from_historical_data
 from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import calculate_end_date
-from prozorro.risks.settings import SAS_24_RULES_FROM
 from prozorro.risks.utils import get_exchanged_value
 
 
@@ -43,7 +42,6 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
-    start_date = SAS_24_RULES_FROM
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False, value=True):

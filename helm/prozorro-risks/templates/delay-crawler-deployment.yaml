@@ -44,8 +44,6 @@ spec:
               value: 'delay_crawler_lock'
             - name: TEST_MODE
               value: '{{ .Values.config.test_mode }}'
-            - name: SAS_24_RULES_FROM
-              value: '{{ .Values.config.sas_24_rules_from }}'
             - name: API_LIMIT
               value: '{{ .Values.config.api_limit }}'
             - name: SLEEP_FORWARD_CHANGES_SECONDS

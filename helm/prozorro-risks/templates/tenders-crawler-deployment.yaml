@@ -42,8 +42,6 @@ spec:
               value: '{{ .Values.config.forward_changes_cooldown_seconds }}'
             - name: TEST_MODE
               value: '{{ .Values.config.test_mode }}'
-            - name: SAS_24_RULES_FROM
-              value: '{{ .Values.config.sas_24_rules_from }}'
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

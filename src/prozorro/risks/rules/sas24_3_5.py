@@ -5,7 +5,6 @@ from prozorro.risks.rules.utils import (
     count_winner_disqualifications_and_bidders,
     has_milestone_24,
 )
-from prozorro.risks.settings import SAS_24_RULES_FROM
 
 
 class RiskRule(BaseTenderRiskRule):
@@ -33,7 +32,6 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
-    start_date = SAS_24_RULES_FROM
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(

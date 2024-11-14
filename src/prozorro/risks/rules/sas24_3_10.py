@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import is_winner_awarded, calculate_end_date
-from prozorro.risks.settings import SAS_24_RULES_FROM
 from prozorro.risks.utils import get_now
 
 DOC_PUBLISHED_LIMIT_DAYS = 4
@@ -47,7 +46,6 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
-    start_date = SAS_24_RULES_FROM
 
     @staticmethod
     def bidder_does_not_have_documents_during_complaint_period(tender, lot=None):

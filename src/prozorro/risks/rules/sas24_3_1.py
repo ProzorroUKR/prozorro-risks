@@ -6,7 +6,6 @@ from prozorro.risks.rules.utils import (
     get_complaints,
     flatten,
 )
-from prozorro.risks.settings import SAS_24_RULES_FROM
 from prozorro.risks.utils import get_now
 
 DECISION_LIMIT = 30
@@ -55,7 +54,6 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
-    start_date = SAS_24_RULES_FROM
 
     @staticmethod
     def check_decision_delta(complaints):

@@ -1,7 +1,6 @@
 from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.base import BaseTenderRiskRule
 from prozorro.risks.rules.utils import has_milestone_24
-from prozorro.risks.settings import SAS_24_RULES_FROM
 
 
 class RiskRule(BaseTenderRiskRule):
@@ -40,7 +39,6 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
-    start_date = SAS_24_RULES_FROM
 
     @staticmethod
     def awards_have_milestone_24_code(tender, lot=None):

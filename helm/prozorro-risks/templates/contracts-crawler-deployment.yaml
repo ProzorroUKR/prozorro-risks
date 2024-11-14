@@ -46,8 +46,6 @@ spec:
               value: 'contracts_crawler_lock'
             - name: TEST_MODE
               value: '{{ .Values.config.test_mode }}'
-            - name: SAS_24_RULES_FROM
-              value: '{{ .Values.config.sas_24_rules_from }}'
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

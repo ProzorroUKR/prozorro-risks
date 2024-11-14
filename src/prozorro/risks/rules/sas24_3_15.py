@@ -6,7 +6,6 @@ from prozorro.risks.rules.utils import (
     flatten,
     get_complaints,
 )
-from prozorro.risks.settings import SAS_24_RULES_FROM
 
 
 class RiskRule(BaseTenderRiskRule):
@@ -48,7 +47,6 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
-    start_date = SAS_24_RULES_FROM
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False, value=True) and is_winner_awarded(tender):
