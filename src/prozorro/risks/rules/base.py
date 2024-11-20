@@ -13,7 +13,7 @@ class BaseRiskRule(ABC):
     procurement_categories: tuple
     procuring_entity_kinds: tuple
     contract_statuses: tuple
-    start_date: str = "2023-01-01"
+    start_date: str = None
     end_date: str = None
     stop_assessment_status: str = "complete"
     value_for_services: int = 0
