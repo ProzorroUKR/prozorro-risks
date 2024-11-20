@@ -400,7 +400,7 @@ async def paginated_result(collection, filters, skip, limit, sort=None, projecti
             cursor = cursor.sort(sort)
         items = await cursor.to_list(length=None)
         # should be added additional field for using index during counting documents
-        filters.update({"dateAssessed": {"$gte": CRAWLER_START_DATE}})
+        filters.update({"dateAssessed": {"$gte": CRAWLER_START_DATE.isoformat()}})
         count = await collection.count_documents(filters, maxTimeMS=MAX_TIME_QUERY)
     except ExecutionTimeout as exc:
         logger.error(f"Filter tenders {type(exc)}: {exc}, filters: {filters}", extra={"MESSAGE_ID": "MONGODB_EXC"})
