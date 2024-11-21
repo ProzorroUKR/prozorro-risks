@@ -7,11 +7,11 @@ class RiskRule(BaseTenderRiskRule):
     identifier = "sas24-3-2"
     owner = "sas24"
     name = (
-        "Замовник відхилив тендерні пропозиції/ пропозиції всіх учасників під час закупівлі товарів або послуг, "
-        "крім переможця"
+        "Замовник / державний замовник відхилив тендерні пропозиції / пропозиції учасників (не менше двох) "
+        "під час закупівлі товарів або послуг, крім переможця"
     )
     description = (
-        "Даний індикатор виявляє ситуації, коли замовник дискваліфікував усіх учасників лота або процедури "
+        "Даний індикатор виявляє ситуації, коли замовник дискваліфікував не менше двох учасників лота або процедури "
         "(якщо вона однолотова), окрім переможця."
     )
     legitimateness = ""
@@ -35,7 +35,7 @@ class RiskRule(BaseTenderRiskRule):
                 for lot in tender.get("lots", []):
                     if lot["status"] in ("cancelled", "unsuccessful"):
                         continue
-                    disqualifications_count, winner_count, bidders_count = count_winner_disqualifications_and_bidders(
+                    disqualifications_count, winner_count, _ = count_winner_disqualifications_and_bidders(
                         tender,
                         lot,
                         check_winner=True,
@@ -43,18 +43,18 @@ class RiskRule(BaseTenderRiskRule):
                     if not disqualifications_count:
                         continue
 
-                    # Якщо для лота “Учасники” = “Переможець” + “Дискваліфікації”, індикатор приймає значення “1”.
-                    if bidders_count == winner_count + disqualifications_count:
+                    # Якщо для лота є “Переможець” i “Дискваліфікації” не менше двох, індикатор приймає значення “1”.
+                    if winner_count and disqualifications_count >= 2:
                         return RiskFound()
             else:
-                disqualifications_count, winner_count, bidders_count = count_winner_disqualifications_and_bidders(
+                disqualifications_count, winner_count, _ = count_winner_disqualifications_and_bidders(
                     tender,
                     check_winner=True,
                 )
                 if not disqualifications_count:
                     return RiskNotFound()
 
-                # Якщо “Учасники” = “Переможець” + “Дискваліфікації”, індикатор приймає значення “1”
-                if bidders_count == winner_count + disqualifications_count:
+                # Якщо є “Переможець” i “Дискваліфікації” не менше двох, індикатор приймає значення “1”
+                if winner_count and disqualifications_count >= 2:
                     return RiskFound()
         return RiskNotFound()
