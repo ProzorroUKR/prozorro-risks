@@ -1,6 +1,8 @@
 FROM python:3.10-alpine3.19 as base
 
 RUN pip install --upgrade pip
+RUN addgroup -g 10000 user && \
+    adduser -S -u 10000 -G user -h /app user
 
 WORKDIR /app
 RUN apk --no-cache add gcc build-base git openssl-dev libffi-dev
@@ -31,3 +33,6 @@ RUN echo $version && sed -i "s/##VERSION##/$version/g" prozorro/__init__.py
 FROM prod as local
 
 FROM prod
+
+RUN chown -R user:user /app
+USER user
