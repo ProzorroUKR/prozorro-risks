@@ -34,7 +34,7 @@ class BaseRiskRule(ABC):
         return (
             tender["procurementMethodType"] in self.procurement_methods
             and status_matches
-            and tender["procuringEntity"]["kind"] in self.procuring_entity_kinds
+            and tender.get("procuringEntity", {}).get("kind", "other") in self.procuring_entity_kinds
             and category_matches
             and value_matches
         )
