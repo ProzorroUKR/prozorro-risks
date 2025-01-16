@@ -7,7 +7,7 @@ from aiocache import cached
 from aiocache.serializers import JsonSerializer
 from aiohttp import web
 from aiohttp.hdrs import CONTENT_DISPOSITION, CONTENT_TYPE
-from aiohttp_swagger import swagger_path
+from aiohttp_swagger3 import swagger_doc
 from datetime import datetime
 
 from pymongo.errors import ExecutionTimeout
@@ -37,23 +37,23 @@ logger = logging.getLogger(__name__)
 MAX_BUFFER_LINES = 1000
 
 
-@swagger_path("/swagger/ping.yaml")
+@swagger_doc("/swagger/ping.yaml")
 async def ping_handler(request):
     return web.Response(text="pong")
 
 
-@swagger_path("/swagger/version.yaml")
+@swagger_doc("/swagger/version.yaml")
 async def get_version(request):
     return {"api_version": api_version}
 
 
-@swagger_path("/swagger/risks.yaml")
-async def get_tender_risks(request, tender_id):
+@swagger_doc("/swagger/risks.yaml")
+async def get_tender_risks(request, tender_id: str):
     tender = await get_risks(tender_id)
     return tender
 
 
-@swagger_path("/swagger/risks_list.yaml")
+@swagger_doc("/swagger/risks_list.yaml")
 async def list_tenders(request):
     skip, limit = pagination_params(request)
     try:
@@ -68,7 +68,7 @@ async def list_tenders(request):
     return result
 
 
-@swagger_path("/swagger/risks_feed.yaml")
+@swagger_doc("/swagger/risks_feed.yaml")
 async def get_tenders_feed(request):
     params = {}
 
@@ -144,7 +144,7 @@ async def get_tenders_feed(request):
     return data
 
 
-@swagger_path("/swagger/filter_values.yaml")
+@swagger_doc("/swagger/filter_values.yaml")
 @cached(ttl=CACHE_TTL, serializer=JsonSerializer())
 async def get_filter_values(request):
     regions = await get_distinct_values("procuringEntityRegion")
@@ -170,7 +170,7 @@ async def get_filter_values(request):
     return result
 
 
-@swagger_path("/swagger/download_risks_report.yaml")
+@swagger_doc("/swagger/download_risks_report.yaml")
 async def download_risks_report(request):
     filters = build_tender_filters(
         **requests_params(request, "edrpou", "tender_id", "risks_all"),

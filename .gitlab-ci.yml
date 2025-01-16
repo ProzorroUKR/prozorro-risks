@@ -58,6 +58,7 @@ test:
     - pip install -r requirements.txt
     - pip install -r tests/requirements.txt
     - pip install -e .
+    - cp -r swagger /swagger
   script:
     - pytest -x -s tests/integration/
       --cov=src/prozorro/risks

@@ -11,15 +11,13 @@ parameters:
 - in: query
   name: limit
   schema:
-    type: int
+    type: integer
   description: Limit
 - in: query
   name: descending
   schema:
-    type: int
+    type: integer
   description: Descending order
-produces:
-- application/json
 responses:
   "200":
     description: successful operation

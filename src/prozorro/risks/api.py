@@ -1,11 +1,10 @@
 from aiohttp import web
-from aiohttp_swagger import setup_swagger
-from prozorro import version
+from aiohttp_swagger3 import SwaggerDocs, SwaggerUiSettings
 from prozorro.risks.middleware import (
     cors_middleware,
     request_id_middleware,
-    request_unpack_params,
     convert_response_to_json,
+    request_unpack_params,
 )
 from prozorro.risks.db import init_mongodb, cleanup_db_client
 from prozorro.risks.logging import AccessLogger, setup_logging
@@ -26,6 +25,31 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+ROUTES = {
+    "/api/ping": {
+        "get": (ping_handler, {"allow_head": False}),
+    },
+    "/api/version": {
+        "get": (get_version, {"allow_head": False}),
+    },
+    r"/api/risks/{tender_id:[\w-]+}": {
+        "get": (get_tender_risks, {"allow_head": False}),
+    },
+    "/api/risks": {
+        "get": (list_tenders, {"allow_head": False}),
+    },
+    "/api/filter-values": {
+        "get": (get_filter_values, {"allow_head": False}),
+    },
+    "/api/risks-report": {
+        "get": (download_risks_report, {"allow_head": False}),
+    },
+    "/api/risks-feed": {
+        "get": (get_tenders_feed, {"allow_head": False}),
+    }
+}
+
+
 def create_application(on_cleanup=None):
     app = web.Application(
         middlewares=(
@@ -36,19 +60,32 @@ def create_application(on_cleanup=None):
         ),
         client_max_size=CLIENT_MAX_SIZE,
     )
-    app.router.add_get("/api/ping", ping_handler, allow_head=False)
-    app.router.add_get("/api/version", get_version, allow_head=False)
-    app.router.add_get(r"/api/risks/{tender_id:[\w-]+}", get_tender_risks, allow_head=False)
-    app.router.add_get("/api/risks", list_tenders, allow_head=False)
-    app.router.add_get("/api/filter-values", get_filter_values, allow_head=False)
-    app.router.add_get("/api/risks-report", download_risks_report, allow_head=False)
-    app.router.add_get("/api/risks-feed", get_tenders_feed, allow_head=False)
+
+    # route registration goes through swagger
+    if not SWAGGER_DOC_AVAILABLE:
+        for route in ROUTES.keys():
+            for method, route_props in ROUTES[route].items():
+                route_handler, route_kwargs = route_props
+                getattr(app.router, f"add_{method}")(route, route_handler, **route_kwargs)
 
     app.on_startup.append(init_mongodb)
     if on_cleanup:
         app.on_cleanup.append(on_cleanup)
     app.on_cleanup.append(cleanup_db_client)
     return app
+
+
+def setup_swagger(app):
+    swagger = SwaggerDocs(
+        app,
+        swagger_ui_settings=SwaggerUiSettings(path="/api/doc"),
+    )
+    registered_routes = []
+    for route in ROUTES.keys():
+        for method, route_props in ROUTES[route].items():
+            route_handler, route_kwargs = route_props
+            registered_routes.append(getattr(web, method)(route, route_handler, **route_kwargs))
+    swagger.add_routes(registered_routes)
 
 
 if __name__ == "__main__":
@@ -60,13 +97,7 @@ if __name__ == "__main__":
     application = create_application()
 
     if SWAGGER_DOC_AVAILABLE:
-        setup_swagger(
-            application,
-            title="Prozorro Risks API",
-            description="Prozorro Risks description",
-            api_version=version,
-            ui_version=3,
-        )
+        setup_swagger(application)
     web.run_app(
         application,
         host="0.0.0.0",

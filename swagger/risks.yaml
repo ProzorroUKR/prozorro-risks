@@ -5,6 +5,7 @@ operationId: get_tender_risks
 parameters:
 - in: path
   name: tender_id
+  required: true
   schema:
     type: string
 responses:
@@ -118,7 +119,7 @@ responses:
               description: Tender status
             tenderID:
               type: string
-              desscription: Tender code
+              description: Tender code
             terminated:
               type: boolean
               description: Flag that indicates whether tender is terminated
