@@ -2,8 +2,6 @@ tags:
 - Helpers
 description:  This end-point allow to test that service is up.
 operationId: ping
-produces:
-- text/plain
 responses:
   "200":
     description: successful operation. Return "pong" text

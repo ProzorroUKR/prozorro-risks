@@ -2,8 +2,6 @@ tags:
 - Helpers
 description: Get filter values with list of unique regions and risk rules
 operationId: get_filter_values
-produces:
-- application/json
 responses:
   "200":
     description: successful operation

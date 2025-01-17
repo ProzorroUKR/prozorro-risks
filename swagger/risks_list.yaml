@@ -23,8 +23,8 @@ parameters:
 - in: query
   name: risks_all
   schema:
-    type:  boolean
-  description: Flag whether filter tenders with all selected worked risks or partially worked risks
+    type:  string
+  description: Flag whether filter tenders with all selected worked risks or partially worked risks ("true"/"false")
 - in: query
   name: region
   schema:
@@ -60,8 +60,6 @@ parameters:
   schema:
     type: string
   description: Sorting order (e.g. 'asc')
-produces:
-- application/json
 responses:
   "200":
     description: successful operation
@@ -180,7 +178,7 @@ responses:
                     description: Tender status
                   tenderID:
                     type: string
-                    desscription: Tender code
+                    description: Tender code
                   terminated:
                     type: boolean
                     description: Flag that indicates whether tender is terminated

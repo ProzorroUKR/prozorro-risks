@@ -144,7 +144,8 @@ async def test_tender_value(db, api, amount, category, risk_class, risk_result):
 )
 async def test_nbu_exchange(mock_rates, db, api, amount, currency, risk_result):
     hist_data = deepcopy(history_tender_data)
-    hist_data["dateCreated"] = "2024-05-01T00:00:00+03:00"
+    year = datetime.fromisoformat(tender_data["dateCreated"]).year
+    hist_data["dateCreated"] = f"{year}-05-01T00:00:00+03:00"
     hist_data["value"] = {
         "amount": amount,
         "currency": currency,

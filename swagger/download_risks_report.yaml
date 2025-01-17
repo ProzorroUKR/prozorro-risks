@@ -33,8 +33,6 @@ parameters:
   schema:
     type: string
   description: Sorting order (e.g. 'asc')
-produces:
-- application/json
 responses:
   "200":
     description: successful operation

@@ -25,18 +25,6 @@ async def request_id_middleware(request, handler):
 
 
 @middleware
-async def request_unpack_params(request, handler):
-    """
-    middleware for the func views
-    to pass variables from url
-    as kwargs
-    """
-    if "swagger" in request.path:
-        return await handler(request)
-    return await handler(request, **request.match_info)
-
-
-@middleware
 async def convert_response_to_json(request, handler):
     """
     Convert dicts into valid json responses
