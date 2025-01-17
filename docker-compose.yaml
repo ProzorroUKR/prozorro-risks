@@ -90,10 +90,6 @@ services:
 
     risks-test-integration: &test_app
         <<: *base_app
-        environment:
-            MONGODB_URL: 'mongodb://root:example@mongo:27017/?replicaSet=rs0'
-            PYTHONUNBUFFERED: '1'
-            SWAGGER_DOC_AVAILABLE: ""
         image: "${IMAGE_TEST}"
         container_name: risks-test-integration
         depends_on:

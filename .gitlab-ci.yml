@@ -45,7 +45,6 @@ test:
     - name: bitnami/mongodb:4.4.12-debian-10-r24
       alias: mongo
   variables:
-    SWAGGER_DOC_AVAILABLE: ""
     MONGODB_URL: mongodb://root:example@mongo:27017/?replicaSet=rs0
     MONGODB_ROOT_PASSWORD: example
     MONGODB_REPLICA_SET_MODE: primary

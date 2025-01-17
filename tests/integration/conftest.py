@@ -1,4 +1,4 @@
-from prozorro.risks.api import create_application
+from prozorro.risks.api import create_application, setup_swagger
 from prozorro.risks.db import flush_database, init_mongodb, get_database
 from json import loads
 import os.path
@@ -23,6 +23,8 @@ async def db(event_loop):
 
 @pytest.fixture
 async def api(event_loop, aiohttp_client):
-    app = await aiohttp_client(create_application(on_cleanup=flush_database))
+    application = create_application(on_cleanup=flush_database)
+    setup_swagger(application)
+    app = await aiohttp_client(application)
     app.get_fixture_json = get_fixture_json
     return app

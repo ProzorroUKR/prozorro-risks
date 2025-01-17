@@ -1,6 +1,5 @@
 from prozorro.risks.logging import request_id_var
 from prozorro.risks.serialization import json_response
-from prozorro.risks.settings import SWAGGER_DOC_AVAILABLE
 from prozorro.risks.utils import build_headers_for_fixing_cors
 from aiohttp.web import middleware
 from uuid import uuid4
@@ -23,19 +22,6 @@ async def request_id_middleware(request, handler):
     response = await handler(request)
     response.headers["X-Request-ID"] = value  # for AccessLogger
     return response
-
-
-@middleware
-async def request_unpack_params(request, handler):
-    """
-    middleware for the func views
-    to pass variables from url
-    as kwargs
-    """
-    # routes registered via new Swagger don't need request.match_info separately
-    if SWAGGER_DOC_AVAILABLE or "swagger" in request.path:
-        return await handler(request)
-    return await handler(request, **request.match_info)
 
 
 @middleware
