@@ -1,3 +1,4 @@
 pytest-aiohttp==1.0.5
+pytest-asyncio==0.25.0
 pytest-cov
 parameterized
