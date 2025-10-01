@@ -16,7 +16,7 @@ parameters:
 - in: query
   name: descending
   schema:
-    type: integer
+    type: string
   description: Descending order
 responses:
   "200":
