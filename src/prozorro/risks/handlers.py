@@ -93,7 +93,7 @@ async def get_tenders_feed(request):
             params["limit"] = min(limit, MAX_LIST_LIMIT)
 
     # descending param
-    if get_int_from_query(request, "descending"):
+    if request.query.get("descending") and get_int_from_query(request, "descending"):
         params["descending"] = 1
 
     # opt_fields param
