@@ -29,7 +29,7 @@ from prozorro.risks.utils import (
     requests_sequence_params,
     requests_params,
     get_page,
-    parse_offset,
+    parse_offset, get_int_from_query,
 )
 from prozorro.risks.rules import *  # noqa
 
@@ -93,7 +93,7 @@ async def get_tenders_feed(request):
             params["limit"] = min(limit, MAX_LIST_LIMIT)
 
     # descending param
-    if request.query.get("descending"):
+    if get_int_from_query(request, "descending"):
         params["descending"] = 1
 
     # opt_fields param
