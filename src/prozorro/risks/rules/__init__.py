@@ -1,6 +1,8 @@
 # list of risks for processing tenders
 
 __all__ = [
+    "ari_1_1",
+    "ari_1_2",
     "sas24_3_1",
     "sas24_3_2",
     "sas24_3_2_1",
