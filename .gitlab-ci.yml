@@ -3,15 +3,6 @@ include:
     ref: master
     file: '/templates/security.yml'
 
-variables:
-  IMAGE_TAG: $CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
-  IMAGE: $CI_REGISTRY_IMAGE:$IMAGE_TAG
-  IMAGE_TEST: $CI_REGISTRY_IMAGE:$IMAGE_TAG-test
-  IMAGE_FRONTEND: $CI_REGISTRY_IMAGE/prozorro-risks-frontend:$IMAGE_TAG
-  SEC_CS_IMAGE: $IMAGE
-  SEC_CS_DOCKERFILE_PATH: Dockerfile
-  DEFECTDOJO_PRODUCT_TYPE: "CDB"
-
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -33,6 +24,17 @@ stages:
   - deploy
   - cleanup
 
+image: docker-registry.prozorro.gov.ua/cdb/openprocurement.api/ci
+
+variables:
+  IMAGE: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA
+  IMAGE_TEST: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-test
+  IMAGE_FRONTEND: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-frontend
+  CI_REGISTRY_FRONTEND_IMAGE_NAME: 'prozorro-risks-frontend'
+  SEC_CS_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+  SEC_CS_DOCKERFILE_PATH: Dockerfile
+  DEFECTDOJO_PRODUCT_TYPE: "CDB"
+
 code-style-check:
   image: python:3.10-alpine3.19
   stage: lint
@@ -43,6 +45,8 @@ code-style-check:
   script:
     - flake8
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_COMMIT_BRANCH
       changes:
         - "**/*.py"
@@ -58,9 +62,9 @@ build-new-image:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - make docker-build
-    - docker push $IMAGE
-    - docker push $IMAGE_TEST
-    - docker push $IMAGE_FRONTEND
+    # Пушимо образ в реєстр виключно для того, щоб його міг перевірити container-scanning
+    - docker tag $IMAGE $SEC_CS_IMAGE
+    - docker push $SEC_CS_IMAGE
   rules:
     - if: $CI_COMMIT_BRANCH
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -109,8 +113,8 @@ push-latest-image:
   script:
     - docker tag $IMAGE $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
-    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/prozorro-risks-frontend:latest
-    - docker push $CI_REGISTRY_IMAGE/prozorro-risks-frontend:latest
+    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:latest
+    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:latest
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
 
@@ -121,10 +125,10 @@ push-tagged-image:
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - docker tag $IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/prozorro-risks-frontend:$CI_COMMIT_TAG
-    - docker push $CI_REGISTRY_IMAGE/prozorro-risks-frontend:$CI_COMMIT_TAG
+    - docker tag $IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:$CI_COMMIT_REF_SLUG
+    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:$CI_COMMIT_REF_SLUG
   rules:
     - if: $CI_COMMIT_TAG
 
@@ -139,7 +143,7 @@ review:
     on_stop: stop_review
     auto_stop_in: 1 month
   variables:
-    TAG: $CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+    TAG: $CI_COMMIT_REF_SLUG
     RELEASE: risks-${CI_COMMIT_REF_SLUG}
   script:
     - helm3 upgrade -i ${RELEASE} helm/prozorro-risks --namespace dev-prozorro
@@ -149,6 +153,8 @@ review:
         --set prozorro-risks.delay-crawler.image.tag=$TAG
         --set "ingress.hosts[0].host=risks.${RELEASE}.k8s.prozorro.gov.ua,ingress.hosts[0].paths[0].path=/api,ingress.hosts[0].paths[0].service=api,ingress.hosts[0].paths[1].path=/,ingress.hosts[0].paths[1].service=frontend,ingress.hosts[0].paths[0].pathType=ImplementationSpecific,ingress.hosts[0].paths[1].pathType=ImplementationSpecific"
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
       when: manual
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -164,6 +170,8 @@ stop_review:
   tags:
     - shell
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
       when: manual
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -185,6 +193,8 @@ deploy:
     - kubectl --namespace dev-prozorro rollout restart deployment risks-master-prozorro-risks-tenders-crawler
     - kubectl --namespace dev-prozorro rollout restart deployment risks-master-prozorro-risks-delay-crawler
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_COMMIT_BRANCH == "master"
 
 cleanup-test-images:
@@ -195,7 +205,7 @@ cleanup-test-images:
     - make remove-compose
     - docker rmi --no-prune -f $IMAGE || true
     - docker rmi --no-prune -f $IMAGE_TEST || true
-    - docker rmi --no-prune -f $IMAGE_FRONTEND || true
+    - docker network rm ${CI_COMMIT_SHORT_SHA}_default || true
   rules:
     - if: $CI_COMMIT_BRANCH
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
