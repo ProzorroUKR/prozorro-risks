@@ -1,18 +1,37 @@
+include:
+  - project: 'Web-Projects/pipeline-scripts'
+    ref: master
+    file: '/templates/security.yml'
+
+variables:
+  IMAGE_TAG: $CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+  IMAGE: $CI_REGISTRY_IMAGE:$IMAGE_TAG
+  IMAGE_TEST: $CI_REGISTRY_IMAGE:$IMAGE_TAG-test
+  IMAGE_FRONTEND: $CI_REGISTRY_IMAGE/prozorro-risks-frontend:$IMAGE_TAG
+  SEC_CS_IMAGE: $IMAGE
+  SEC_CS_DOCKERFILE_PATH: Dockerfile
+  DEFECTDOJO_PRODUCT_TYPE: "CDB"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "master" && $BUILT_AS_BRIDGE == null
+      when: never
+    - if: $CI_COMMIT_BRANCH && $BUILT_AS_BRIDGE
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+    - when: never
+
 stages:
   - lint
   - build
+  - security
   - test
   - publish
   - deploy
   - cleanup
-
-image: docker-registry.prozorro.gov.ua/cdb/openprocurement.api/ci
-
-variables:
-  IMAGE: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA
-  IMAGE_TEST: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-test
-  IMAGE_FRONTEND: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-frontend
-  CI_REGISTRY_FRONTEND_IMAGE_NAME: 'prozorro-risks-frontend'
 
 code-style-check:
   image: python:3.10-alpine3.19
@@ -23,11 +42,13 @@ code-style-check:
     - pip install flake8
   script:
     - flake8
-  only:
-    changes:
-      - "**/*.py"
-  except:
-    - schedules
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - "**/*.py"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "**/*.py"
 
 build-new-image:
   stage: build
@@ -37,6 +58,12 @@ build-new-image:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - make docker-build
+    - docker push $IMAGE
+    - docker push $IMAGE_TEST
+    - docker push $IMAGE_FRONTEND
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 test:
   image: docker-registry.prozorro.gov.ua/docker/images/python:3.9-alpine3.14
@@ -69,6 +96,9 @@ test:
         path: coverage.xml
         coverage_format: cobertura
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 push-latest-image:
   stage: publish
@@ -79,10 +109,10 @@ push-latest-image:
   script:
     - docker tag $IMAGE $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
-    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:latest
-    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:latest
-  only:
-    - master
+    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/prozorro-risks-frontend:latest
+    - docker push $CI_REGISTRY_IMAGE/prozorro-risks-frontend:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
 
 push-tagged-image:
   stage: publish
@@ -91,12 +121,12 @@ push-tagged-image:
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - docker tag $IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:$CI_COMMIT_REF_SLUG
-    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:$CI_COMMIT_REF_SLUG
-  only:
-    - tags
+    - docker tag $IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/prozorro-risks-frontend:$CI_COMMIT_TAG
+    - docker push $CI_REGISTRY_IMAGE/prozorro-risks-frontend:$CI_COMMIT_TAG
+  rules:
+    - if: $CI_COMMIT_TAG
 
 review:
   stage: deploy
@@ -109,7 +139,7 @@ review:
     on_stop: stop_review
     auto_stop_in: 1 month
   variables:
-    TAG: $CI_COMMIT_REF_SLUG
+    TAG: $CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
     RELEASE: risks-${CI_COMMIT_REF_SLUG}
   script:
     - helm3 upgrade -i ${RELEASE} helm/prozorro-risks --namespace dev-prozorro
@@ -118,12 +148,11 @@ review:
         --set prozorro-risks.contracts-crawler.image.tag=$TAG
         --set prozorro-risks.delay-crawler.image.tag=$TAG
         --set "ingress.hosts[0].host=risks.${RELEASE}.k8s.prozorro.gov.ua,ingress.hosts[0].paths[0].path=/api,ingress.hosts[0].paths[0].service=api,ingress.hosts[0].paths[1].path=/,ingress.hosts[0].paths[1].service=frontend,ingress.hosts[0].paths[0].pathType=ImplementationSpecific,ingress.hosts[0].paths[1].pathType=ImplementationSpecific"
-  when: manual
-  only:
-    - branches
-  except:
-    - master
-    - schedules
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
+      when: manual
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
 
 stop_review:
   stage: deploy
@@ -134,12 +163,11 @@ stop_review:
     action: stop
   tags:
     - shell
-  when: manual
-  only:
-    - branches
-  except:
-    - master
-    - schedules
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"
+      when: manual
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
 
 deploy:
   stage: deploy
@@ -156,10 +184,8 @@ deploy:
     - kubectl --namespace dev-prozorro rollout restart deployment risks-master-prozorro-risks-contracts-crawler
     - kubectl --namespace dev-prozorro rollout restart deployment risks-master-prozorro-risks-tenders-crawler
     - kubectl --namespace dev-prozorro rollout restart deployment risks-master-prozorro-risks-delay-crawler
-  only:
-    - master
-  except:
-    - schedules
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
 
 cleanup-test-images:
   stage: cleanup
@@ -169,5 +195,9 @@ cleanup-test-images:
     - make remove-compose
     - docker rmi --no-prune -f $IMAGE || true
     - docker rmi --no-prune -f $IMAGE_TEST || true
-    - docker network rm ${CI_COMMIT_SHORT_SHA}_default || true
+    - docker rmi --no-prune -f $IMAGE_FRONTEND || true
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_TAG
   when: always
