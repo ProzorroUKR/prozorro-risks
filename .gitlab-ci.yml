@@ -14,9 +14,9 @@ workflow:
 stages:
   - lint
   - build
-  - security
   - test
   - publish
+  - security
   - deploy
   - cleanup
 
