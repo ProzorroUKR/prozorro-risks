@@ -31,6 +31,10 @@ variables:
   SEC_CS_DOCKERFILE_PATH: Dockerfile
   DEFECTDOJO_PRODUCT_TYPE: "CDB"
 
+container_scanning:
+  needs:
+    - job: push-tagged-image
+
 code-style-check:
   image: python:3.10-alpine3.19
   stage: lint
