@@ -29,15 +29,21 @@ def get_int_from_query(request, key, default=0):
         return value
 
 
-def clamp_list_limit(limit, default=20):
+def clamp_limit(limit, default=20):
     if limit < 1:
         limit = default
     return min(limit, MAX_LIST_LIMIT)
 
 
+def clamp_skip(skip):
+    if skip < 0:
+        skip = 0
+    return skip
+
+
 def pagination_params(request, default_limit=20):
-    skip = get_int_from_query(request, "skip")
-    limit = clamp_list_limit(get_int_from_query(request, "limit", default=default_limit), default=default_limit)
+    skip = clamp_skip(get_int_from_query(request, "skip"))
+    limit = clamp_limit(get_int_from_query(request, "limit", default=default_limit), default=default_limit)
     return skip, limit
 
 
