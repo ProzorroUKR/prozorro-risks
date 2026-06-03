@@ -69,6 +69,13 @@ async def test_list_tenders_sort_by_date_assessed(api, db):
     assert resp_json["items"][-1]["dateAssessed"] == tender_with_3_2_risk_found["dateAssessed"]
 
 
+async def test_list_tenders_invalid_sort_field(api, db):
+    await db.risks.insert_many([tender_with_3_2_risk_found, tender_with_3_1_risk_found])
+    response = await api.get("/api/risks?sort=dateModified")
+    assert response.status == 400
+    assert "Invalid sort field" in await response.text()
+
+
 async def test_list_tenders_sort_by_value_amount(api, db):
     tender_with_3_2_risk_found["value"]["amount"] = 20000
     tender_with_3_1_risk_found["value"]["amount"] = 400000

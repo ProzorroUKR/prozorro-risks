@@ -27,7 +27,7 @@ parameters:
   name: sort
   schema:
     type: string
-  description: Field for sorting (e.g. 'name')
+  description: Field for sorting (dateAssessed, value.amount, procuringEntityRegion, procuringEntityEDRPOU, worked_risks, terminated)
 - in: query
   name: order
   schema:
