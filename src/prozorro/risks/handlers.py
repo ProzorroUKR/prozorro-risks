@@ -21,7 +21,7 @@ from prozorro.risks.db import (
     find_tenders,
     get_tenders_risks_feed,
 )
-from prozorro.risks.settings import MAX_LIST_LIMIT, CACHE_TTL, SWAGGER_DOC_PATH
+from prozorro.risks.settings import CACHE_TTL, SWAGGER_DOC_PATH
 from prozorro.risks.utils import (
     build_content_disposition_name,
     get_now,
@@ -29,7 +29,9 @@ from prozorro.risks.utils import (
     requests_sequence_params,
     requests_params,
     get_page,
-    parse_offset, get_int_from_query,
+    parse_offset, 
+    get_int_from_query, 
+    clamp_list_limit,
 )
 from prozorro.risks.rules import *  # noqa
 
@@ -90,7 +92,7 @@ async def get_tenders_feed(request):
         except ValueError as e:
             return web.HTTPBadRequest(text=e.args[0])
         else:
-            params["limit"] = min(limit, MAX_LIST_LIMIT)
+            params["limit"] = clamp_list_limit(limit)
 
     # descending param
     if request.query.get("descending") and get_int_from_query(request, "descending"):

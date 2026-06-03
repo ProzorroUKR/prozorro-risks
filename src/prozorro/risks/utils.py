@@ -9,7 +9,7 @@ from urllib.parse import quote, urlencode
 from ciso8601 import parse_datetime
 
 from prozorro.risks.requests import get_object_data
-from prozorro.risks.settings import ALLOW_ALL_ORIGINS, TIMEZONE, HTTPS_PROXY
+from prozorro.risks.settings import ALLOW_ALL_ORIGINS, TIMEZONE, HTTPS_PROXY, MAX_LIST_LIMIT
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +29,15 @@ def get_int_from_query(request, key, default=0):
         return value
 
 
+def clamp_list_limit(limit, default=20):
+    if limit < 1:
+        limit = default
+    return min(limit, MAX_LIST_LIMIT)
+
+
 def pagination_params(request, default_limit=20):
     skip = get_int_from_query(request, "skip")
-    limit = get_int_from_query(request, "limit", default=default_limit)
+    limit = clamp_list_limit(get_int_from_query(request, "limit", default=default_limit), default=default_limit)
     return skip, limit
 
 

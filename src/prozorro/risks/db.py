@@ -13,11 +13,11 @@ from prozorro.risks.settings import (
     REPORT_ITEMS_LIMIT,
     WRITE_CONCERN,
     READ_CONCERN,
-    MAX_LIST_LIMIT,
     MAX_TIME_QUERY,
     MONGODB_ERROR_INTERVAL,
 )
 from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.utils import clamp_list_limit
 from pymongo import ASCENDING, DESCENDING, IndexModel
 from pymongo.errors import ExecutionTimeout, PyMongoError
 from aiohttp import web
@@ -270,7 +270,7 @@ async def find_tenders(skip=0, limit=20, **kwargs):
     :return: dict with filtered items and total count
     """
     collection = get_risks_collection()
-    limit = min(limit, MAX_LIST_LIMIT)
+    limit = clamp_list_limit(limit)
     filters = build_tender_filters(**kwargs)
     sort_field = parse_sort_field(kwargs.get("sort"))
     sort_order = ASCENDING if kwargs.get("order") == "asc" else DESCENDING
@@ -291,6 +291,7 @@ async def find_tenders(skip=0, limit=20, **kwargs):
 
 
 async def get_tenders_risks_feed(fields, offset_value=None, descending=False, limit=20):
+    limit = clamp_list_limit(limit)
     collection = get_risks_collection()
     filters = dict()
     if offset_value:

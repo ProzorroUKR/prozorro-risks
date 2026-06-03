@@ -37,6 +37,15 @@ async def test_list_tenders_count(api, db):
     assert resp_json["count"] == 1
 
 
+async def test_list_tenders_limit_zero_uses_default(api, db):
+    await db.risks.insert_many([tender_with_no_risks_found, tender_with_3_1_risk_found, tender_with_3_2_risk_found])
+    response = await api.get("/api/risks?limit=0")
+    assert response.status == 200
+    resp_json = await response.json()
+    assert len(resp_json["items"]) == 2
+    assert resp_json["count"] == 2
+
+
 async def test_list_tenders_skip_and_limit(api, db):
     await db.risks.insert_many([tender_with_no_risks_found, tender_with_3_1_risk_found, tender_with_3_2_risk_found])
     response = await api.get("/api/risks?limit=1")
