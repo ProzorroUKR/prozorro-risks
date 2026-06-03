@@ -23,10 +23,13 @@ stages:
 image: docker-registry.prozorro.gov.ua/cdb/openprocurement.api/ci
 
 variables:
-  IMAGE: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA
-  IMAGE_TEST: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-test
-  IMAGE_FRONTEND: $CI_PROJECT_PATH_SLUG:$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-frontend
-  CI_REGISTRY_FRONTEND_IMAGE_NAME: 'prozorro-risks-frontend'
+  TAG: $CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA
+  TAG_TEST: $TAG-test
+  TAG_FRONTEND: $TAG-frontend
+  CI_REGISTRY_FRONTEND_IMAGE_SUFFIX: 'prozorro-risks-frontend'
+  IMAGE: $CI_REGISTRY_IMAGE:$TAG
+  IMAGE_TEST: $CI_REGISTRY_IMAGE:$TAG_TEST
+  IMAGE_FRONTEND: $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_SUFFIX:$TAG_FRONTEND
   SEC_CS_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   SEC_CS_DOCKERFILE_PATH: Dockerfile
   DEFECTDOJO_PRODUCT_TYPE: "CDB"
@@ -55,9 +58,11 @@ build-new-image:
   tags:
     - shell
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - make docker-build
+    - docker push $CI_REGISTRY_IMAGE:$TAG
+    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_SUFFIX:$TAG_FRONTEND
 
 test:
   image: docker-registry.prozorro.gov.ua/docker/images/python:3.9-alpine3.14
@@ -95,13 +100,15 @@ push-latest-image:
   stage: publish
   tags:
     - shell
+  needs:
+    - job: build-new-image
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - docker tag $IMAGE $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
-    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:latest
-    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:latest
+    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_SUFFIX:latest
+    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_SUFFIX:latest
   only:
     - master
 
@@ -109,13 +116,15 @@ push-tagged-image:
   stage: publish
   tags:
     - shell
+  needs:
+    - job: build-new-image
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - docker tag $IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:$CI_COMMIT_REF_SLUG
-    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_NAME:$CI_COMMIT_REF_SLUG
+    - docker tag $IMAGE_FRONTEND $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_SUFFIX:$CI_COMMIT_REF_SLUG
+    - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_SUFFIX:$CI_COMMIT_REF_SLUG
   only:
     - tags
 
@@ -123,14 +132,15 @@ review:
   stage: deploy
   tags:
     - shell
+  needs:
+    - job: build-new-image
   environment:
     name: review/${CI_COMMIT_REF_SLUG}
     action: start
-    url: http://api.${CI_COMMIT_REF_SLUG}.${K8S_DOMAIN}/api/ping
+    url: http://risks.${RELEASE}.k8s.prozorro.gov.ua
     on_stop: stop_review
     auto_stop_in: 1 month
   variables:
-    TAG: $CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
     RELEASE: risks-${CI_COMMIT_REF_SLUG}
   script:
     - helm3 upgrade -i ${RELEASE} helm/prozorro-risks --namespace dev-prozorro
@@ -138,7 +148,7 @@ review:
         --set tenders_crawler.image.tag=$TAG
         --set contracts_crawler.image.tag=$TAG
         --set delay_crawler.image.tag=$TAG
-        --set frontend.image.tag=$TAG
+        --set frontend.image.tag=$TAG_FRONTEND
         --set "ingress.hosts[0].host=risks.${RELEASE}.k8s.prozorro.gov.ua,ingress.hosts[0].paths[0].path=/api,ingress.hosts[0].paths[0].service=api,ingress.hosts[0].paths[1].path=/,ingress.hosts[0].paths[1].service=frontend,ingress.hosts[0].paths[0].pathType=ImplementationSpecific,ingress.hosts[0].paths[1].pathType=ImplementationSpecific"
   when: manual
   only:
@@ -191,5 +201,6 @@ cleanup-test-images:
     - make remove-compose
     - docker rmi --no-prune -f $IMAGE || true
     - docker rmi --no-prune -f $IMAGE_TEST || true
+    - docker rmi --no-prune -f $IMAGE_FRONTEND || true
     - docker network rm ${CI_COMMIT_SHORT_SHA}_default || true
   when: always
