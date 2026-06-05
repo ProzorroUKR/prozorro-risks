@@ -9,6 +9,7 @@ RUN apk --no-cache add gcc build-base git openssl-dev libffi-dev
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY swagger /swagger
+ENV SWAGGER_DOC_PATH=/swagger
 EXPOSE 8080
 
 FROM base as test_base

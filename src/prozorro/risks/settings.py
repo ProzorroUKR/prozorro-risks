@@ -44,3 +44,4 @@ for date_str in HOLIDAYS:
     WORKING_DAYS[date_str] = True
 
 CACHE_TTL = os.environ.get("CACHE_TTL", 86400)  # default 24 hours
+SWAGGER_DOC_PATH = os.environ.get("SWAGGER_DOC_PATH", "swagger")

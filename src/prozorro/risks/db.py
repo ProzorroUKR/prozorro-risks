@@ -13,16 +13,25 @@ from prozorro.risks.settings import (
     REPORT_ITEMS_LIMIT,
     WRITE_CONCERN,
     READ_CONCERN,
-    MAX_LIST_LIMIT,
     MAX_TIME_QUERY,
     MONGODB_ERROR_INTERVAL,
 )
 from prozorro.risks.models import RiskIndicatorEnum
+from prozorro.risks.utils import clamp_limit, clamp_skip
 from pymongo import ASCENDING, DESCENDING, IndexModel
 from pymongo.errors import ExecutionTimeout, PyMongoError
 from aiohttp import web
 
 logger = logging.getLogger(__name__)
+
+SORTABLE_FIELDS = frozenset({
+    "dateAssessed",
+    "value.amount",
+    "procuringEntityRegion",
+    "procuringEntityEDRPOU",
+    "worked_risks",
+    "terminated",
+})
 
 DB = None
 session_var = ContextVar("session", default=None)
@@ -243,6 +252,16 @@ def build_tender_filters(**kwargs):
     return filters
 
 
+def parse_sort_field(request_sort):
+    sort_field = request_sort or "dateAssessed"
+    if sort_field not in SORTABLE_FIELDS:
+        allowed = ", ".join(sorted(SORTABLE_FIELDS))
+        raise web.HTTPBadRequest(
+            text=f"Invalid sort field '{sort_field}'. Allowed values: {allowed}"
+        )
+    return sort_field
+
+
 async def find_tenders(skip=0, limit=20, **kwargs):
     """
     Get list of tenders, filtered by request params
@@ -251,10 +270,10 @@ async def find_tenders(skip=0, limit=20, **kwargs):
     :return: dict with filtered items and total count
     """
     collection = get_risks_collection()
-    limit = min(limit, MAX_LIST_LIMIT)
+    skip = clamp_skip(skip)
+    limit = clamp_limit(limit)
     filters = build_tender_filters(**kwargs)
-    request_sort = kwargs.get("sort")
-    sort_field = request_sort if request_sort else "dateAssessed"
+    sort_field = parse_sort_field(kwargs.get("sort"))
     sort_order = ASCENDING if kwargs.get("order") == "asc" else DESCENDING
     result = await paginated_result(
         collection,
@@ -273,6 +292,7 @@ async def find_tenders(skip=0, limit=20, **kwargs):
 
 
 async def get_tenders_risks_feed(fields, offset_value=None, descending=False, limit=20):
+    limit = clamp_limit(limit)
     collection = get_risks_collection()
     filters = dict()
     if offset_value:
@@ -449,8 +469,7 @@ async def get_tenders_from_historical_data(filters):
 
 async def get_tender_risks_report(filters, **kwargs):
     collection = get_risks_collection()
-    request_sort = kwargs.get("sort")
-    sort_field = request_sort if request_sort else "dateAssessed"
+    sort_field = parse_sort_field(kwargs.get("sort"))
     sort_order = ASCENDING if kwargs.get("order") == "asc" else DESCENDING
     pipeline = [
         {"$match": filters},
