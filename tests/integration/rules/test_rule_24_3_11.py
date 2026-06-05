@@ -71,11 +71,11 @@ async def test_tender_has_risks(db, api):
 @pytest.mark.parametrize(
     "status,risk_rule,risk_result",
     [
-        ("active.tendering", RiskRule, RiskNotFound()),
+        ("active.tendering", RiskRule, RiskFound()),
         ("active.tendering", RiskRule2, RiskFound()),
-        ("active.qualification", RiskRule, RiskNotFound()),
+        ("active.qualification", RiskRule, RiskFound()),
         ("active.qualification", RiskRule2, RiskFound()),
-        ("active.awarded", RiskRule, RiskNotFound()),
+        ("active.awarded", RiskRule, RiskFound()),
         ("active.awarded", RiskRule2, RiskFound()),
         ("cancelled", RiskRule, RiskFound()),
         ("cancelled", RiskRule2, RiskFound()),
@@ -91,10 +91,11 @@ async def test_open_tender_status(db, api, status, risk_rule, risk_result):
 
 
 async def test_tender_has_no_cancelled_open_tenders(db):
-    for rule_class in (RiskRule, RiskRule2):
-        risk_rule = rule_class()
-        result = await risk_rule.process_tender(tender_data)
-        assert result == RiskNotFound()
+    result = await RiskRule().process_tender(tender_data)
+    assert result == RiskFound()
+
+    result = await RiskRule2().process_tender(tender_data)
+    assert result == RiskNotFound()
 
 
 @pytest.mark.parametrize(
@@ -109,30 +110,27 @@ async def test_tender_has_open_tenders_with_another_fields(db, api, not_matched_
     open_data = deepcopy(open_tender_data)
     open_data.update(not_matched_data)
     await db.tenders.insert_one(open_data)
-    for rule_class in (RiskRule, RiskRule2):
-        risk_rule = rule_class()
-        result = await risk_rule.process_tender(tender_data)
-        assert result == RiskNotFound()
+    assert await RiskRule().process_tender(tender_data) == RiskFound()
+    assert await RiskRule2().process_tender(tender_data) == RiskNotFound()
 
 
 async def test_tender_reporting_has_another_fields(db, api):
     await db.tenders.insert_one(open_tender_data)
+
     tender = deepcopy(tender_data)
     tender["procuringEntityIdentifier"] = "UA-EDR-22518134"
-    for rule_class in (RiskRule, RiskRule2):
-        risk_rule = rule_class()
-        result = await risk_rule.process_tender(tender)
-        assert result == RiskNotFound()
+    assert await RiskRule().process_tender(tender) == RiskFound()
+    assert await RiskRule2().process_tender(tender) == RiskNotFound()
 
-        tender["procuringEntityIdentifier"] = "UA-EDR-39604270"
-        tender["dateCreated"] = (get_now() - timedelta(days=100)).isoformat()
-        result = await risk_rule.process_tender(tender)
-        assert result == RiskNotFound()
+    tender["procuringEntityIdentifier"] = "UA-EDR-39604270"
+    tender["dateCreated"] = (get_now() - timedelta(days=100)).isoformat()
+    assert await RiskRule().process_tender(tender) == RiskFound()
+    assert await RiskRule2().process_tender(tender) == RiskNotFound()
 
-        tender["dateCreated"] = open_tender_data["tenderPeriod"]["startDate"]
-        tender["subjectOfProcurement"] = "14524"
-        result = await risk_rule.process_tender(tender)
-        assert result == RiskNotFound()
+    tender["dateCreated"] = open_tender_data["tenderPeriod"]["startDate"]
+    tender["subjectOfProcurement"] = "14524"
+    assert await RiskRule().process_tender(tender) == RiskFound()
+    assert await RiskRule2().process_tender(tender) == RiskNotFound()
 
 
 @pytest.mark.parametrize(
@@ -142,7 +140,7 @@ async def test_tender_reporting_has_another_fields(db, api):
         ((get_now() + timedelta(days=180)).isoformat(), RiskRule2, RiskFound()),
         ((get_now() + timedelta(days=181)).isoformat(), RiskRule2, RiskNotFound()),
         ((get_now() + timedelta(days=365)).isoformat(), RiskRule, RiskFound()),
-        ((get_now() + timedelta(days=366)).isoformat(), RiskRule, RiskNotFound()),
+        ((get_now() + timedelta(days=366)).isoformat(), RiskRule, RiskFound()),
     ],
 )
 async def test_tender_reporting_date_ranges(db, api, tender_date_created, risk_rule, risk_result):
@@ -183,19 +181,21 @@ async def test_tender_value(db, api, amount, category, risk_result):
     return_value=[{"cc": "USD", "rate": 39.5151}, {"cc": "EUR", "rate": 42.3641}],
 )
 @pytest.mark.parametrize(
-    "amount,currency,risk_result",
+    "amount,currency,sas24_result,legacy_result",
     [
-        (38650, "EUR", RiskFound()),
-        (30685, "EUR", RiskNotFound()),
-        (44845, "EUR", RiskNotFound()),
-        (37000, "USD", RiskFound()),
-        (32900, "USD", RiskNotFound()),
-        (45550, "USD", RiskNotFound()),
+        # value match (within ±10%) → both rules fire
+        (38650, "EUR", RiskFound(), RiskFound()),
+        (37000, "USD", RiskFound(), RiskFound()),
+        (30685, "EUR", RiskFound(), RiskNotFound()),
+        (44845, "EUR", RiskFound(), RiskNotFound()),
+        (32900, "USD", RiskFound(), RiskNotFound()),
+        (45550, "USD", RiskFound(), RiskNotFound()),
     ],
 )
-async def test_nbu_exchange(mock_rates, db, api, amount, currency, risk_result):
+async def test_nbu_exchange(mock_rates, db, api, amount, currency, sas24_result, legacy_result):
+    open_start = (get_now() - timedelta(days=30)).isoformat()
     open_data = deepcopy(open_tender_data)
-    open_data["tenderPeriod"]["startDate"] = "2024-05-01T00:00:00+03:00"
+    open_data["tenderPeriod"]["startDate"] = open_start
     open_data["value"] = {
         "amount": amount,
         "currency": currency,
@@ -203,11 +203,9 @@ async def test_nbu_exchange(mock_rates, db, api, amount, currency, risk_result):
     await db.tenders.insert_one(open_data)
 
     tender = deepcopy(tender_data)
-    tender["dateCreated"] = "2024-05-01T01:00:00+03:00"
-    for rule_class in (RiskRule, RiskRule2):
-        risk_rule = rule_class()
-        result = await risk_rule.process_tender(tender)
-        assert result == risk_result
+    tender["dateCreated"] = (get_now() - timedelta(days=29)).isoformat()
+    assert await RiskRule().process_tender(tender) == sas24_result
+    assert await RiskRule2().process_tender(tender) == legacy_result
 
 
 async def test_complaints(db, api):
@@ -225,3 +223,47 @@ async def test_complaints(db, api):
     await db.tenders.insert_one(open_data)
     result = await risk_rule.process_tender(tender_data)
     assert result == RiskFound()
+
+
+async def test_two_matching_open_tenders_yields_no_risk(db, api):
+    open_data_1 = deepcopy(open_tender_data)
+    open_data_2 = deepcopy(open_tender_data)
+    open_data_2["_id"] = uuid4().hex
+    open_data_2["id"] = uuid4().hex
+    await db.tenders.insert_one(open_data_1)
+    await db.tenders.insert_one(open_data_2)
+    risk_rule = RiskRule()
+    result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
+
+
+async def test_three_matching_open_tenders_yields_no_risk(db, api):
+    for _ in range(3):
+        clone = deepcopy(open_tender_data)
+        clone["_id"] = uuid4().hex
+        clone["id"] = uuid4().hex
+        await db.tenders.insert_one(clone)
+    result = await RiskRule().process_tender(tender_data)
+    assert result == RiskNotFound()
+
+
+async def test_two_open_tenders_only_one_matches_value_yields_risk(db, api):
+    open_data_1 = deepcopy(open_tender_data)
+    open_data_2 = deepcopy(open_tender_data)
+    open_data_2["_id"] = uuid4().hex
+    open_data_2["id"] = uuid4().hex
+    open_data_2["value"] = {"amount": tender_data["value"]["amount"] * 2, "currency": "UAH"}
+    await db.tenders.insert_one(open_data_1)
+    await db.tenders.insert_one(open_data_2)
+    result = await RiskRule().process_tender(tender_data)
+    assert result == RiskFound()
+
+
+async def test_tender_older_than_180_days_returns_no_risk(db, api):
+    await db.tenders.insert_one(open_tender_data)
+    tender = deepcopy(tender_data)
+    tender["dateCreated"] = (get_now() - timedelta(days=181)).isoformat()
+    for rule_class in (RiskRule, RiskRule2):
+        risk_rule = rule_class()
+        result = await risk_rule.process_tender(tender)
+        assert result == RiskNotFound()

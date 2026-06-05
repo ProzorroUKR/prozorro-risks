@@ -13,6 +13,7 @@ complaints = get_fixture_json("complaints")
 tender_data["mainProcurementCategory"] = "services"
 tender_data["value"]["amount"] = 500000
 tender_data["dateModified"] = (get_now() - timedelta(days=31)).isoformat()
+tender_data["dateCreated"] = get_now().isoformat()
 
 
 async def test_tender_with_satisfied_complaints_more_than_decision_limit():
@@ -327,3 +328,37 @@ async def test_tender_on_cancellation_without_complaint():
         risk_rule = risk_rule_class()
         result = await risk_rule.process_tender(tender)
         assert result == RiskNotFound()
+
+
+async def test_sas24_tender_older_than_180_days_returns_no_risk():
+    complaints[0]["dateDecision"] = (get_now() - timedelta(days=31)).isoformat()
+    complaints[0]["status"] = "satisfied"
+    tender = deepcopy(tender_data)
+    tender["dateCreated"] = (get_now() - timedelta(days=181)).isoformat()
+    tender.update(
+        {
+            "procurementMethodType": "aboveThresholdEU",
+            "status": "active.tendering",
+            "complaints": complaints,
+        }
+    )
+    risk_rule = Sas24RiskRule()
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
+
+
+async def test_legacy_sas_3_1_unaffected_by_180_day_gate():
+    complaints[0]["dateDecision"] = (get_now() - timedelta(days=31)).isoformat()
+    complaints[0]["status"] = "satisfied"
+    tender = deepcopy(tender_data)
+    tender["dateCreated"] = (get_now() - timedelta(days=400)).isoformat()
+    tender.update(
+        {
+            "procurementMethodType": "aboveThresholdEU",
+            "status": "active.tendering",
+            "complaints": complaints,
+        }
+    )
+    risk_rule = RiskRule()
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskFound()

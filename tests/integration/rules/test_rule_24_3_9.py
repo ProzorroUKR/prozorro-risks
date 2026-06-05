@@ -20,6 +20,7 @@ tender_data.update(
         "mainProcurementCategory": "works",
     }
 )
+tender_data["dateCreated"] = get_now().isoformat()
 
 disqualified_award = get_fixture_json("disqualified_award")
 award_with_complaints = deepcopy(disqualified_award)
@@ -121,7 +122,7 @@ async def test_tender_with_active_awards_and_complaint_same_bid_id_with_lots_sho
     ]
     active_award["lotID"] = award_with_complaints["lotID"] = tender["lots"][0]["id"]
     result = await risk_rule.process_tender(tender)
-    assert result == RiskNotFound()
+    assert result == RiskFound()
 
 
 @pytest.mark.parametrize(
@@ -224,4 +225,42 @@ async def test_tender_with_not_risky_procurement_type():
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender_data["procuringEntity"]["kind"] = "other"
     result = await risk_rule.process_tender(tender_data)
+    assert result == RiskNotFound()
+
+
+def _build_sas24_3_9_violation_tender(date_created, active_award_date):
+    tender = deepcopy(get_fixture_json("base_tender"))
+    tender["procuringEntity"]["kind"] = "general"
+    tender["mainProcurementCategory"] = "works"
+    tender["value"]["amount"] = 1600000
+    tender.update({
+        "procurementMethodType": "aboveThreshold",
+        "status": "active.qualification",
+    })
+    tender["dateCreated"] = date_created
+    fresh_complaints_award = deepcopy(get_fixture_json("disqualified_award"))
+    fresh_complaints_award["bid_id"] = "f6e09f31d3024049b3bf227742e31bd6"
+    fresh_complaints_award["complaints"] = get_fixture_json("complaints")
+    fresh_complaints_award["complaints"][0]["status"] = "satisfied"
+    fresh_active = deepcopy(get_fixture_json("disqualified_award"))
+    fresh_active["status"] = "active"
+    fresh_active["id"] = "f2588db5ac4b4fe0a3628fcb1b5fda75"
+    fresh_active["bid_id"] = fresh_complaints_award["bid_id"]
+    fresh_active["date"] = active_award_date
+    tender["awards"] = [fresh_complaints_award, fresh_active]
+    return tender
+
+
+async def test_active_awards_with_same_bid_no_5_day_delay():
+    tender = _build_sas24_3_9_violation_tender(get_now().isoformat(), get_now().isoformat())
+    result = await RiskRule().process_tender(tender)
+    assert result == RiskFound()
+
+
+async def test_tender_older_than_180_days_returns_no_risk():
+    tender = _build_sas24_3_9_violation_tender(
+        (get_now() - timedelta(days=181)).isoformat(),
+        get_now().isoformat(),
+    )
+    result = await RiskRule().process_tender(tender)
     assert result == RiskNotFound()

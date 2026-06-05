@@ -54,6 +54,7 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
+    max_tender_age_days = 180
 
     @staticmethod
     def check_decision_delta(complaints):

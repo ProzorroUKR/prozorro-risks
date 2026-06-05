@@ -47,6 +47,7 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
+    max_tender_age_days = 180
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False, value=True) and is_winner_awarded(tender):
@@ -54,7 +55,7 @@ class RiskRule(BaseTenderRiskRule):
                 for lot in tender["lots"]:
                     if lot["status"] in ("cancelled", "unsuccessful"):
                         continue
-                    disqualifications_count, winner_count, _ = count_winner_disqualifications_and_bidders(
+                    disqualifications_count, _, _ = count_winner_disqualifications_and_bidders(
                         tender,
                         lot,
                         check_winner=True,
@@ -69,7 +70,7 @@ class RiskRule(BaseTenderRiskRule):
                     if disqualifications_count >= 2 and award_complaints:
                         return RiskFound()
             else:
-                disqualifications_count, winner_count, _ = count_winner_disqualifications_and_bidders(
+                disqualifications_count, _, _ = count_winner_disqualifications_and_bidders(
                     tender,
                     check_winner=True,
                 )

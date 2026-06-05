@@ -1,5 +1,6 @@
 config:
   mongodb_uri: 'mongodb://root:5x0A2CfpE8HdUGF@mongodb-risks.data.svc.cluster.local:27017'
+  db_name: 'prozorro-risks'
   sentry_dsn: 'http://c921e523b5384eb990c5cd2737d2aa79@sentry.dc.prozorro.gov.ua/55'
   public_api_host: 'http://api.master.k8s.prozorro.gov.ua'
   backward_offset: '1423058400.69246'

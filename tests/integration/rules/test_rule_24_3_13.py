@@ -1,8 +1,11 @@
+from datetime import timedelta
+
 import pytest
 from copy import deepcopy
 
 from prozorro.risks.models import RiskFound, RiskNotFound
 from prozorro.risks.rules.sas24_3_13 import RiskRule
+from prozorro.risks.utils import get_now
 from tests.integration.conftest import get_fixture_json
 
 
@@ -41,6 +44,7 @@ tender_data["awards"][0].update({
     "lotID": tender_data["lots"][0]["id"],
     "milestones": [{"code": "24h", "date": "2023-01-01T10:00:03+02:00"}],
 })
+tender_data["dateCreated"] = get_now().isoformat()
 
 
 async def test_tender_with_code_24_has_risk():
@@ -120,6 +124,14 @@ async def test_tender_with_not_risky_procurement_type():
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender = deepcopy(tender_data)
     tender["procuringEntity"]["kind"] = "other"
+    risk_rule = RiskRule()
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
+
+
+async def test_tender_older_than_180_days_returns_no_risk():
+    tender = deepcopy(tender_data)
+    tender["dateCreated"] = (get_now() - timedelta(days=181)).isoformat()
     risk_rule = RiskRule()
     result = await risk_rule.process_tender(tender)
     assert result == RiskNotFound()
