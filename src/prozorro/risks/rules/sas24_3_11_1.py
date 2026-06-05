@@ -21,15 +21,15 @@ class RiskRule(BaseTenderRiskRule):
         "та/або свідчать про ймовірність допущення таких порушень"
     )
     legitimateness = (
-        'Підпункт 5 та підпункт 6 пункту 13 Особливостей № 1178, частина 10 статті 3 Закону '
+        "Підпункт 5 та підпункт 6 пункту 13 Особливостей № 1178, частина 10 статті 3 Закону "
         'України "Про публічні закупівлі"'
     )
     development_basis = (
-        'Ознака порушення підпункту 5 та підпункту 6 пункту 13 Особливостей № 1178, частина 10 статті 3 Закону '
+        "Ознака порушення підпункту 5 та підпункту 6 пункту 13 Особливостей № 1178, частина 10 статті 3 Закону "
         'України "Про публічні закупівлі" в частині безпідставного придбання замовником робіт до/без проведення '
-        'процедури закупівлі відкриті торги, та укладення договорів про закупівлю, які передбачають оплату замовником '
-        'товарів, робіт і послуг до/без проведення процедури закупівлі відкриті '
-        'торги/ використання електронного каталогу (у разі закупівлі товару)'
+        "процедури закупівлі відкриті торги, та укладення договорів про закупівлю, які передбачають оплату замовником "
+        "товарів, робіт і послуг до/без проведення процедури закупівлі відкриті "
+        "торги/ використання електронного каталогу (у разі закупівлі товару)"
     )
     procurement_methods = ("reporting",)
     tender_statuses = ("complete",)
@@ -42,6 +42,7 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
+    max_tender_age_days = 180
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, category=False, value=True):
@@ -50,25 +51,45 @@ class RiskRule(BaseTenderRiskRule):
             # з data.procurement.MethodType = aboveThreshold, = aboveThresholdUA, = aboveThresholdEU
             # зі статусами data.status=cancelled.
             filters = {
-                "procuringEntityIdentifier": tender.get("procuringEntityIdentifier"),  # first field from compound index
+                "procuringEntityIdentifier": tender.get(
+                    "procuringEntityIdentifier"
+                ),  # first field from compound index
                 # якщо відкриті торги і звіт мають один tv_subjectOfProcurement
-                "subjectOfProcurement": tender.get("subjectOfProcurement"),  # second field from compound index
+                "subjectOfProcurement": tender.get(
+                    "subjectOfProcurement"
+                ),  # second field from compound index
                 # data.title звітування співпадає з data.title з будь-якої закупівлі відкритих торгі
                 "title": tender.get("title"),
-                "procurementMethodType": {"$in": ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold")},
+                "procurementMethodType": {
+                    "$in": ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold")
+                },
                 "status": "cancelled",
                 # data.tender.dateCreated звітування молодша та є в межах 365 днів від data.tenderPeriod.startDate
                 "tenderPeriod.startDate": {
-                    "$gte": calculate_end_date(tender["dateCreated"], -timedelta(days=365), ceil=False).isoformat(),
+                    "$gte": calculate_end_date(
+                        tender["dateCreated"],
+                        -timedelta(days=365),
+                        ceil=False,
+                        accelerator=10000,
+                    ).isoformat(),
                     "$lt": tender["dateCreated"],
                 },
             }
             open_tenders = await get_tenders_from_historical_data(filters)
+            # 0 or 1 matching open tenders -> RiskFound, 2 or more -> RiskNotFound.
+            match_count = 0
             for open_tender in open_tenders:
-                tender_value = await get_exchanged_value(tender, date=tender["dateCreated"])
-                open_tender_value = await get_exchanged_value(open_tender, open_tender["tenderPeriod"]["startDate"])
+                tender_value = await get_exchanged_value(
+                    tender, date=tender["dateCreated"]
+                )
+                open_tender_value = await get_exchanged_value(
+                    open_tender, open_tender["tenderPeriod"]["startDate"]
+                )
                 # data.value.amount в гривнях на дату звітування знаходиться в межах +-10% від data.value.amount
                 # в гривнях відповідних відкритих торгів
                 if abs(tender_value - open_tender_value) <= open_tender_value * 0.1:
-                    return RiskFound()
+                    match_count += 1
+                    if match_count >= 2:
+                        return RiskNotFound()
+            return RiskFound()
         return RiskNotFound()

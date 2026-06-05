@@ -56,6 +56,7 @@ tender_data.update(
         ],
     }
 )
+tender_data["dateCreated"] = get_now().isoformat()
 tender_data["bids"][0]["documents"][0]["datePublished"] = get_now().isoformat()
 tender_data["awards"][0].update({
     "date": (get_now() - timedelta(days=6)).isoformat(),
@@ -193,6 +194,15 @@ async def test_tender_with_not_risky_procurement_type():
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender = deepcopy(tender_data)
     tender["procuringEntity"]["kind"] = "other"
+    risk_rule = RiskRule()
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
+
+
+async def test_tender_older_than_180_days_returns_no_risk():
+    tender = deepcopy(tender_data)
+    tender["dateCreated"] = (get_now() - timedelta(days=181)).isoformat()
+    tender["bids"][0].pop("documents", None)
     risk_rule = RiskRule()
     result = await risk_rule.process_tender(tender)
     assert result == RiskNotFound()

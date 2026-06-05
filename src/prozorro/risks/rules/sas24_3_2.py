@@ -28,6 +28,7 @@ class RiskRule(BaseTenderRiskRule):
     )
     procurement_categories = ("goods", "services")
     value_for_services = 400000
+    max_tender_age_days = 180
 
     async def process_tender(self, tender, parent_object=None):
         if self.tender_matches_requirements(tender, value=True) and is_winner_awarded(tender):

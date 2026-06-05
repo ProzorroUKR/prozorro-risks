@@ -13,7 +13,7 @@ def get_fixture_json(name):
 
 
 @pytest.fixture
-async def db(event_loop):
+async def db():
     try:
         await init_mongodb()
         yield get_database()
@@ -22,7 +22,7 @@ async def db(event_loop):
 
 
 @pytest.fixture
-async def api(event_loop, aiohttp_client):
+async def api(aiohttp_client):
     application = create_application(on_cleanup=flush_database)
     setup_swagger(application)
     app = await aiohttp_client(application)

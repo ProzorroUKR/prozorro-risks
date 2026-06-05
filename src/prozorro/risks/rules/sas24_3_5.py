@@ -32,11 +32,10 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
+    max_tender_age_days = 180
 
     async def process_tender(self, tender, parent_object=None):
-        if self.tender_matches_requirements(
-            tender, category=False, value=True
-        ) and is_winner_awarded(tender):
+        if self.tender_matches_requirements(tender, category=False, value=True) and is_winner_awarded(tender):
             open_eu_tender = tender["procurementMethodType"] == "aboveThresholdEU"
             # Визначаємо кількість дискваліфікацій
             if open_eu_tender:

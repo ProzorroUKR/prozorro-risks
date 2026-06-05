@@ -28,12 +28,14 @@ spec:
           env:
             - name: MONGODB_URL
               value: '{{ .Values.config.mongodb_uri }}'
+            - name: DB_NAME
+              value: '{{ .Values.config.db_name }}'
             - name: SENTRY_DSN
               value: '{{ .Values.config.sentry_dsn }}'
             - name: PUBLIC_API_HOST
               value: '{{ .Values.config.public_api_host }}'
             - name: MONGODB_STATE_ID
-              value: 'prozorro-contracts-risks'
+              value: '{{ .Release.Name }}-contracts-risks'
             - name: BACKWARD_OFFSET
               value: '{{ .Values.config.backward_offset }}'
             - name: FORWARD_OFFSET

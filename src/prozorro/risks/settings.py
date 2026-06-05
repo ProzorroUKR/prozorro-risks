@@ -34,7 +34,6 @@ OLD_SAS_RISKS_END_DATE = os.getenv("OLD_SAS_RISKS_END_DATE", "2024-10-31")
 # Excel cannot handle more than 1,048,576 rows
 REPORT_ITEMS_LIMIT = min(int(os.environ.get("REPORT_ITEMS_LIMIT", 100000)), 1048500)
 ALLOW_ALL_ORIGINS = bool(os.environ.get("ALLOW_ALL_ORIGINS", True))
-WINNER_AWARDED_DAYS_LIMIT_FOR_OPEN_TENDERS = 5
 TEST_MODE = bool(os.environ.get("TEST_MODE", False))
 HTTPS_PROXY = os.environ.get("HTTPS_PROXY", "")
 

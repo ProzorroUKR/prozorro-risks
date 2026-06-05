@@ -38,6 +38,7 @@ tender_data.update(
         ],
     }
 )
+tender_data["dateCreated"] = get_now().isoformat()
 
 disqualified_award = get_fixture_json("disqualified_award")
 bid = get_fixture_json("bid")
@@ -67,7 +68,7 @@ async def test_tender_without_disqualified_award():
         ("cancelled", (get_now() - timedelta(days=6)).isoformat(), RiskNotFound()),
         ("unsuccessful", (get_now() - timedelta(days=6)).isoformat(), RiskNotFound()),
         ("active", (get_now() - timedelta(days=6)).isoformat(), RiskFound()),
-        ("active", (get_now() - timedelta(days=2)).isoformat(), RiskNotFound()),
+        ("active", (get_now() - timedelta(days=2)).isoformat(), RiskFound()),
     ],
 )
 async def test_tender_with_violations_for_different_lot_status(lot_status, winner_date, risk_result):
@@ -364,6 +365,62 @@ async def test_tender_with_not_risky_procurement_type():
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender = deepcopy(tender_data)
     tender["procuringEntity"]["kind"] = "other"
+    risk_rule = RiskRule()
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskNotFound()
+
+
+def _build_sas24_3_15_violation_tender(date_created, winner_date):
+    tender = deepcopy(get_fixture_json("base_tender"))
+    tender["procuringEntity"]["kind"] = "general"
+    tender["mainProcurementCategory"] = "services"
+    tender["value"]["amount"] = 500000
+    tender.update({
+        "procurementMethodType": "aboveThresholdUA",
+        "status": "active.qualification",
+        "lots": [{
+            "title": "Бетон та розчин будівельний",
+            "status": "active",
+            "id": "c2bb6ff3e8e547bee11d8bff23e8a295",
+            "value": {"amount": 168233.0, "currency": "UAH", "valueAddedTaxIncluded": True},
+        }],
+    })
+    tender["dateCreated"] = date_created
+    fresh_bid = get_fixture_json("bid")
+    fresh_bid["lotValues"][0]["relatedLot"] = tender["lots"][0]["id"]
+    fresh_bid["status"] = "active"
+    fresh_bid_2 = deepcopy(fresh_bid)
+    fresh_bid_2["tenderers"][0]["identifier"]["id"] = "11111111"
+    fresh_bid_3 = deepcopy(fresh_bid)
+    fresh_bid_3["tenderers"][0]["identifier"]["id"] = "22222222"
+    fresh_disqualified = get_fixture_json("disqualified_award")
+    fresh_disqualified["lotID"] = tender["lots"][0]["id"]
+    disq_1 = deepcopy(fresh_disqualified)
+    disq_1["suppliers"][0]["identifier"]["id"] = "11111111"
+    disq_2 = deepcopy(fresh_disqualified)
+    disq_2["suppliers"][0]["identifier"]["id"] = "22222222"
+    fresh_winner = deepcopy(fresh_disqualified)
+    fresh_winner["status"] = "active"
+    fresh_winner["date"] = winner_date
+    tender["bids"] = [fresh_bid, fresh_bid_2, fresh_bid_3]
+    tender["awards"] = [disq_1, disq_2, fresh_winner]
+    tender["awards"][0]["complaints"] = get_fixture_json("complaints")
+    tender["awards"][0]["complaints"][0]["status"] = "resolved"
+    return tender
+
+
+async def test_winner_zero_days_old_still_triggers():
+    tender = _build_sas24_3_15_violation_tender(get_now().isoformat(), get_now().isoformat())
+    risk_rule = RiskRule()
+    result = await risk_rule.process_tender(tender)
+    assert result == RiskFound()
+
+
+async def test_tender_older_than_180_days_returns_no_risk():
+    tender = _build_sas24_3_15_violation_tender(
+        (get_now() - timedelta(days=181)).isoformat(),
+        get_now().isoformat(),
+    )
     risk_rule = RiskRule()
     result = await risk_rule.process_tender(tender)
     assert result == RiskNotFound()

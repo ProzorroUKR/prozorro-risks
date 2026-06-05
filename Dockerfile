@@ -1,4 +1,4 @@
-FROM python:3.10-alpine3.19 as base
+FROM python:3.10-alpine3.19 AS base
 
 RUN pip install --upgrade pip
 RUN addgroup -g 10000 user && \
@@ -12,26 +12,26 @@ COPY swagger /swagger
 ENV SWAGGER_DOC_PATH=/swagger
 EXPOSE 8080
 
-FROM base as test_base
+FROM base AS test_base
 
 COPY tests/requirements.txt ./test-requirements.txt
 COPY .flake8 /.flake8
 RUN pip install --no-cache-dir -r test-requirements.txt
 
-FROM base as prod
+FROM base AS prod
 
 ADD src/ .
 ARG version=unknown
 RUN echo $version && sed -i "s/##VERSION##/$version/g" prozorro/__init__.py
 
-FROM test_base as test
+FROM test_base AS test
 
 ADD src/ .
 ADD tests/ tests/
 ARG version=unknown
 RUN echo $version && sed -i "s/##VERSION##/$version/g" prozorro/__init__.py
 
-FROM prod as local
+FROM prod AS local
 
 FROM prod
 
