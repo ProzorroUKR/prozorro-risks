@@ -39,7 +39,7 @@ container_scanning:
     - job: push-tagged-image
 
 code-style-check:
-  image: python:3.10-alpine3.19
+  image: python:3.13-alpine
   stage: lint
   tags:
     - kube-dev
@@ -65,7 +65,7 @@ build-new-image:
     - docker push $CI_REGISTRY_IMAGE/$CI_REGISTRY_FRONTEND_IMAGE_SUFFIX:$TAG_FRONTEND
 
 test:
-  image: docker-registry.prozorro.gov.ua/docker/images/python:3.9-alpine3.14
+  image: python:3.13-alpine
   stage: test
   services:
     - name: bitnamilegacy/mongodb:6.0.13-debian-11-r9

@@ -1,4 +1,4 @@
-FROM python:3.10-alpine3.19 AS base
+FROM python:3.13-alpine AS base
 
 RUN pip install --upgrade pip
 RUN addgroup -g 10000 user && \

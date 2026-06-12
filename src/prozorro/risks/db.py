@@ -2,7 +2,6 @@ import asyncio
 import logging
 import re
 from contextvars import ContextVar
-from distutils.util import strtobool
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from prozorro.risks.settings import (
@@ -17,7 +16,7 @@ from prozorro.risks.settings import (
     MONGODB_ERROR_INTERVAL,
 )
 from prozorro.risks.models import RiskIndicatorEnum
-from prozorro.risks.utils import clamp_limit, clamp_skip
+from prozorro.risks.utils import clamp_limit, clamp_skip, strtobool
 from pymongo import ASCENDING, DESCENDING, IndexModel
 from pymongo.errors import ExecutionTimeout, PyMongoError
 from aiohttp import web
@@ -61,7 +60,7 @@ async def init_mongodb(*_):
 
 async def cleanup_db_client(*_):
     global DB
-    if DB:
+    if DB is not None:
         DB.client.close()
         DB = None
 
