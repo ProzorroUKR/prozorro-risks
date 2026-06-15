@@ -51,7 +51,7 @@ spec:
             - name: SLEEP_FORWARD_CHANGES_SECONDS
               value: '{{ .Values.config.sleep_forward_changes_seconds }}'
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.delay_crawler.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
