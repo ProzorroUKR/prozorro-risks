@@ -18,6 +18,10 @@ api:
     repository: docker-registry.prozorro.gov.ua/cdb/prozorro-risks
     tag: latest
     pullPolicy: Always
+  resources:
+    requests:
+      cpu: 10m
+      memory: 85Mi
 
 tenders_crawler:
   replicaCount: 1
@@ -25,6 +29,10 @@ tenders_crawler:
     repository: docker-registry.prozorro.gov.ua/cdb/prozorro-risks
     tag: latest
     pullPolicy: Always
+  resources:
+    requests:
+      cpu: 5m
+      memory: 110Mi
 
 contracts_crawler:
   replicaCount: 1
@@ -32,6 +40,10 @@ contracts_crawler:
     repository: docker-registry.prozorro.gov.ua/cdb/prozorro-risks
     tag: latest
     pullPolicy: Always
+  resources:
+    requests:
+      cpu: 5m
+      memory: 70Mi
 
 delay_crawler:
   replicaCount: 1
@@ -39,6 +51,10 @@ delay_crawler:
     repository: docker-registry.prozorro.gov.ua/cdb/prozorro-risks
     tag: latest
     pullPolicy: Always
+  resources:
+    requests:
+      cpu: 5m
+      memory: 60Mi
 
 frontend:
   replicaCount: 1
@@ -46,6 +62,10 @@ frontend:
     repository: docker-registry.prozorro.gov.ua/cdb/prozorro-risks/prozorro-risks-frontend
     tag: latest
     pullPolicy: Always
+  resources:
+    requests:
+      cpu: 5m
+      memory: 25Mi
 
 service:
   type: ClusterIP
