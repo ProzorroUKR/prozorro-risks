@@ -44,9 +44,10 @@ code-style-check:
   tags:
     - kube-dev
   before_script:
-    - pip install flake8
+    - pip install uv
+    - uv sync --frozen --no-cache --only-group dev
   script:
-    - flake8
+    - uv run flake8 src tests
   only:
     changes:
       - "**/*.py"
@@ -80,12 +81,11 @@ test:
     - kube-dev
   before_script:
     - apk --no-cache add gcc build-base git openssl-dev libffi-dev
-    - pip install -r requirements.txt
-    - pip install -r tests/requirements.txt
-    - pip install -e .
+    - pip install uv
+    - uv sync --frozen --no-cache
     - cp -r swagger /swagger
   script:
-    - pytest -x -s tests/integration/
+    - uv run pytest -x -s tests/integration/
       --cov=src/prozorro/risks
       --cov-report xml
       --cov-report term

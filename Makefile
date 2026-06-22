@@ -74,7 +74,7 @@ test-unit: $(REBUILD_IMAGES_FOR_TESTS)
 
 ## Formats code with `flake8`.
 lint: docker-build
-	@docker compose run --rm $(PROJECT_NAME)-test-integration sh -c "pip install flake8 && flake8 prozorro/"
+	@docker compose run --rm $(PROJECT_NAME)-test-integration flake8 prozorro/
 
 ## Create tag | Release
 version:
