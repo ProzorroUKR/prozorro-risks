@@ -1,5 +1,6 @@
 import aiohttp
 import logging
+from configparser import RawConfigParser
 from datetime import datetime
 
 import pytz
@@ -16,6 +17,13 @@ logger = logging.getLogger(__name__)
 
 def get_now() -> datetime:
     return datetime.now(TIMEZONE)
+
+
+def strtobool(value):
+    try:
+        return RawConfigParser.BOOLEAN_STATES[value.strip().lower()]
+    except KeyError:
+        raise ValueError(f"invalid truth value {value!r}")
 
 
 def get_int_from_query(request, key, default=0):
