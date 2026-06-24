@@ -43,7 +43,6 @@ class BaseRiskRule(ABC):
                 get_now(),
                 -timedelta(days=self.max_tender_age_days),
                 normalized=False,
-                accelerator=10000,
             )
             age_matches = datetime.fromisoformat(tender["dateCreated"]) >= cutoff
 

@@ -70,7 +70,6 @@ class RiskRule(BaseTenderRiskRule):
                         tender["dateCreated"],
                         -timedelta(days=365),
                         ceil=False,
-                        accelerator=10000,
                     ).isoformat(),
                     "$lt": tender["dateCreated"],
                 },

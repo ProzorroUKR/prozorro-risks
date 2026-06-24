@@ -39,7 +39,7 @@ container_scanning:
     - job: push-tagged-image
 
 code-style-check:
-  image: python:3.13-alpine
+  image: python:3.13
   stage: lint
   tags:
     - kube-dev
