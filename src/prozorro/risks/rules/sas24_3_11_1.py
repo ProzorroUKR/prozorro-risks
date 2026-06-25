@@ -45,7 +45,12 @@ class RiskRule(BaseTenderRiskRule):
     max_tender_age_days = 180
 
     async def process_tender(self, tender, parent_object=None):
-        if self.tender_matches_requirements(tender, category=False, value=True):
+        if (
+            self.tender_matches_requirements(tender, category=False, value=True)
+            # Причина закупівлі = openUnsuccessful (підпункт 6 пункту 13). Якщо обрана інша
+            # причина або причина не обрана взагалі (causeDetails відсутній) - ризик не спрацьовує.
+            and (tender.get("causeDetails") or {}).get("code") == "openUnsuccessful"
+        ):
             # В рамках одного коду ЄДРПОУ замовника data.procuringEntity.identifier.id порівнюємо
             # data.procurement.MethodType = reporting зі статусом data.status = complete,
             # з data.procurement.MethodType = aboveThreshold, = aboveThresholdUA, = aboveThresholdEU
@@ -75,8 +80,6 @@ class RiskRule(BaseTenderRiskRule):
                 },
             }
             open_tenders = await get_tenders_from_historical_data(filters)
-            # 0 or 1 matching open tenders -> RiskFound, 2 or more -> RiskNotFound.
-            match_count = 0
             for open_tender in open_tenders:
                 tender_value = await get_exchanged_value(
                     tender, date=tender["dateCreated"]
@@ -87,8 +90,9 @@ class RiskRule(BaseTenderRiskRule):
                 # data.value.amount в гривнях на дату звітування знаходиться в межах +-10% від data.value.amount
                 # в гривнях відповідних відкритих торгів
                 if abs(tender_value - open_tender_value) <= open_tender_value * 0.1:
-                    match_count += 1
-                    if match_count >= 2:
-                        return RiskNotFound()
+                    # Протягом року були відмінені відкриті торги через неподання жодної тендерної
+                    # пропозиції (з цієї причини) -> ризик не спрацьовує.
+                    return RiskNotFound()
+            # Протягом 365 днів у замовника не було відмінених відкритих торгів -> ризик.
             return RiskFound()
         return RiskNotFound()
