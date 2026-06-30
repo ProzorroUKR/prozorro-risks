@@ -29,7 +29,7 @@ open_tender_data.pop("causeDetails", None)
 open_tender_data.update(
     {
         "procurementMethodType": "aboveThreshold",
-        "status": "cancelled",
+        "status": "unsuccessful",
     }
 )
 open_tender_data["tenderPeriod"]["startDate"] = get_now().isoformat()
@@ -42,7 +42,7 @@ open_tender_data["complaints"][0]["status"] = "satisfied"
 # ---------------------------------------------------------------------------
 async def test_tender_with_not_risky_tender_status():
     tender = deepcopy(tender_data)
-    tender["status"] = "cancelled"
+    tender["status"] = "unsuccessful"
     for rule_class in (RiskRule, RiskRule2):
         result = await rule_class().process_tender(tender)
         assert result == RiskNotFound()
@@ -59,15 +59,6 @@ async def test_tender_with_not_risky_procurement_type():
 async def test_tender_with_not_risky_procurement_entity_kind():
     tender = deepcopy(tender_data)
     tender["procuringEntity"]["kind"] = "other"
-    for rule_class in (RiskRule, RiskRule2):
-        result = await rule_class().process_tender(tender)
-        assert result == RiskNotFound()
-
-
-async def test_tender_older_than_180_days_returns_no_risk(db, api):
-    await db.tenders.insert_one(open_tender_data)
-    tender = deepcopy(tender_data)
-    tender["dateCreated"] = (get_now() - timedelta(days=181)).isoformat()
     for rule_class in (RiskRule, RiskRule2):
         result = await rule_class().process_tender(tender)
         assert result == RiskNotFound()
@@ -94,13 +85,13 @@ async def test_sas24_other_cause_no_risk(db, code):
     assert await RiskRule().process_tender(tender) == RiskNotFound()
 
 
-async def test_sas24_matching_cancelled_open_tender_no_risk(db, api):
+async def test_sas24_matching_unsuccessful_open_tender_no_risk(db, api):
     # Протягом року були відмінені відкриті торги з цієї причини -> ризик не спрацьовує.
     await db.tenders.insert_one(open_tender_data)
     assert await RiskRule().process_tender(tender_data) == RiskNotFound()
 
 
-async def test_sas24_cancelled_open_tender_value_out_of_range_has_risk(db, api):
+async def test_sas24_unsuccessfuk_open_tender_value_out_of_range_has_risk(db, api):
     # Відмінені відкриті торги є, але value поза межами +-10% -> не зараховуються -> ризик.
     open_data = deepcopy(open_tender_data)
     open_data["value"] = {"amount": tender_data["value"]["amount"] * 2, "currency": "UAH"}
@@ -136,8 +127,8 @@ async def test_sas24_two_matching_open_tenders_no_risk(db, api):
         ("active.tendering", RiskFound()),
         ("active.qualification", RiskFound()),
         ("active.awarded", RiskFound()),
-        ("unsuccessful", RiskFound()),
-        ("cancelled", RiskNotFound()),
+        ("cancelled", RiskFound()),
+        ("unsuccessful", RiskNotFound()),
     ],
 )
 async def test_sas24_open_tender_status(db, api, status, sas24_result):
@@ -191,7 +182,7 @@ async def test_sas24_tender_value_threshold(db, amount, category, sas24_result):
 # ---------------------------------------------------------------------------
 # Shared "no matching open tender" cases (expectations hold for both rules).
 # ---------------------------------------------------------------------------
-async def test_tender_has_no_cancelled_open_tenders(db):
+async def test_tender_has_no_unsuccessful_open_tenders(db):
     assert await RiskRule().process_tender(tender_data) == RiskFound()
     assert await RiskRule2().process_tender(tender_data) == RiskNotFound()
 
@@ -245,7 +236,7 @@ async def test_legacy_matching_open_tender_with_complaint_has_risk(db, api):
         "active.tendering",
         "active.qualification",
         "active.awarded",
-        "cancelled",
+        "unsuccessful",
     ],
 )
 async def test_legacy_open_tender_status(db, api, status):
@@ -317,7 +308,7 @@ async def test_complaints(db, api):
 @pytest.mark.parametrize(
     "amount,currency,sas24_result,legacy_result",
     [
-        # value match (within ±10%) → sas24 finds a justifying cancelled tender (no risk);
+        # value match (within ±10%) → sas24 finds a justifying unsuccessful tender (no risk);
         # legacy finds a matching open tender with a satisfied complaint (risk)
         (38650, "EUR", RiskNotFound(), RiskFound()),
         (37000, "USD", RiskNotFound(), RiskFound()),

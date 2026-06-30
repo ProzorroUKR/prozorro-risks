@@ -42,7 +42,6 @@ class RiskRule(BaseTenderRiskRule):
     )
     value_for_services = 400000
     value_for_works = 1500000
-    max_tender_age_days = 180
 
     async def process_tender(self, tender, parent_object=None):
         if (
@@ -68,7 +67,7 @@ class RiskRule(BaseTenderRiskRule):
                 "procurementMethodType": {
                     "$in": ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold")
                 },
-                "status": "cancelled",
+                "status": "unsuccessful",
                 # data.tender.dateCreated звітування молодша та є в межах 365 днів від data.tenderPeriod.startDate
                 "tenderPeriod.startDate": {
                     "$gte": calculate_end_date(
