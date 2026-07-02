@@ -53,7 +53,7 @@ class RiskRule(BaseTenderRiskRule):
             # В рамках одного коду ЄДРПОУ замовника data.procuringEntity.identifier.id порівнюємо
             # data.procurement.MethodType = reporting зі статусом data.status = complete,
             # з data.procurement.MethodType = aboveThreshold, = aboveThresholdUA, = aboveThresholdEU
-            # зі статусами data.status=cancelled.
+            # зі статусами data.status=unsuccessful.
             filters = {
                 "procuringEntityIdentifier": tender.get(
                     "procuringEntityIdentifier"
@@ -89,7 +89,7 @@ class RiskRule(BaseTenderRiskRule):
                 # data.value.amount в гривнях на дату звітування знаходиться в межах +-10% від data.value.amount
                 # в гривнях відповідних відкритих торгів
                 if abs(tender_value - open_tender_value) <= open_tender_value * 0.1:
-                    # Протягом року були відмінені відкриті торги через неподання жодної тендерної
+                    # Протягом року були unsuccessful відкриті торги через неподання жодної тендерної
                     # пропозиції (з цієї причини) -> ризик не спрацьовує.
                     return RiskNotFound()
             # Протягом 365 днів у замовника не було відмінених відкритих торгів -> ризик.
