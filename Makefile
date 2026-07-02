@@ -3,9 +3,9 @@ IMAGE ?= prozorro-$(PROJECT_NAME):develop
 IMAGE_TEST ?= prozorro-$(PROJECT_NAME):develop-test
 IMAGE_FRONTEND ?= prozorro-$(PROJECT_NAME)-frontend:develop
 CI_COMMIT_SHORT_SHA ?= $(shell git rev-parse --short HEAD)
-GIT_STAMP ?= $(shell git describe || echo v0.1.0)
+GIT_STAMP ?= $(shell git describe --tags || echo v0.1.0)
 COMPOSE_PROJECT_NAME ?= $(PROJECT_NAME)-$(CI_PIPELINE_ID)
-GIT_TAG ?= $(shell git describe --abbrev=0)
+GIT_TAG ?= $(shell git describe --tags --abbrev=0)
 
 ifdef CI
   REBUILD_IMAGES_FOR_TESTS =
