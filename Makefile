@@ -50,6 +50,7 @@ bash:
 
 ## Builds docker image
 docker-build:
+	@echo "Building new image with version = $(GIT_STAMP)"
 	@docker build $(IMAGE_TARGET) --build-arg version=$(GIT_STAMP) \
  								  --build-arg NODE_ENV=$(NODE_ENV) -t $(IMAGE) .
 	@docker build --target=test --build-arg version=$(GIT_STAMP)  \
