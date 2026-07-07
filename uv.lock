@@ -414,8 +414,8 @@ wheels = [
 
 [[package]]
 name = "prozorro-crawler"
-version = "2.1.13"
-source = { git = "https://github.com/ProzorroUKR/prozorro_crawler.git?rev=2.1.13#c87d04335dc01ba2208eaf8f99ca294f7ddcf959" }
+version = "2.2.0"
+source = { git = "https://github.com/ProzorroUKR/prozorro_crawler.git?rev=2.2.0#018193bc4b997fc74ee1e5f2ae8948bd5a572cac" }
 dependencies = [
     { name = "aiohttp" },
     { name = "asyncpg" },
@@ -462,7 +462,7 @@ requires-dist = [
     { name = "ciso8601", specifier = ">=2.3.3,<3" },
     { name = "dateorro", git = "https://github.com/ProzorroUKR/dateorro.git?rev=0.0.3" },
     { name = "motor", specifier = ">=3.7.1,<4" },
-    { name = "prozorro-crawler", git = "https://github.com/ProzorroUKR/prozorro_crawler.git?rev=2.1.13" },
+    { name = "prozorro-crawler", git = "https://github.com/ProzorroUKR/prozorro_crawler.git?rev=2.2.0" },
     { name = "pydantic", specifier = ">=2.13.4,<3" },
     { name = "python-json-logger", specifier = ">=2.0.2,<5" },
     { name = "sentry-sdk", specifier = ">=2.62.0,<3" },
