@@ -3,7 +3,7 @@ import logging
 import re
 from contextvars import ContextVar
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.asynchronous.mongo_client import AsyncMongoClient
 from prozorro.risks.settings import (
     CRAWLER_START_DATE,
     MONGODB_URL,
@@ -43,8 +43,7 @@ def get_database():
 async def init_mongodb(*_):
     global DB
     logger.info("Init mongodb instance")
-    loop = asyncio.get_event_loop()
-    conn = AsyncIOMotorClient(MONGODB_URL, io_loop=loop)
+    conn = AsyncMongoClient(MONGODB_URL)
     DB = conn.get_database(
         DB_NAME,
         read_preference=READ_PREFERENCE,
