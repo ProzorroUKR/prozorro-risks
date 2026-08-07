@@ -60,7 +60,7 @@ async def init_mongodb(*_):
 async def cleanup_db_client(*_):
     global DB
     if DB is not None:
-        DB.client.close()
+        await DB.client.close()
         DB = None
 
 
@@ -431,7 +431,7 @@ async def get_distinct_values(field):
 
 
 async def aggregate_tenders(pipeline):
-    cursor = get_tenders_collection().aggregate(pipeline)
+    cursor = await get_tenders_collection().aggregate(pipeline)
     aggregate_response = await cursor.to_list(length=None)
     try:
         result = aggregate_response[0]
@@ -483,5 +483,5 @@ async def get_tender_risks_report(filters, **kwargs):
         },
     ]
     #  allowDiskUse = True allow writing temporary files on disk when a pipeline stage exceeds the 100 megabyte limit
-    cursor = collection.aggregate(pipeline, allowDiskUse=True, maxTimeMS=MAX_TIME_QUERY)
+    cursor = await collection.aggregate(pipeline, allowDiskUse=True, maxTimeMS=MAX_TIME_QUERY)
     return cursor
