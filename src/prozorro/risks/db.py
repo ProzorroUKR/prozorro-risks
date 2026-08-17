@@ -3,7 +3,7 @@ import logging
 import re
 from contextvars import ContextVar
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.asynchronous.mongo_client import AsyncMongoClient
 from prozorro.risks.settings import (
     CRAWLER_START_DATE,
     MONGODB_URL,
@@ -43,8 +43,7 @@ def get_database():
 async def init_mongodb(*_):
     global DB
     logger.info("Init mongodb instance")
-    loop = asyncio.get_event_loop()
-    conn = AsyncIOMotorClient(MONGODB_URL, io_loop=loop)
+    conn = AsyncMongoClient(MONGODB_URL)
     DB = conn.get_database(
         DB_NAME,
         read_preference=READ_PREFERENCE,
@@ -61,7 +60,7 @@ async def init_mongodb(*_):
 async def cleanup_db_client(*_):
     global DB
     if DB is not None:
-        DB.client.close()
+        await DB.client.close()
         DB = None
 
 
@@ -432,7 +431,7 @@ async def get_distinct_values(field):
 
 
 async def aggregate_tenders(pipeline):
-    cursor = get_tenders_collection().aggregate(pipeline)
+    cursor = await get_tenders_collection().aggregate(pipeline)
     aggregate_response = await cursor.to_list(length=None)
     try:
         result = aggregate_response[0]
@@ -484,5 +483,5 @@ async def get_tender_risks_report(filters, **kwargs):
         },
     ]
     #  allowDiskUse = True allow writing temporary files on disk when a pipeline stage exceeds the 100 megabyte limit
-    cursor = collection.aggregate(pipeline, allowDiskUse=True, maxTimeMS=MAX_TIME_QUERY)
+    cursor = await collection.aggregate(pipeline, allowDiskUse=True, maxTimeMS=MAX_TIME_QUERY)
     return cursor
