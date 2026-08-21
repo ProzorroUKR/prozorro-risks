@@ -1,6 +1,6 @@
 [project]
 name = "prozorro-risks"
-version = "1.0.39"
+version = "1.0.40"
 description = "Risks detection project to monitor active tenders in CDB"
 readme = "README.md"
 requires-python = "==3.13.*"
