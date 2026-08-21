@@ -52,7 +52,7 @@ def setup_logging():
     formatter = CustomJsonFormatter(json_ensure_ascii=False, timestamp=True)
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logging.basicConfig(level=logging.DEBUG, handlers=[handler])
+    logging.basicConfig(level=logging.INFO, handlers=[handler])
 
     # serve alternative logging for uncaught exceptions
     def exception_logging(exc_type, exc_value, exc_traceback):
