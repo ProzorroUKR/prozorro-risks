@@ -197,7 +197,7 @@ async def get_exchanged_value(obj, date):
                 session,
                 uid,
                 resource="NBU",
-                date=datetime.fromisoformat(date).strftime('%Y%m%d'),
+                date=datetime.fromisoformat(date).strftime("%Y%m%d"),
                 **kwargs,
             )
         for rate in rates:

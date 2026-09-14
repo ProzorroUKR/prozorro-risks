@@ -10,7 +10,7 @@ class RiskIndicatorEnum(str, Enum):
 
 class BaseRiskResult(BaseModel):
     type: str = "tender"
-    id: str = None
+    id: str | None = None
     indicator: RiskIndicatorEnum
 
 

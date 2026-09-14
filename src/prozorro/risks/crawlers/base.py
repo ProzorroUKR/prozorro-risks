@@ -46,9 +46,8 @@ async def process_risks(obj, rules, resource="tenders", parent_object=None):
         if (
             risk_rule.start_date
             and obj.get("dateCreated")
-            and datetime.fromisoformat(obj["dateCreated"]).date() < datetime.strptime(
-                risk_rule.start_date, "%Y-%m-%d"
-            ).date()
+            and datetime.fromisoformat(obj["dateCreated"]).date()
+            < datetime.strptime(risk_rule.start_date, "%Y-%m-%d").date()
         ):
             continue
         process_method = getattr(risk_rule, RISKS_METHODS_MAPPING[resource])

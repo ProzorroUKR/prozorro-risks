@@ -11,21 +11,17 @@ from prozorro.risks.rules.utils import (
 class RiskRule(BaseTenderRiskRule):
     identifier = "sas24-3-15"
     owner = "sas24"
-    name = (
-        "Замовник відхилив мінімум 2 учасників за наявності скарги в Органі оскарження"
-    )
+    name = "Замовник відхилив мінімум 2 учасників за наявності скарги в Органі оскарження"
     description = (
         "Визначення закупівель, що містять ознаки повторного відхилення замовником тендерної пропозиції учасника "
         "після винесення рішення Органом оскарження по такому учаснику, та/або свідчать про ймовірність "
         "допущення таких порушень"
     )
-    legitimateness = (
-        'Пункту 44 Особливостей № 1178, статті 31 Закону України "Про публічні закупівлі"'
-    )
+    legitimateness = 'Пункту 44 Особливостей № 1178, статті 31 Закону України "Про публічні закупівлі"'
     development_basis = (
-        'Ознака безпідставного відхилення тендерних пропозицій/ пропозицій учасників на порушення вимог '
+        "Ознака безпідставного відхилення тендерних пропозицій/ пропозицій учасників на порушення вимог "
         'пункту 44 Особливостей № 1178, статті 31 Закону України "Про публічні закупівлі" '
-        'з метою надання переваги конкретному учаснику'
+        "з метою надання переваги конкретному учаснику"
     )
     procurement_methods = (
         "aboveThresholdEU",
@@ -75,10 +71,7 @@ class RiskRule(BaseTenderRiskRule):
                     check_winner=True,
                 )
                 award_complaints = flatten(
-                    [
-                        get_complaints(award, statuses=["resolved"])
-                        for award in tender.get("awards", [])
-                    ]
+                    [get_complaints(award, statuses=["resolved"]) for award in tender.get("awards", [])]
                 )
                 if disqualifications_count >= 2 and award_complaints:
                     return RiskFound()

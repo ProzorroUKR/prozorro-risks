@@ -42,14 +42,9 @@ class RiskRule(BaseContractRiskRule):
 
     async def process_contract(self, contract, parent_object=None):
         if contract["status"] in self.contract_statuses:
-            if (
-                datetime.fromisoformat(parent_object["dateCreated"])
-                < CRAWLER_START_DATE
-            ):
+            if datetime.fromisoformat(parent_object["dateCreated"]) < CRAWLER_START_DATE:
                 raise SkipException()
-            if self.tender_matches_requirements(
-                parent_object, status=False, value=True
-            ):
+            if self.tender_matches_requirements(parent_object, status=False, value=True):
                 for tender_contract in parent_object.get("contracts", []):
                     # Якщо дата в контракті data.period.endDate відрізняється менше ніж на 60 днів
                     # від дати в тендері data.contracts.date, індикатор приймає значення 1, розрахунок завершується

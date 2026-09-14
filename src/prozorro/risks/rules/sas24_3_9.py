@@ -36,11 +36,7 @@ class RiskRule(BaseTenderRiskRule):
                     award["id"] != current_award["id"],
                     award["status"] == "active",
                     award["bid_id"] == current_award["bid_id"],
-                    (
-                        award["lotID"] == current_award["lotID"]
-                        if current_award.get("lotID")
-                        else True
-                    ),
+                    (award["lotID"] == current_award["lotID"] if current_award.get("lotID") else True),
                 ]
             )
         ]
@@ -59,17 +55,10 @@ class RiskRule(BaseTenderRiskRule):
                 # у яких є awards.complaints, на які посилається data.awards.lotID
                 if len(tender.get("lots", [])):
                     for lot in tender["lots"]:
-                        if (
-                            lot["status"] not in ("cancelled", "unsuccessful")
-                            and lot["id"] == award["lotID"]
-                        ):
-                            if self.tender_has_active_awards_with_same_bid(
-                                tender["awards"], award
-                            ):
+                        if lot["status"] not in ("cancelled", "unsuccessful") and lot["id"] == award["lotID"]:
+                            if self.tender_has_active_awards_with_same_bid(tender["awards"], award):
                                 return RiskFound()
                 else:
-                    if self.tender_has_active_awards_with_same_bid(
-                        tender["awards"], award
-                    ):
+                    if self.tender_has_active_awards_with_same_bid(tender["awards"], award):
                         return RiskFound()
         return RiskNotFound()

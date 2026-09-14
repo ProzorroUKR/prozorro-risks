@@ -12,8 +12,8 @@ workflow:
     - when: never
 
 stages:
-  - lint
   - build
+  - lint
   - test
   - publish
   - security
@@ -23,6 +23,7 @@ stages:
 image: docker-registry.prozorro.gov.ua/cdb/openprocurement.api/ci
 
 variables:
+  UV_SYSTEM_PYTHON: "1"
   TAG: $CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA
   TAG_TEST: $TAG-test
   TAG_FRONTEND: $TAG-frontend
@@ -38,21 +39,31 @@ container_scanning:
   needs:
     - job: push-tagged-image
 
-code-style-check:
-  image: python:3.13
+.lint_tools:
+  image: $IMAGE
   stage: lint
   tags:
     - kube-dev
+  dependencies:
+    - build-new-image
   before_script:
-    - pip install uv
     - uv sync --frozen --no-cache --only-group dev
-  script:
-    - uv run flake8 src tests
   only:
     changes:
       - "**/*.py"
   except:
     - schedules
+
+ruff:
+  extends: .lint_tools
+  script:
+    - uv run ruff check src/ --force-exclude
+    - uv run ruff format src/ --check --force-exclude
+
+mypy:
+  extends: .lint_tools
+  script:
+    - uv run mypy src/ --explicit-package-bases
 
 build-new-image:
   stage: build

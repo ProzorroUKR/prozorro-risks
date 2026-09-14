@@ -24,15 +24,11 @@ def calculate_end_date(
     :param accelerator: int Accelerator for calculating datetime in TEST_MODE.
     :return: result datetime object
     """
-    date_obj = (
-        date_obj if isinstance(date_obj, datetime) else datetime.fromisoformat(date_obj)
-    )
+    date_obj = date_obj if isinstance(date_obj, datetime) else datetime.fromisoformat(date_obj)
     if normalized and TEST_MODE is not True:
         date_obj = calc_normalized_datetime(date_obj, ceil=ceil)
     if working_days:
-        result_date_obj = calc_working_datetime(
-            date_obj, timedelta_obj, calendar=WORKING_DAYS
-        )
+        result_date_obj = calc_working_datetime(date_obj, timedelta_obj, calendar=WORKING_DAYS)
     else:
         result_date_obj = calc_datetime(
             date_obj,
@@ -76,9 +72,7 @@ def is_winner_awarded(tender, award_to_check=None) -> bool:
     active_awards = (
         [award_to_check]
         if award_to_check
-        else [
-            award for award in tender.get("awards", []) if award["status"] == "active"
-        ]
+        else [award for award in tender.get("awards", []) if award["status"] == "active"]
     )
 
     return bool(active_awards)
@@ -106,13 +100,9 @@ def count_winner_disqualifications_and_bidders(tender, lot=None, check_winner=Fa
         # Перевіряється кількість дискваліфікацій - наявність в процедурі
         # унікальних об’єктів data.awards (конкатенація data.awards.suppliers.identifier.scheme
         # та data.awards.suppliers.identifier.id), де data.awards.status = 'unsuccessful'.
-        if award["status"] == "unsuccessful" and (
-            not lot or award.get("lotID") == lot["id"]
-        ):
+        if award["status"] == "unsuccessful" and (not lot or award.get("lotID") == lot["id"]):
             for supplier in award.get("suppliers", []):
-                disqualified_awards.add(
-                    f"{supplier['identifier']['scheme']}-{supplier['identifier']['id']}"
-                )
+                disqualified_awards.add(f"{supplier['identifier']['scheme']}-{supplier['identifier']['id']}")
         # Перевіряється наявність в процедурі data.awards, де data.awards.status = 'active'.
         elif (
             award["status"] == "active"
@@ -127,9 +117,7 @@ def count_winner_disqualifications_and_bidders(tender, lot=None, check_winner=Fa
     for bid in tender.get("bids", []):
         if bid["status"] == "active" and (not lot or bidder_applies_on_lot(bid, lot)):
             for tenderer in bid.get("tenderers", []):
-                bidders.add(
-                    f"{tenderer['identifier']['scheme']}-{tenderer['identifier']['id']}"
-                )
+                bidders.add(f"{tenderer['identifier']['scheme']}-{tenderer['identifier']['id']}")
     bidders_count = len(bidders)
     return disqualifications_count, winner_count, bidders_count
 

@@ -23,14 +23,16 @@ from aiohttp import web
 
 logger = logging.getLogger(__name__)
 
-SORTABLE_FIELDS = frozenset({
-    "dateAssessed",
-    "value.amount",
-    "procuringEntityRegion",
-    "procuringEntityEDRPOU",
-    "worked_risks",
-    "terminated",
-})
+SORTABLE_FIELDS = frozenset(
+    {
+        "dateAssessed",
+        "value.amount",
+        "procuringEntityRegion",
+        "procuringEntityEDRPOU",
+        "worked_risks",
+        "terminated",
+    }
+)
 
 DB = None
 session_var = ContextVar("session", default=None)
@@ -254,9 +256,7 @@ def parse_sort_field(request_sort):
     sort_field = request_sort or "dateAssessed"
     if sort_field not in SORTABLE_FIELDS:
         allowed = ", ".join(sorted(SORTABLE_FIELDS))
-        raise web.HTTPBadRequest(
-            text=f"Invalid sort field '{sort_field}'. Allowed values: {allowed}"
-        )
+        raise web.HTTPBadRequest(text=f"Invalid sort field '{sort_field}'. Allowed values: {allowed}")
     return sort_field
 
 
@@ -350,13 +350,10 @@ def update_contracts_statuses(contracts, tender):
 def tender_is_terminated(tender, contracts, new_status):
     contract_statuses = set(contracts.values())
     status = new_status or tender.get("status")
-    return (
-        status in ("unsuccessful", "cancelled")
-        or (
-            status == "complete"
-            and len(contract_statuses) > 0
-            and not contract_statuses.intersection({"active", "pending", "pending.winner-signing"})
-        )
+    return status in ("unsuccessful", "cancelled") or (
+        status == "complete"
+        and len(contract_statuses) > 0
+        and not contract_statuses.intersection({"active", "pending", "pending.winner-signing"})
     )
 
 
@@ -370,19 +367,19 @@ async def update_tender_risks(uid, risks, additional_fields, contracts=None):
                 "_id": uid,
                 "contracts": updated_contracts,
                 "terminated": tender_is_terminated(
-                    tender if tender else {},
-                    updated_contracts,
-                    new_status=additional_fields.get("status")
+                    tender if tender else {}, updated_contracts, new_status=additional_fields.get("status")
                 ),
                 **additional_fields,
             }
             if risks:
                 risks, worked_risks = join_old_risks_with_new_ones(risks, tender if tender else {})
-                set_data.update({
-                    "risks": risks,
-                    "worked_risks": worked_risks,
-                    "has_risks": len(worked_risks) > 0,
-                })
+                set_data.update(
+                    {
+                        "risks": risks,
+                        "worked_risks": worked_risks,
+                        "has_risks": len(worked_risks) > 0,
+                    }
+                )
             if tender:
                 filters["dateAssessed"] = tender.get("dateAssessed")
             result = await get_risks_collection().find_one_and_update(
@@ -393,8 +390,7 @@ async def update_tender_risks(uid, risks, additional_fields, contracts=None):
             )
         except PyMongoError as e:
             logger.warning(
-                f"Update risks warning {type(e)}: {e}. Update will be repeated",
-                extra={"MESSAGE_ID": "MONGODB_EXC"}
+                f"Update risks warning {type(e)}: {e}. Update will be repeated", extra={"MESSAGE_ID": "MONGODB_EXC"}
             )
             await asyncio.sleep(MONGODB_ERROR_INTERVAL)
         else:
