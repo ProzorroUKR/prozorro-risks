@@ -46,15 +46,17 @@ def setup_swagger(app):
         app,
         swagger_ui_settings=SwaggerUiSettings(path="/api/doc"),
     )
-    swagger.add_routes([
-        web.get("/api/ping", ping_handler, allow_head=False),
-        web.get("/api/version", get_version, allow_head=False),
-        web.get(r"/api/risks/{tender_id:[\w-]+}", get_tender_risks, allow_head=False),
-        web.get("/api/risks", list_tenders, allow_head=False),
-        web.get("/api/filter-values", get_filter_values, allow_head=False),
-        web.get("/api/risks-report", download_risks_report, allow_head=False),
-        web.get("/api/risks-feed", get_tenders_feed, allow_head=False),
-    ])
+    swagger.add_routes(
+        [
+            web.get("/api/ping", ping_handler, allow_head=False),
+            web.get("/api/version", get_version, allow_head=False),
+            web.get(r"/api/risks/{tender_id:[\w-]+}", get_tender_risks, allow_head=False),
+            web.get("/api/risks", list_tenders, allow_head=False),
+            web.get("/api/filter-values", get_filter_values, allow_head=False),
+            web.get("/api/risks-report", download_risks_report, allow_head=False),
+            web.get("/api/risks-feed", get_tenders_feed, allow_head=False),
+        ]
+    )
 
 
 if __name__ == "__main__":

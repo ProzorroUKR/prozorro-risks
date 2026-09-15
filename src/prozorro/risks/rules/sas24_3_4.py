@@ -15,9 +15,7 @@ class RiskRule(BaseContractRiskRule):
         "Зміна суми договру частіше ніж один раз на 90 днів є порушенням пп. 2, п. 5 статті 41 Закону "
         "про публічні закупівлі"
     )
-    development_basis = (
-        "Автоматичний контроль терміном внесення змін до договору відсутній в системі."
-    )
+    development_basis = "Автоматичний контроль терміном внесення змін до договору відсутній в системі."
     contract_statuses = ("active",)
     stop_assessment_status = "terminated"
     procurement_methods = (
@@ -44,9 +42,7 @@ class RiskRule(BaseContractRiskRule):
         if contract["status"] in self.contract_statuses:
             if datetime.fromisoformat(parent_object["dateCreated"]) < CRAWLER_START_DATE:
                 raise SkipException()
-            if self.tender_matches_requirements(
-                parent_object, status=False, category=False, value=True
-            ):
+            if self.tender_matches_requirements(parent_object, status=False, category=False, value=True):
                 rationales = {
                     "itemPriceVariation",
                     "durationExtension",

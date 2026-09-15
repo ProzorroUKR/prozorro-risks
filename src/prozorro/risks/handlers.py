@@ -136,10 +136,7 @@ async def get_tenders_feed(request):
                 if "dateAssessed" in result:
                     prev_params["offset"] = result["dateAssessed"]
                     break
-    data = {
-        "data": results,
-        "next_page": get_page(request, params)
-    }
+    data = {"data": results, "next_page": get_page(request, params)}
     if request.query.get("descending") or request.query.get("offset"):
         data["prev_page"] = get_page(request, prev_params)
 

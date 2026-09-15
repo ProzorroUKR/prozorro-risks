@@ -9,9 +9,7 @@ from prozorro.risks.settings import CRAWLER_START_DATE
 class RiskRule(BaseContractRiskRule):
     identifier = "ari-1-1"
     owner = "ari"
-    name = (
-        "Публікація в електронній системі 3х і більше додаткових угод до договору"
-    )
+    name = "Публікація в електронній системі 3х і більше додаткових угод до договору"
     description = (
         "Визначення закупівель, що містять ознаки безпідставних/ необґрунтованих заключень додаткових угод "
         "до договору про закупівлю, та/або свідчать про ймовірність допущення таких порушень."
@@ -52,9 +50,7 @@ class RiskRule(BaseContractRiskRule):
         if contract["status"] in self.contract_statuses:
             if datetime.fromisoformat(parent_object["dateCreated"]) < CRAWLER_START_DATE:
                 raise SkipException()
-            if self.tender_matches_requirements(
-                parent_object, status=False, category=False, value=True
-            ):
+            if self.tender_matches_requirements(parent_object, status=False, category=False, value=True):
                 active_quality_changes = 0
                 for change in contract.get("changes", []):
                     if change["status"] == "active":

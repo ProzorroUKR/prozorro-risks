@@ -37,7 +37,7 @@ async def process_tender(tender, tender_risks=TENDER_RISKS):
     :param tender_risks: list of risk rules
     """
     identifier = tender.get("procuringEntity", {}).get("identifier", {})
-    tender["procuringEntityIdentifier"] = f'{identifier.get("scheme", "")}-{identifier.get("id", "")}'
+    tender["procuringEntityIdentifier"] = f"{identifier.get('scheme', '')}-{identifier.get('id', '')}"
     tender["subjectOfProcurement"] = get_subject_of_procurement(tender)
 
     risks = await process_risks(tender, tender_risks)

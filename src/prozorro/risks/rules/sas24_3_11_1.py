@@ -55,18 +55,12 @@ class RiskRule(BaseTenderRiskRule):
             # з data.procurement.MethodType = aboveThreshold, = aboveThresholdUA, = aboveThresholdEU
             # зі статусами data.status=unsuccessful.
             filters = {
-                "procuringEntityIdentifier": tender.get(
-                    "procuringEntityIdentifier"
-                ),  # first field from compound index
+                "procuringEntityIdentifier": tender.get("procuringEntityIdentifier"),  # first field from compound index
                 # якщо відкриті торги і звіт мають один tv_subjectOfProcurement
-                "subjectOfProcurement": tender.get(
-                    "subjectOfProcurement"
-                ),  # second field from compound index
+                "subjectOfProcurement": tender.get("subjectOfProcurement"),  # second field from compound index
                 # data.title звітування співпадає з data.title з будь-якої закупівлі відкритих торгі
                 "title": tender.get("title"),
-                "procurementMethodType": {
-                    "$in": ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold")
-                },
+                "procurementMethodType": {"$in": ("aboveThresholdEU", "aboveThresholdUA", "aboveThreshold")},
                 "status": "unsuccessful",
                 # data.tender.dateCreated звітування молодша та є в межах 365 днів від data.tenderPeriod.startDate
                 "tenderPeriod.startDate": {
@@ -80,12 +74,8 @@ class RiskRule(BaseTenderRiskRule):
             }
             open_tenders = await get_tenders_from_historical_data(filters)
             for open_tender in open_tenders:
-                tender_value = await get_exchanged_value(
-                    tender, date=tender["dateCreated"]
-                )
-                open_tender_value = await get_exchanged_value(
-                    open_tender, open_tender["tenderPeriod"]["startDate"]
-                )
+                tender_value = await get_exchanged_value(tender, date=tender["dateCreated"])
+                open_tender_value = await get_exchanged_value(open_tender, open_tender["tenderPeriod"]["startDate"])
                 # data.value.amount в гривнях на дату звітування знаходиться в межах +-10% від data.value.amount
                 # в гривнях відповідних відкритих торгів
                 if abs(tender_value - open_tender_value) <= open_tender_value * 0.1:

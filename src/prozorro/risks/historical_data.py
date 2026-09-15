@@ -10,7 +10,7 @@ async def get_list_of_cpvs(
     entity_identifier=None,
     procurement_methods=None,
     supplier_identifier=None,
-    procurement_categories=None
+    procurement_categories=None,
 ):
     """
     Get list of unique CPVs for provided filters arguments.

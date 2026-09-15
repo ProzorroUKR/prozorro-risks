@@ -53,9 +53,7 @@ class RiskRule(BaseContractRiskRule):
         if contract["status"] in self.contract_statuses:
             if datetime.fromisoformat(parent_object["dateCreated"]) < CRAWLER_START_DATE:
                 raise SkipException()
-            if self.tender_matches_requirements(
-                parent_object, status=False, category=False, value=True
-            ):
+            if self.tender_matches_requirements(parent_object, status=False, category=False, value=True):
                 active_quality_changes = 0
                 for change in contract.get("changes", []):
                     if change["status"] == "active" and "qualityImprovement" in change["rationaleTypes"]:

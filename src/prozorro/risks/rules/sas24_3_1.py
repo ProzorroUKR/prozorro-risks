@@ -69,10 +69,7 @@ class RiskRule(BaseTenderRiskRule):
         if self.tender_matches_requirements(tender, category=False, value=True):
             complaints = get_complaints(tender, statuses=["satisfied"])
             award_complaints = flatten(
-                [
-                    get_complaints(award, statuses=["satisfied"])
-                    for award in tender.get("awards", [])
-                ]
+                [get_complaints(award, statuses=["satisfied"]) for award in tender.get("awards", [])]
             )
             cancellation_complaints = flatten(
                 [

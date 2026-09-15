@@ -63,9 +63,7 @@ class RiskRule(BaseTenderRiskRule):
                 year_value += await get_exchanged_value(hist_tender, hist_tender["dateCreated"])
             for contract in tender.get("contracts", []):
                 if contract["status"] == "active":
-                    contract_value = await get_exchanged_value(
-                        contract, date=contract["date"]
-                    )
+                    contract_value = await get_exchanged_value(contract, date=contract["date"])
                     # Додаємо суму з аналітичної таблиці до нашої очікуваної вартості.
                     year_value += contract_value
             # Якщо сума data.contracts.value виходить більша або дорівнює сумі робіт/послуг за поточний рік,

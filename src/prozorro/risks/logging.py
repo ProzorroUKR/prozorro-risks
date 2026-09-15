@@ -9,7 +9,7 @@ from pythonjsonlogger import jsonlogger
 # every request task will have its own context and request-id as a result
 from pythonjsonlogger.jsonlogger import merge_record_extra
 
-request_id_var = ContextVar("request_id")
+request_id_var: ContextVar[str] = ContextVar("request_id")
 
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
