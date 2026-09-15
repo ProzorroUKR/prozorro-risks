@@ -10,7 +10,7 @@ from aiohttp.hdrs import CONTENT_DISPOSITION, CONTENT_TYPE
 from aiohttp_swagger3 import swagger_doc
 from datetime import datetime
 
-from pymongo.errors import ExecutionTimeout
+from pymongo.errors import ExecutionTimeout, OperationFailure, CursorNotFound
 
 from prozorro import version as api_version
 from prozorro.risks.db import (
@@ -223,7 +223,7 @@ async def download_risks_report(request):
                 await send_buffer()
                 count = 0
 
-    except ExecutionTimeout as exc:
+    except (ExecutionTimeout, OperationFailure, CursorNotFound) as exc:
         logger.error(
             f"Report downloading {type(exc)}: {exc}, filters: {filters}",
             extra={"MESSAGE_ID": "MONGODB_EXC"},
