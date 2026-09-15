@@ -472,7 +472,7 @@ async def get_tender_risks_report(filters, **kwargs):
     pipeline = [
         {"$match": filters},
         {"$project": {"contracts": 0, "dateCreated": 0, "risks": 0, "status": 0}},
-        {"$sort": {sort_field: sort_order, "_id": 1}},  # including _id field guarantee sort consistency during limit
+        {"$sort": {sort_field: sort_order}},
         {"$limit": REPORT_ITEMS_LIMIT},
         {
             "$addFields": {
