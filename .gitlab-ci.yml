@@ -221,6 +221,8 @@ deploy_sandbox2:
   tags:
     - k8s-sandbox
   stage: deploy
+  variables:
+    GIT_STRATEGY: none
   only:
     - tags
   script:
