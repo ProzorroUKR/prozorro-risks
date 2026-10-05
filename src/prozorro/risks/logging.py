@@ -52,6 +52,8 @@ def setup_logging():
     formatter = CustomJsonFormatter(json_ensure_ascii=False, timestamp=True)
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
+
+    # TODO: Make this log level configurable
     logging.basicConfig(level=logging.INFO, handlers=[handler])
 
     # serve alternative logging for uncaught exceptions
@@ -74,7 +76,7 @@ class AccessLogger(AbstractAccessLogger):
         refer = request.headers.get("Referer", "-")
         user_agent = request.headers.get("User-Agent", "-")
         if request.path not in LOG_EXCLUDED:
-            self.logger.info(
+            self.logger.debug(
                 f"{remote} "
                 f'"{request.method} {request.path} {response.status}'
                 f"{response.body_length} {refer} {user_agent} "
